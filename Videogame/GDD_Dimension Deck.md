@@ -1,10 +1,20 @@
+![tec](Img/Logo_TEC.png)
 # **Dimension Deck**
 ## _Game Design Document_
----
-##### **Jesús José Espinoza Torruco | Vladimir Piñera Reyes | Gonzalo Zamarrón Orrantia**
+
+**Professors:**
+- Gilberto Echerría Juarez
+- Esteban Castillo Juarez
+- 
+
+**Developers**
+- Jesús José Espinoza Torruco  |  A01781963
+- Vladimir Piñera Reyes        |  A01786772
+- Gonzalo Zamarrón Orrantia    |  A01782739
+
 ##
 ## _Index_
----
+
 1. [Index](#index)
 2. [Game Design](#game-design)
    1. [Summary](#summary)
