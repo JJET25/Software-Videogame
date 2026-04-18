@@ -1,13 +1,23 @@
-import Game from "./Core/Game.js";
-import GameLoop from "./Core/GameLoop.js";
+// Librerias
+//import Game from "./Core/Game.js";
+//import GameLoop from "./Core/GameLoop.js";
 
+// Variables Globales
 const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2D");
+const ctx = canvas.getContext("2d");
 
+//const game = new Game(ctx);
+//const loop = new GameLoop(game);
+
+// Configuración
 canvas.width = 800;
 canvas.height = 600;
 
-const game = new Game(ctx);
-const loop = new GameLoop(game);
+function draw(){
+    ctx.fillStyle = "SkyBlue";
+    ctx.fillRect(50, 50, 50, 50);
 
-game.start();
+    requestAnimationFrame(draw);
+}
+
+draw();
