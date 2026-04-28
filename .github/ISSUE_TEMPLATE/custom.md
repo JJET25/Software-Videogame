@@ -1,6 +1,6 @@
 ---
 name: Custom issue template
-about: Describe this issue template's purpose here.
+about: A custom template for software class
 title: ''
 labels: ''
 assignees: ''
