@@ -1,37 +1,195 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=DynaPuff:wght@400..700&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  --cream: #fdf6f0;
+  --peach: #e8b59e;
+  --peach-dark: #c9846a;
+  --brown: #6b3f2a;
+  --shadow: 0 8px 32px rgba(107, 63, 42, 0.12);
+  --radius: 18px;
 }
 
-/* Hero */
-.hero__container{
-    height: 100vh;
-    width: 100%;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.hero__container img{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -2;
-    color: #ffffff;
+body {
+  font-family: "DynaPuff", system-ui;
+  background: var(--cream);
+  color: var(--brown);
 }
 
-.hero__text h1 {
-    font-size: 4rem;
-    margin-bottom: 0.5rem;
+.hero__container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.hero__container > img:first-child {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
+}
+
+.hero__text {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 2;
+  width: 90%;
+}
+
+.logo {
+  width: 250px;
+  margin-bottom: 20px;
+}
+
+.hero__text h2 {
+  font-size: clamp(1.4rem, 3vw, 2.5rem);
+  color: var(--peach);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 
 .hero__button {
-    margin-top: 2rem;
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  gap: 16px;
+}
+
+.hero__button button {
+  font-family: "DynaPuff", system-ui;
+  font-size: 1rem;
+  padding: 14px 36px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  border: 2px solid var(--peach);
+}
+
+.hero__button button:first-child {
+  background: var(--peach);
+  color: var(--brown);
+}
+
+.hero__button button:last-child {
+  background: transparent;
+  color: var(--peach);
+}
+
+.hero__button button:hover {
+  background: var(--peach-dark);
+  color: #fff;
+  transform: translateY(-3px);
+}
+
+.Menu__container {
+  padding: 80px 5%;
+  text-align: center;
+}
+
+.Menu__container h2,
+.Cats__container h2,
+.Experience__container h2,
+.Contact__container h2 {
+  font-size: 2rem;
+  color: var(--brown);
+  margin-bottom: 40px;
+}
+
+.Cats__container {
+  padding: 80px 5%;
+  background: #fdf0e8;
+  text-align: center;
+}
+
+.Cats__container > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.cat {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 24px 18px;
+  box-shadow: var(--shadow);
+  width: 180px;
+  transition: 0.3s ease;
+  text-align: center;
+}
+
+.cat:hover {
+  transform: translateY(-6px);
+}
+
+.cat h3 {
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.cat img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--peach);
+  margin-bottom: 12px;
+  background: #f0d8c8;
+}
+
+.cat p {
+  font-family: "Raleway", sans-serif;
+  font-size: 0.85rem;
+  color: #a0614a;
+}
+
+.Experience__container {
+  padding: 80px 5%;
+  background: var(--brown);
+  color: var(--cream);
+  text-align: center;
+}
+
+.Experience__container h2 {
+  color: var(--peach);
+}
+
+.Contact__container {
+  padding: 80px 5%;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .hero__button {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero__button button {
+    width: 200px;
+  }
+
+  .logo {
+    width: 180px;
+  }
 }
