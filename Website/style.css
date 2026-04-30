@@ -21,6 +21,8 @@ body {
   color: var(--brown);
 }
 
+/*hero*/
+
 .hero__container {
   position: relative;
   width: 100%;
@@ -100,19 +102,112 @@ body {
   transform: translateY(-3px);
 }
 
+/*menu*/
+
 .Menu__container {
   padding: 80px 5%;
   text-align: center;
+  background: var(--cream);
 }
 
 .Menu__container h2,
-.Cats__container h2,
+.Cats__container > h2,
 .Experience__container h2,
 .Contact__container h2 {
   font-size: 2rem;
   color: var(--brown);
+  margin-bottom: 16px;
+}
+
+/* Selector de días */
+.day-selector {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 40px;
 }
+
+.day-selector button {
+  font-family: "DynaPuff", system-ui;
+  font-size: 0.85rem;
+  padding: 8px 20px;
+  border: 2px solid var(--peach);
+  border-radius: 50px;
+  background: transparent;
+  color: var(--brown);
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.day-selector button:hover,
+.day-selector button.active {
+  background: var(--peach);
+  color: var(--brown);
+}
+
+/* Grid del menú */
+.menu__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Ítem del menú con hover imagen */
+.menu__item {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 0;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.menu__item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(107, 63, 42, 0.2);
+}
+
+.menu__item__img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.menu__item:hover .menu__item__img {
+  transform: scale(1.08);
+}
+
+.menu__item__info {
+  padding: 16px;
+}
+
+.menu__item__info h3 {
+  font-size: 0.95rem;
+  color: var(--brown);
+  margin-bottom: 4px;
+}
+
+.menu__item__info p {
+  font-family: "Raleway", sans-serif;
+  font-size: 0.8rem;
+  color: #a0614a;
+  margin-bottom: 8px;
+}
+
+.menu__item__info .price {
+  font-size: 1rem;
+  color: var(--peach-dark);
+  font-weight: 700;
+}
+
+/*gatos*/
 
 .Cats__container {
   padding: 80px 5%;
@@ -120,7 +215,7 @@ body {
   text-align: center;
 }
 
-.Cats__container > div {
+.cats__grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -145,6 +240,7 @@ body {
 .cat h3 {
   font-size: 1rem;
   margin-bottom: 12px;
+  color: var(--brown);
 }
 
 .cat img {
@@ -155,6 +251,11 @@ body {
   border: 3px solid var(--peach);
   margin-bottom: 12px;
   background: #f0d8c8;
+  transition: transform 0.3s ease;
+}
+
+.cat:hover img {
+  transform: scale(1.08);
 }
 
 .cat p {
@@ -162,6 +263,8 @@ body {
   font-size: 0.85rem;
   color: #a0614a;
 }
+
+/*experiencia*/
 
 .Experience__container {
   padding: 80px 5%;
@@ -174,10 +277,62 @@ body {
   color: var(--peach);
 }
 
+.Experience__container p {
+  font-family: "Raleway", sans-serif;
+  font-size: 1rem;
+  max-width: 560px;
+  margin: 0 auto;
+  opacity: 0.85;
+  line-height: 1.7;
+}
+
+/*contacto*/
+
 .Contact__container {
   padding: 80px 5%;
   text-align: center;
+  background: var(--cream);
 }
+
+.Contact__container p {
+  font-family: "Raleway", sans-serif;
+  font-size: 1rem;
+  color: #a0614a;
+  margin-bottom: 8px;
+}
+
+/*animacion*/
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.Menu__container,
+.Cats__container,
+.Experience__container,
+.Contact__container {
+  animation: fadeUp 0.6s ease both;
+}
+
+/* ── ANIMACIÓN: pulso en el logo del hero ── */
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.logo {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+/* ── RESPONSIVE ── */
 
 @media (max-width: 600px) {
   .hero__button {
@@ -191,5 +346,9 @@ body {
 
   .logo {
     width: 180px;
+  }
+
+  .menu__grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
