@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="Images/MichiCafe_logo.png" type="image/png">
     <link rel="stylesheet" href="/style.css" />
     <title>Cat Café</title>
   </head>
@@ -22,145 +23,75 @@
         />
         <h1>Coffee and Cats in one place</h1>
       </div>
-      <div class="hero__button">
-        <button>Menu</button>
-        <button>Our Cats</button>
+      <div class="hero__buttons">
+        <button id="menuBtn">Menu</button>
+        <button id="catsBtn">Our Cats</button>
       </div>
     </div>
 
     <!-- MENU -->
-    <div class="Menu__container">
-      <h2>Our Menu</h2>
+    <section id="menuSection" class="menu-section">
+      <div class="Menu__container">
+        <h2>Our Menu</h2>
 
-      <!-- Day selector -->
-      <div class="day-selector">
-        <button class="active">Monday</button>
-        <button>Tuesday</button>
-        <button>Wednesday</button>
-        <button>Thursday</button>
-        <button>Friday</button>
-        <button>Saturday</button>
-        <button>Sunday</button>
+        <!-- Day selector -->
+        <div class="day-selector">
+          <button class="day" data-day="monday">Monday</button>
+          <button class="day" data-day="tuesday">Tuesday</button>
+          <button class="day" data-day="wednesday">Wednesday</button>
+          <button class="day" data-day="thursday">Thursday</button>
+          <button class="day" data-day="friday">Friday</button>
+          <button class="day" data-day="saturday">Saturday</button>
+          <button class="day" data-day="sunday">Sunday</button>
+        </div>
+
+        <!-- Menu grid -->
+        <div id="menuGrid" class="menu__grid"></div>
       </div>
-
-      <!-- Menu grid -->
-      <div class="menu__grid">
-        <div class="menu__item">
-          <img src="Images/Latte.jpg" alt="Cat Latte" class="menu__item__img" />
-          <div class="menu__item__info">
-            <h3>Cat Latte</h3>
-            <p>Espresso with steamed milk & latte art</p>
-            <span class="price">$65</span>
-          </div>
-        </div>
-
-        <div class="menu__item">
-          <img
-            src="Images/Capuchino.jpg"
-            alt="Cappuccino"
-            class="menu__item__img"
-          />
-          <div class="menu__item__info">
-            <h3>Cappuccino</h3>
-            <p>Rich espresso topped with frothy foam</p>
-            <span class="price">$60</span>
-          </div>
-        </div>
-
-        <div class="menu__item">
-          <img
-            src="Images/Cheesecake.jpg"
-            alt="Cheesecake"
-            class="menu__item__img"
-          />
-          <div class="menu__item__info">
-            <h3>Cheesecake</h3>
-            <p>Creamy New York-style slice</p>
-            <span class="price">$80</span>
-          </div>
-        </div>
-
-        <div class="menu__item">
-          <img
-            src="Images/Croissant.jpg"
-            alt="Butter Croissant"
-            class="menu__item__img"
-          />
-          <div class="menu__item__info">
-            <h3>Butter Croissant</h3>
-            <p>Flaky, golden, freshly baked</p>
-            <span class="price">$45</span>
-          </div>
-        </div>
-
-        <div class="menu__item">
-          <img
-            src="Images/Matcha.jpg"
-            alt="Matcha Latte"
-            class="menu__item__img"
-          />
-          <div class="menu__item__info">
-            <h3>Matcha Latte</h3>
-            <p>Ceremonial grade matcha with oat milk</p>
-            <span class="price">$70</span>
-          </div>
-        </div>
-
-        <div class="menu__item">
-          <img
-            src="Images/Brownie.jpg"
-            alt="Walnut Brownie"
-            class="menu__item__img"
-          />
-          <div class="menu__item__info">
-            <h3>Walnut Brownie</h3>
-            <p>Fudgy chocolate with toasted walnuts</p>
-            <span class="price">$55</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
 
     <!-- CATS -->
-    <div class="Cats__container">
-      <h2>Our Cats</h2>
-      <div class="cats__grid">
-        <div class="cat">
-          <h3>Mochi</h3>
-          <img src="Images/Cat_1.jpg" alt="Mochi" />
-          <p>Age: 3 years</p>
-          <p>Nature: Playful & curious</p>
-        </div>
+    <section id="catsSection" class="cats-Section">
+      <div class="Cats__container">
+        <h2>Our Cats</h2>
+        <div class="cats__grid">
+          <div class="cat">
+            <h3>Mochi</h3>
+            <img src="Images/Cat_1.jpg" alt="Mochi" />
+            <p>Age: 3 years</p>
+            <p>Nature: Playful & curious</p>
+          </div>
 
-        <div class="cat">
-          <h3>Luna</h3>
-          <img src="Images/Cat_2.jpg" alt="Luna" />
-          <p>Age: 5 years</p>
-          <p>Nature: Calm & affectionate</p>
-        </div>
+          <div class="cat">
+            <h3>Luna</h3>
+            <img src="Images/Cat_2.jpg" alt="Luna" />
+            <p>Age: 5 years</p>
+            <p>Nature: Calm & affectionate</p>
+          </div>
 
-        <div class="cat">
-          <h3>Nori</h3>
-          <img src="Images/Cat_3.jpg" alt="Nori" />
-          <p>Age: 2 years</p>
-          <p>Nature: Shy but sweet</p>
-        </div>
+          <div class="cat">
+            <h3>Nori</h3>
+            <img src="Images/Cat_3.jpg" alt="Nori" />
+            <p>Age: 2 years</p>
+            <p>Nature: Shy but sweet</p>
+          </div>
 
-        <div class="cat">
-          <h3>Churro</h3>
-          <img src="Images/Cat_4.jpg" alt="Churro" />
-          <p>Age: 4 years</p>
-          <p>Nature: Bold & friendly</p>
-        </div>
+          <div class="cat">
+            <h3>Churro</h3>
+            <img src="Images/Cat_4.jpg" alt="Churro" />
+            <p>Age: 4 years</p>
+            <p>Nature: Bold & friendly</p>
+          </div>
 
-        <div class="cat">
-          <h3>Boba</h3>
-          <img src="Images/Cat_5.jpg" alt="Boba" />
-          <p>Age: 1 year</p>
-          <p>Nature: Energetic & silly</p>
+          <div class="cat">
+            <h3>Boba</h3>
+            <img src="Images/Cat_5.jpg" alt="Boba" />
+            <p>Age: 1 year</p>
+            <p>Nature: Energetic & silly</p>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- EXPERIENCE -->
     <div class="Info__container">
@@ -178,7 +109,7 @@
             vibes find you.
           </p>
         </div>
-        <img src="Images/coffe_Cat.png" alt="">
+        <img src="Images/coffe_Cat.png" alt="" />
       </div>
 
       <!-- CONTACT -->
@@ -191,15 +122,17 @@
         </div>
         <div class="Contact__text">
           <h2>Find Us</h2>
-          <p>Calle de los Gatos 42, Roma Norte, CDMX</p>
+          <p>Av Carlos Lazo 100, Santa Fe, CDMX</p>
           <p>
             Mon – Fri: 9:00 AM – 8:00 PM &nbsp;|&nbsp; Sat – Sun: 10:00 AM –
             9:00 PM
           </p>
-          <p>+52 55 1234 5678</p>
+          <p>+81 8358 2000</p>
           <p>hola@michicafe.mx</p>
         </div>
       </div>
     </div>
   </body>
+
+  <script src="script.js"></script>
 </html>
