@@ -3,67 +3,189 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="/style.css" />
     <title>Cat Café</title>
   </head>
   <body>
+    <!-- HERO -->
     <div class="hero__container">
-      <img src="Images/CatCaffe_Hero.png" alt="café_with_cats" class="hero__img">
-
+      <img
+        src="Images/CatCaffe_Hero.png"
+        alt="café_with_cats"
+        class="hero__img"
+      />
       <div class="hero__text">
-        <img src="Images/MichiCafe_logo.png" alt="" class="logo">
-
-        <h2>Coffee and Cats in one place</h2>
+        <img
+          src="Images/MichiCafe_logo.png"
+          alt="MichiCafé Logo"
+          class="logo"
+        />
+        <h1>Coffee and Cats in one place</h1>
       </div>
-
       <div class="hero__button">
         <button>Menu</button>
         <button>Our Cats</button>
       </div>
     </div>
 
-    <div class="Menu__container"></div>
+    <!-- MENU -->
+    <div class="Menu__container">
+      <h2>Our Menu</h2>
 
-    <div class="Cats__container">
-      <h2>Our Cats</h2>
-      <div class="cat">
-        <h3>Cat 1</h3>
-        <img src="#" alt="#" />
-        <p>Age:</p>
-        <p>Nature:</p>
+      <!-- Day selector -->
+      <div class="day-selector">
+        <button class="active">Monday</button>
+        <button>Tuesday</button>
+        <button>Wednesday</button>
+        <button>Thursday</button>
+        <button>Friday</button>
+        <button>Saturday</button>
+        <button>Sunday</button>
       </div>
 
-      <div class="cat">
-        <h3>Cat 2</h3>
-        <img src="#" alt="#" />
-        <p>Age:</p>
-        <p>Nature:</p>
-      </div>
+      <!-- Menu grid -->
+      <div class="menu__grid">
+        <div class="menu__item">
+          <img src="Images/Latte.jpg" alt="Cat Latte" class="menu__item__img" />
+          <div class="menu__item__info">
+            <h3>Cat Latte</h3>
+            <p>Espresso with steamed milk & latte art</p>
+            <span class="price">$65</span>
+          </div>
+        </div>
 
-      <div class="cat">
-        <h3>Cat 3</h3>
-        <img src="#" alt="#" />
-        <p>Age:</p>
-        <p>Nature:</p>
-      </div>
+        <div class="menu__item">
+          <img
+            src="Images/Capuchino.jpg"
+            alt="Cappuccino"
+            class="menu__item__img"
+          />
+          <div class="menu__item__info">
+            <h3>Cappuccino</h3>
+            <p>Rich espresso topped with frothy foam</p>
+            <span class="price">$60</span>
+          </div>
+        </div>
 
-      <div class="cat">
-        <h3>Cat 4</h3>
-        <img src="#" alt="#" />
-        <p>Age:</p>
-        <p>Nature:</p>
-      </div>
+        <div class="menu__item">
+          <img
+            src="Images/Cheesecake.jpg"
+            alt="Cheesecake"
+            class="menu__item__img"
+          />
+          <div class="menu__item__info">
+            <h3>Cheesecake</h3>
+            <p>Creamy New York-style slice</p>
+            <span class="price">$80</span>
+          </div>
+        </div>
 
-      <div class="cat">
-        <h3>Cat 5</h3>
-        <img src="#" alt="#" />
-        <p>Age:</p>
-        <p>Nature:</p>
+        <div class="menu__item">
+          <img
+            src="Images/Croissant.jpg"
+            alt="Butter Croissant"
+            class="menu__item__img"
+          />
+          <div class="menu__item__info">
+            <h3>Butter Croissant</h3>
+            <p>Flaky, golden, freshly baked</p>
+            <span class="price">$45</span>
+          </div>
+        </div>
+
+        <div class="menu__item">
+          <img
+            src="Images/Matcha.jpg"
+            alt="Matcha Latte"
+            class="menu__item__img"
+          />
+          <div class="menu__item__info">
+            <h3>Matcha Latte</h3>
+            <p>Ceremonial grade matcha with oat milk</p>
+            <span class="price">$70</span>
+          </div>
+        </div>
+
+        <div class="menu__item">
+          <img
+            src="Images/Brownie.jpg"
+            alt="Walnut Brownie"
+            class="menu__item__img"
+          />
+          <div class="menu__item__info">
+            <h3>Walnut Brownie</h3>
+            <p>Fudgy chocolate with toasted walnuts</p>
+            <span class="price">$55</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="Experience__container"></div>
+    <!-- CATS -->
+    <div class="Cats__container">
+      <h2>Our Cats</h2>
+      <div class="cats__grid">
+        <div class="cat">
+          <h3>Mochi</h3>
+          <img src="Images/Cat_1.jpg" alt="Mochi" />
+          <p>Age: 3 years</p>
+          <p>Nature: Playful & curious</p>
+        </div>
 
-    <div class="Contact__container"></div>
+        <div class="cat">
+          <h3>Luna</h3>
+          <img src="Images/Cat_2.jpg" alt="Luna" />
+          <p>Age: 5 years</p>
+          <p>Nature: Calm & affectionate</p>
+        </div>
+
+        <div class="cat">
+          <h3>Nori</h3>
+          <img src="Images/Cat_3.jpg" alt="Nori" />
+          <p>Age: 2 years</p>
+          <p>Nature: Shy but sweet</p>
+        </div>
+
+        <div class="cat">
+          <h3>Churro</h3>
+          <img src="Images/Cat_4.jpg" alt="Churro" />
+          <p>Age: 4 years</p>
+          <p>Nature: Bold & friendly</p>
+        </div>
+
+        <div class="cat">
+          <h3>Boba</h3>
+          <img src="Images/Cat_5.jpg" alt="Boba" />
+          <p>Age: 1 year</p>
+          <p>Nature: Energetic & silly</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPERIENCE -->
+    <div class="Experience__container">
+      <h2>The Experience</h2>
+      <p>
+        Step into a world where every sip comes with a purr. At MichiCafé, we
+        believe coffee tastes better with a cat in your lap. Our cozy space is
+        home to five rescued cats who roam freely — ready to cuddle, play, or
+        simply nap beside you while you enjoy a handcrafted drink and a freshly
+        baked treat.
+        <br /><br />
+        No reservations needed. Just walk in, slow down, and let the good vibes
+        find you.
+      </p>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="Contact__container">
+      <h2>Find Us</h2>
+      <p>Calle de los Gatos 42, Roma Norte, CDMX</p>
+      <p>
+        Mon – Fri: 9:00 AM – 8:00 PM &nbsp;|&nbsp; Sat – Sun: 10:00 AM – 9:00 PM
+      </p>
+      <p>+52 55 1234 5678</p>
+      <p>hola@michicafe.mx</p>
+    </div>
   </body>
 </html>
