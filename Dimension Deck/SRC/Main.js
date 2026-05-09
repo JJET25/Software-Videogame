@@ -18,8 +18,8 @@ renderer.setupResizeListener();
 // Entities
 const player = new Player(
     new Vector(500, 500),
-    50,
-    50,
+    32,
+    64,
     input
 );
 
