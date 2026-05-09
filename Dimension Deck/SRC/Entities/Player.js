@@ -3,7 +3,7 @@ import Vector from "../Utils/Vector.js";
 
 export default class Player extends Entity {
     constructor(position, width, height, input) {
-        super(position, 64, 64, "red", "player");
+        super(position, 32, 64, "red", "player");
 
         this.input = input;
         this.speed = 300;
