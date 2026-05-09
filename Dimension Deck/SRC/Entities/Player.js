@@ -3,7 +3,7 @@ import Vector from "../Utils/Vector.js";
 
 export default class Player extends GameObject {
     constructor(position, width, height, input) {
-        super(position, width, height, "red");
+        super(position, width, height, "red", "player");
 
         this.input = input;
 

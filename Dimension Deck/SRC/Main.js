@@ -1,8 +1,8 @@
 import Renderer from "./Core/Renderer.js";
 import InputManager from "./Core/Input.js";
-
 import Player from "./Entities/Player.js";
-
+import Wall from "./Entities/Wall.js";
+import Collision from "./Physics/Collision.js";
 import Vector from "./Utils/Vector.js";
 
 // Canvas
@@ -12,17 +12,21 @@ const canvas = document.getElementById("gameCanvas");
 const renderer = new Renderer(canvas);
 const input = new InputManager();
 
-// --- AQUÍ EL CAMBIO ---
-// Forzar el tamaño inicial
 renderer.resize();
 renderer.setupResizeListener();
 
-// Player
+// Entities
 const player = new Player(
-    new Vector(100, 100),
+    new Vector(500, 500),
     50,
     50,
     input
+);
+
+const wall = new Wall(
+    new Vector(700, 500),
+    100,
+    100
 );
 
 // Delta time
@@ -30,23 +34,23 @@ let lastTime = 0;
 
 // Game loop
 function gameLoop(timestamp) {
-
-    // Delta time in seconds
     const deltaTime = (timestamp - lastTime) / 1000;
     lastTime = timestamp;
 
-    // Clear screen
+    // Clear
     renderer.clear();
 
     // Update
     player.update(deltaTime);
 
+    // Colisiones — entre update y draw
+    Collision.resolve(player, wall);
+
     // Draw
     player.draw(renderer);
+    wall.draw(renderer);
 
-    // Next frame
     requestAnimationFrame(gameLoop);
 }
 
-// Start game
 requestAnimationFrame(gameLoop);
