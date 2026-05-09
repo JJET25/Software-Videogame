@@ -1,7 +1,7 @@
 import Renderer from "./Core/Renderer.js";
 import InputManager from "./Core/Input.js";
 import Player from "./Entities/Player.js";
-import Wall from "./Entities/Wall.js";
+import Wall from "./Objects/Wall.js";
 import Collision from "./Physics/Collision.js";
 import Vector from "./Utils/Vector.js";
 

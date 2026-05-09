@@ -1,6 +1,6 @@
 import Vector from "../Utils/Vector.js";
 
-export default class GameObject {
+export default class Entity {
     constructor(position, width, height, color, type) {
         this.position = position;
         this.velocity = new Vector(0, 0);
@@ -10,29 +10,26 @@ export default class GameObject {
 
         this.color = color;
         this.type = type;
+
+        this.health = 100;
+        this.maxHealth = 100;
     }
 
     // Metodos
-    draw(renderer) {
-        const drawX = this.position.x - this.width / 2;
-        const drawY = this.position.y - this.height / 2;
-
-        renderer.drawRect(
-            drawX,
-            drawY,
-            this.width,
-            this.height,
-            this.color
-        );
-    }
-
     getBounds() {
         return {
             left: this.position.x - this.width / 2,
             right: this.position.x + this.width / 2,
             top: this.position.y - this.height / 2,
             bottom: this.position.y + this.height / 2
-        };
+        }
+    }
+
+    draw(renderer) {
+        const drawX = this.position.x - this.width / 2;
+        const drawY = this.position.y - this.width / 2;
+
+        renderer.drawRect(drawX, drawY, this.width, this.height, this.color);
     }
 
     update(deltaTime) {

@@ -1,14 +1,12 @@
-import GameObject from "./GameObject.js";
+import Entity from "./Entity.js";
 import Vector from "../Utils/Vector.js";
 
-export default class Player extends GameObject {
+export default class Player extends Entity {
     constructor(position, width, height, input) {
-        super(position, width, height, "red", "player");
+        super(position, 32, 32, "red", "player");
 
         this.input = input;
-
         this.speed = 300;
-
         this.state = "idle";
     }
 
