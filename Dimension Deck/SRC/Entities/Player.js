@@ -12,14 +12,15 @@ export default class Player extends GameObject {
         this.state = "idle";
     }
 
+    // Methods 
     update(deltaTime) {
         let direction = new Vector(0, 0);
 
-        // Read WASD
-        if (this.input.isKeyDown("W")) { direction.y -= 1; }
-        if (this.input.isKeyDown("S")) { direction.y += 1; }
-        if (this.input.isKeyDown("A")) { direction.x -= 1; }
-        if (this.input.isKeyDown("D")) { direction.x += 1; }
+        // Read WASD and Arrows directions
+        if (this.input.isKeyDown("W") || (this.input.isKeyDown("ARROWUP"))) { direction.y -= 1; }
+        if (this.input.isKeyDown("S") || (this.input.isKeyDown("ARROWDOWN"))) { direction.y += 1; }
+        if (this.input.isKeyDown("A") || (this.input.isKeyDown("ARROWLEFT"))) { direction.x -= 1; }
+        if (this.input.isKeyDown("D") || (this.input.isKeyDown("ARROWRIGHT"))) { direction.x += 1; }
 
         // Player velocity
         this.velocity = direction.normalize().times(this.speed);
