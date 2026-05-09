@@ -15,12 +15,7 @@ const input = new InputManager();
 // --- AQUÍ EL CAMBIO ---
 // Forzar el tamaño inicial
 renderer.resize();
-
-// Escuchar cambios de tamaño de ventana
-window.addEventListener("resize", () => {
-    renderer.resize();
-});
-// ----------------------
+renderer.setupResizeListener();
 
 // Player
 const player = new Player(

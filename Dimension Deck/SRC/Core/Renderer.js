@@ -18,7 +18,7 @@ export default class Renderer {
         this.width = newWidth;
         this.height = newHeight;
     }
-
+    
     clear() {
         // Metodo para limpiar la pantalla
         this.context.fillStyle = "#000000";
@@ -28,5 +28,11 @@ export default class Renderer {
     drawRect(x, y, width, height, color) {
         this.context.fillStyle = color;
         this.context.fillRect(x, y, width, height);
+    }
+
+    setupResizeListener(){
+        window.addEventListener("resize", () => {
+            this.resize();
+        });
     }
 }
