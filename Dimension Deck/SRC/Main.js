@@ -16,17 +16,12 @@ renderer.resize();
 renderer.setupResizeListener();
 
 // Entities
-const player = new Player(
-    new Vector(500, 500),
-    50,
-    50,
-    input
-);
+const player = new Player(new Vector(50, 50), 32, 64, input);
 
 const wall = new Wall(
-    new Vector(700, 500),
-    100,
-    100
+    new Vector(250, 250),
+    32,
+    32
 );
 
 // Delta time

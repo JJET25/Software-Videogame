@@ -1,25 +1,14 @@
 body {
     margin: 0;
-    /* Esto asegura que el body ocupe todo el alto de la pantalla */
-    height: 100vh; 
-    
-    /* Activamos Flexbox */
-    display: flex;
-    
-    /* Centrado horizontal */
-    justify-content: center;
-    
-    /* Centrado vertical */
-    align-items: center;
-    
-    background-color: #f0f0f0; /* Opcional: para ver mejor el canvas */
     overflow: hidden;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
 }
 
-canvas {
+canvas{
     display: block;
-    height: 352px;
-    width: 480px;
-    background-color: white; /* Opcional: para identificar el área */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Opcional: estética */
+    
 }
