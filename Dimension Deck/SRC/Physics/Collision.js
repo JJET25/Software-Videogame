@@ -1,5 +1,5 @@
 export default class Collision {
-    static checkAABB(boundsA, boundsB) {
+    static rectCollision(boundsA, boundsB) {
         // Comprueba si dos cajas estan tocandose/solapandose
         // Recibe los limites del objeto {left, right, top, bottom} 
         return (
@@ -23,7 +23,7 @@ export default class Collision {
         const boundsB = objectB.getBounds();
 
         // Si no hay colisión, salir
-        if (!this.checkAABB(boundsA, boundsB)) return;
+        if (!this.rectCollision(boundsA, boundsB)) return;
 
         const { overlapX, overlapY } = this.getOverlap(boundsA, boundsB);
 

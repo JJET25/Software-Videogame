@@ -1,15 +1,18 @@
 import Vector from "../Utils/Vector.js";
 
 export default class Entity {
-    constructor(position, width, height, color, type) {
+    constructor(position, width, height, color, options = {}) {
         this.position = position;
         this.velocity = new Vector(0, 0);
 
         this.width = width;
         this.height = height;
 
+        this.hitboxWidth = options.hitboxWidth ?? width;
+        this.hitboxHeight = options.hitboxHeight ?? height;
+        this.hitboxOffset = options.hitboxOffset ?? new Vector(0, 0);
+
         this.color = color;
-        this.type = type;
 
         this.health = 100;
         this.maxHealth = 100;
@@ -18,10 +21,10 @@ export default class Entity {
     // Metodos
     getBounds() {
         return {
-            left: this.position.x - this.width / 2,
-            right: this.position.x + this.width / 2,
-            top: this.position.y - this.height / 2,
-            bottom: this.position.y + this.height / 2
+            left: this.position.x + this.hitboxOffset.x - this.hitboxWidth / 2,
+            right: this.position.x + this.hitboxOffset.x + this.hitboxWidth / 2,
+            top: this.position.y + this.hitboxOffset.y - this.hitboxHeight / 2,
+            bottom: this.position.y + this.hitboxOffset.y + this.hitboxHeight / 2
         }
     }
 

@@ -4,8 +4,8 @@ export default class Renderer {
         this.context = canvas.getContext("2d");
 
         // FIXED-SIZE DISPLAY
-        this.GAME_WIDTH = 480;
-        this.GAME_HEIGHT = 352;
+        this.GAME_WIDTH = 480; // 15 tiles
+        this.GAME_HEIGHT = 352; // 11 tiles
 
         this.canvas.width = this.GAME_WIDTH;
         this.canvas.height = this.GAME_HEIGHT;
@@ -13,6 +13,7 @@ export default class Renderer {
 
     // Metodos
     resize() {
+        // Integer Scalling
         const scaleX = Math.floor(window.innerWidth / this.GAME_WIDTH);
         const scaleY = Math.floor(window.innerHeight / this.GAME_HEIGHT);
         const scale = Math.max(1, Math.min(scaleX, scaleY));

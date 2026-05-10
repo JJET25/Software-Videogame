@@ -16,13 +16,9 @@ renderer.resize();
 renderer.setupResizeListener();
 
 // Entities
-const player = new Player(new Vector(50, 50), 32, 64, input);
+const player = new Player(new Vector(50, 50), input);
 
-const wall = new Wall(
-    new Vector(250, 250),
-    32,
-    32
-);
+const wall = new Wall(new Vector(250, 250));
 
 // Delta time
 let lastTime = 0;
@@ -42,8 +38,8 @@ function gameLoop(timestamp) {
     Collision.resolve(player, wall);
 
     // Draw
-    player.draw(renderer);
     wall.draw(renderer);
+    player.draw(renderer);
 
     requestAnimationFrame(gameLoop);
 }

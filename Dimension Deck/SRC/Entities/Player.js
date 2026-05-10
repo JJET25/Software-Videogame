@@ -2,8 +2,8 @@ import Entity from "./Entity.js";
 import Vector from "../Utils/Vector.js";
 
 export default class Player extends Entity {
-    constructor(position, width, height, input) {
-        super(position, 32, 64, "red", "player");
+    constructor(position, input) {
+        super(position, 32, 64, "red", {hitboxHeight: 32, hitboxWidth: 32, hitboxOffset: new Vector(0, 16)});
 
         this.input = input;
         this.speed = 300;
