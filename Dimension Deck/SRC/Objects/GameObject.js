@@ -9,10 +9,10 @@ export default class GameObject {
         this.height = height;
 
         this.color = color;
-        this.type = type;
+        this.type = type; 
     }
 
-    // Metodos
+    // Returns the hitbox edges for collisions
     getBounds() {
         return {
             left: this.position.x - this.width / 2,
@@ -22,6 +22,7 @@ export default class GameObject {
         };
     }
 
+    // Draws the gameObject, it centers the obj on its position
     draw(renderer) {
         const drawX = this.position.x - this.width / 2;
         const drawY = this.position.y - this.height / 2;

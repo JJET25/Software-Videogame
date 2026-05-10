@@ -1,7 +1,6 @@
 export default class Collision {
+    // Check if two rectangles overlap. Return True or False
     static rectCollision(boundsA, boundsB) {
-        // Comprueba si dos cajas estan tocandose/solapandose
-        // Recibe los limites del objeto {left, right, top, bottom} 
         return (
             boundsA.left <= boundsB.right &&
             boundsA.right >= boundsB.left &&
@@ -10,25 +9,28 @@ export default class Collision {
         );
     }
 
+    // Calculates how many pixels the two objects are overlapping
     static getOverlap(boundsA, boundsB) {
-        // Calcula el area de solapamiento entre dos cajas
         const overlapX = Math.min(boundsA.right, boundsB.right) - Math.max(boundsA.left, boundsB.left);
         const overlapY = Math.min(boundsA.bottom, boundsB.bottom) - Math.max(boundsA.top, boundsB.top);
 
         return { overlapX, overlapY };
     }
 
+    // Main function to stop objects from passing through each other
+    // It moves objectA out of objectB using the smallest overlap
     static resolve(objectA, objectB) {
         const boundsA = objectA.getBounds();
         const boundsB = objectB.getBounds();
 
-        // Si no hay colisión, salir
+        // If there is no collision, do nothing
         if (!this.rectCollision(boundsA, boundsB)) return;
 
         const { overlapX, overlapY } = this.getOverlap(boundsA, boundsB);
 
+        // Check if the collision is more horizontal or vertical
         if (overlapX < overlapY) {
-            // Collision horizontal
+            // Horizontal: move object left or right
             if (objectA.position.x < objectB.position.x) {
                 objectA.position.x -= overlapX;
             } else { objectA.position.x += overlapX; }
@@ -36,7 +38,7 @@ export default class Collision {
             objectA.velocity.x = 0;
 
         } else {
-            // Collision vertical
+            // Vertical: move object up or down
             if (objectA.position.y < objectB.position.y) {
                 objectA.position.y -= overlapY;
             } else { objectA.position.y += overlapY }

@@ -4,7 +4,6 @@ export default class Vector {
         this.y = y;
     }
 
-    // Metodos
     plus(other) {
         return new Vector(this.x + other.x, this.y + other.y);
     }
@@ -27,9 +26,7 @@ export default class Vector {
 
     normalize() {
         const mag = this.magnitude();
-        if (mag == 0) {
-            return new Vector(0, 0);
-        }
+        if (mag == 0) { return new Vector(0, 0); }
         return new Vector(this.x / mag, this.y / mag);
     }
 }

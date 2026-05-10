@@ -4,10 +4,11 @@ export default class Entity {
     constructor(position, width, height, color, options = {}) {
         this.position = position;
         this.velocity = new Vector(0, 0);
-
         this.width = width;
         this.height = height;
 
+        // Hitbox settings
+        // Use options to change size/offset if you want other hitbox it doesn't fit with sprite size
         this.hitboxWidth = options.hitboxWidth ?? width;
         this.hitboxHeight = options.hitboxHeight ?? height;
         this.hitboxOffset = options.hitboxOffset ?? new Vector(0, 0);
@@ -18,7 +19,7 @@ export default class Entity {
         this.maxHealth = 100;
     }
 
-    // Metodos
+    // Returns the hitbox edges for collisions
     getBounds() {
         return {
             left: this.position.x + this.hitboxOffset.x - this.hitboxWidth / 2,
@@ -28,6 +29,7 @@ export default class Entity {
         }
     }
 
+    // Draws the entity, it centers the obj on its position
     draw(renderer) {
         const drawX = this.position.x - this.width / 2;
         const drawY = this.position.y - this.height / 2;
@@ -35,6 +37,7 @@ export default class Entity {
         renderer.drawRect(drawX, drawY, this.width, this.height, this.color);
     }
 
+    // Update position based on velocity and time passed
     update(deltaTime) {
         this.position = this.position.plus(this.velocity.times(deltaTime));
     }

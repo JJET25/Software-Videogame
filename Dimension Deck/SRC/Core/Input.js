@@ -4,21 +4,20 @@ export default class InputManager {
         this.setUpListeners();
     }
 
-    // Metodos
+    // Initializes global event listeners to track key presses
     setUpListeners() {
-        // Listener key down
         window.addEventListener("keydown", (event) => {
             const key = event.key.toUpperCase();
             this.keys[key] = true;
         });
 
-        // Listener key up
         window.addEventListener("keyup", (event) => {
             const key = event.key.toUpperCase();
             this.keys[key] = false;
         })
     }
 
+    // Check if a specific key is currently pressed
     isKeyDown(key) {
         key = key.toUpperCase();
         if (!(key in this.keys)) { return false; }

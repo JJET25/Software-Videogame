@@ -10,26 +10,27 @@ export default class Player extends Entity {
         this.state = "idle";
     }
 
-    // Methods 
+    // Handless player logic
     update(deltaTime) {
         let direction = new Vector(0, 0);
 
-        // Read WASD and Arrows directions
+        // Check input keys for vertical and horizontal movement
         if (this.input.isKeyDown("W") || (this.input.isKeyDown("ARROWUP"))) { direction.y -= 1; }
         if (this.input.isKeyDown("S") || (this.input.isKeyDown("ARROWDOWN"))) { direction.y += 1; }
         if (this.input.isKeyDown("A") || (this.input.isKeyDown("ARROWLEFT"))) { direction.x -= 1; }
         if (this.input.isKeyDown("D") || (this.input.isKeyDown("ARROWRIGHT"))) { direction.x += 1; }
 
-        // Player velocity
+        // Normalize prevents moving faster diagonally
+        // Velocity = Direction * speed
         this.velocity = direction.normalize().times(this.speed);
 
-        // Player state
+        // Update state based on movement
         if (direction.x === 0 && direction.y === 0) {
             this.state = "idle";
         } else {
             this.state = "moving";
         }
-        // Player update
+        // Apply physics from Entity class
         super.update(deltaTime);
     }
 }

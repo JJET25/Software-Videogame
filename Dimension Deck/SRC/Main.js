@@ -4,6 +4,7 @@ import Player from "./Entities/Player.js";
 import Wall from "./Objects/Wall.js";
 import Collision from "./Physics/Collision.js";
 import Vector from "./Utils/Vector.js";
+import Room from "./World/Room.js";
 
 // Canvas
 const canvas = document.getElementById("gameCanvas");
@@ -16,9 +17,8 @@ renderer.resize();
 renderer.setupResizeListener();
 
 // Entities
-const player = new Player(new Vector(50, 50), input);
-
-const wall = new Wall(new Vector(250, 250));
+const room = new Room(new Vector(0, 0));
+const player = new Player(new Vector(100, 100), input);
 
 // Delta time
 let lastTime = 0;
@@ -28,17 +28,16 @@ function gameLoop(timestamp) {
     const deltaTime = (timestamp - lastTime) / 1000;
     lastTime = timestamp;
 
+    // Update
+    renderer.setupResizeListener();
+    player.update(deltaTime);
+    room.update(deltaTime, player);
+
     // Clear
     renderer.clear();
 
-    // Update
-    player.update(deltaTime);
-
-    // Colisiones — entre update y draw
-    Collision.resolve(player, wall);
-
     // Draw
-    wall.draw(renderer);
+    room.draw(renderer);
     player.draw(renderer);
 
     requestAnimationFrame(gameLoop);
