@@ -5,7 +5,7 @@ import Collision from "../Physics/Collision.js";
 
 export default class Room {
     constructor(position) {
-        this.position = position;
+        this.position = position ?? new Vector(0, 0);
         this.width = ROOM_WIDTH;
         this.height = ROOM_HEIGHT;
 
@@ -42,7 +42,6 @@ export default class Room {
 
     // Converts "wall" into physical Wall object
     buildWalls() {
-        // Recorremos el grid array [row][col]
         for (let row = 0; row < ROOM_ROWS; row++) {
             for (let col = 0; col < ROOM_COLS; col++) {
                 if (this.tileGrid[row][col] === "wall") {
