@@ -17,6 +17,8 @@ export default class Entity {
 
         this.health = 100;
         this.maxHealth = 100;
+
+        this.isDead = false;
     }
 
     // Returns the hitbox edges for collisions
@@ -27,6 +29,27 @@ export default class Entity {
             top: this.position.y + this.hitboxOffset.y - this.hitboxHeight / 2,
             bottom: this.position.y + this.hitboxOffset.y + this.hitboxHeight / 2
         }
+    }
+
+    takeDamage(amount) {
+        this.health -= amount;
+
+        if (this.health <= 0) {
+            this.health = 0;
+            this.die();
+        }
+    }
+
+    heal(amount) {
+        this.health += amount;
+
+        if (this.health > this.maxHealth) {
+            this.health = this.maxHealth;
+        }
+    }
+
+    die() {
+        this.isDead = true;
     }
 
     // Draws the entity, it centers the obj on its position
