@@ -17,6 +17,8 @@ export default class Entity {
 
         this.health = 100;
         this.maxHealth = 100;
+
+        this.isDead = false;
         this.isDead = false;
 
         this._invincibleTimer = 0;
@@ -54,6 +56,28 @@ export default class Entity {
         };
     }
 
+    takeDamage(amount) {
+        this.health -= amount;
+
+        if (this.health <= 0) {
+            this.health = 0;
+            this.die();
+        }
+    }
+
+    heal(amount) {
+        this.health += amount;
+
+        if (this.health > this.maxHealth) {
+            this.health = this.maxHealth;
+        }
+    }
+
+    die() {
+        this.isDead = true;
+    }
+
+    // Draws the entity, it centers the obj on its position
     // Draws the entity centered on position; flashes white on damage
     draw(renderer) {
         const drawX = this.position.x - this.width / 2;
