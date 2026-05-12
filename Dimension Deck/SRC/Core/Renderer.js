@@ -26,8 +26,10 @@ export default class Renderer {
         this.canvas.style.height = (this.GAME_HEIGHT * scale) + "px";
     }
 
-    // Tells the browser to resize the game when the window changes
+    // Registers the resize listener once; safe to call multiple times
     setupResizeListener() {
+        if (this._resizeListenerAttached) return;
+        this._resizeListenerAttached = true;
         window.addEventListener("resize", () => { this.resize(); });
     }
 
@@ -37,9 +39,22 @@ export default class Renderer {
         this.context.fillRect(0, 0, this.GAME_WIDTH, this.GAME_HEIGHT);
     }
 
-    // Draws a colored rectangle on the screen  
+    // Draws a colored rectangle on the screen
     drawRect(x, y, width, height, color) {
         this.context.fillStyle = color;
         this.context.fillRect(x, y, width, height);
+    }
+
+    // Draws text at (x, y) — y is the baseline
+    drawText(text, x, y, font = "10px monospace", color = "#ffffff") {
+        this.context.font      = font;
+        this.context.fillStyle = color;
+        this.context.fillText(text, x, y);
+    }
+
+    // Fills the entire canvas with a semi-transparent color (used for damage flash)
+    drawFlash(color) {
+        this.context.fillStyle = color;
+        this.context.fillRect(0, 0, this.GAME_WIDTH, this.GAME_HEIGHT);
     }
 }

@@ -6,7 +6,10 @@ import Vector from "../Utils/Vector.js";
 import Room from "../World/Room.js";
 
 import InputManager from "./Input.js";
+import Mouse from "./Mouse.js";
 import Renderer from "./Renderer.js";
+import HUD from "../UI/HUD.js";
+import InteractionManager from "../Systems/InteractionManager.js";
 
 export default class Game {
 
@@ -30,11 +33,19 @@ export default class Game {
         ];
 
         this.lastTime = 0;
+    constructor(canvas) {
+        this.renderer    = new Renderer(canvas);
+        this.input       = new InputManager();
+        this.mouse       = new Mouse(canvas);
+        this.room        = new Room();
+        this.player      = new Player(new Vector(240, 176), this.input, this.mouse);
+        this.hud         = new HUD();
+        this.interaction = new InteractionManager(this.input);
+        this.lastTime    = 0;
 
         this.renderer.resize();
-        this.renderer.setupResizeListener();
+        this.renderer.setupResizeListener(); // registered once — safe
 
-        // Game starts
         this.start();
     }
 
@@ -46,7 +57,15 @@ export default class Game {
 
         const deltaTime = (timestamp - this.lastTime) / 1000;
 
+        requestAnimationFrame((ts) => this.gameLoop(ts));
+    }
+
+    gameLoop(timestamp) {
+        // Cap deltaTime to 50 ms to avoid large jumps after tab-switch or breakpoints
+        const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
         this.lastTime = timestamp;
+
+        const prevHealth = this.player.health;
 
         // Update
         this.renderer.setupResizeListener();
@@ -54,6 +73,12 @@ export default class Game {
         this.player.update(deltaTime);
 
         this.room.update(deltaTime, this.player);
+        this.interaction.update(this.player, this.room.interactables);
+
+        if (this.player.health < prevHealth) {
+            this.hud.triggerDamageFlash();
+        }
+        this.hud.update(deltaTime);
 
         // Update enemies
         for (let enemy of this.enemies) {
@@ -66,10 +91,11 @@ export default class Game {
         // Clear
         this.renderer.clear();
 
-        // Draw
+        // Draw — HUD must come last so it renders on top
         this.room.draw(this.renderer);
 
         this.player.draw(this.renderer);
+        this.hud.draw(this.renderer, this.player);
 
         // Draw enemies
         for (let enemy of this.enemies) {
@@ -77,5 +103,6 @@ export default class Game {
         }
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+        requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 }

@@ -4,24 +4,21 @@ export default class InputManager {
         this.setUpListeners();
     }
 
-    // Initializes global event listeners to track key presses
     setUpListeners() {
         window.addEventListener("keydown", (event) => {
-            const key = event.key.toUpperCase();
-            this.keys[key] = true;
+            this.keys[this._normalize(event.key)] = true;
         });
-
         window.addEventListener("keyup", (event) => {
-            const key = event.key.toUpperCase();
-            this.keys[key] = false;
-        })
+            this.keys[this._normalize(event.key)] = false;
+        });
     }
 
-    // Check if a specific key is currently pressed
     isKeyDown(key) {
-        key = key.toUpperCase();
-        if (!(key in this.keys)) { return false; }
+        return this.keys[key.toUpperCase()] ?? false;
+    }
 
-        return this.keys[key];
+    _normalize(key) {
+        if (key === " ") return "SPACE";
+        return key.toUpperCase();
     }
 }
