@@ -8,7 +8,9 @@ import Room from "../World/Room.js";
 import InputManager from "./Input.js";
 import Mouse from "./Mouse.js";
 import Renderer from "./Renderer.js";
+
 import HUD from "../UI/HUD.js";
+
 import InteractionManager from "../Systems/InteractionManager.js";
 
 export default class Game {
@@ -19,12 +21,19 @@ export default class Game {
 
         this.input = new InputManager();
 
+        this.mouse = new Mouse(canvas);
+
         this.room = new Room();
 
         this.player = new Player(
-            new Vector(100, 100),
-            this.input
+            new Vector(240, 176),
+            this.input,
+            this.mouse
         );
+
+        this.hud = new HUD();
+
+        this.interaction = new InteractionManager(this.input);
 
         // Enemy list
         this.enemies = [
@@ -33,51 +42,45 @@ export default class Game {
         ];
 
         this.lastTime = 0;
-    constructor(canvas) {
-        this.renderer    = new Renderer(canvas);
-        this.input       = new InputManager();
-        this.mouse       = new Mouse(canvas);
-        this.room        = new Room();
-        this.player      = new Player(new Vector(240, 176), this.input, this.mouse);
-        this.hud         = new HUD();
-        this.interaction = new InteractionManager(this.input);
-        this.lastTime    = 0;
 
         this.renderer.resize();
-        this.renderer.setupResizeListener(); // registered once — safe
+
+        this.renderer.setupResizeListener();
 
         this.start();
     }
 
     start() {
-        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
-    }
-
-    gameLoop(timestamp) {
-
-        const deltaTime = (timestamp - this.lastTime) / 1000;
 
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
     gameLoop(timestamp) {
-        // Cap deltaTime to 50 ms to avoid large jumps after tab-switch or breakpoints
-        const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
+
+        // Prevent huge delta spikes
+        const deltaTime = Math.min(
+            (timestamp - this.lastTime) / 1000,
+            0.05
+        );
+
         this.lastTime = timestamp;
 
         const prevHealth = this.player.health;
 
         // Update
-        this.renderer.setupResizeListener();
-
         this.player.update(deltaTime);
 
         this.room.update(deltaTime, this.player);
-        this.interaction.update(this.player, this.room.interactables);
+
+        this.interaction.update(
+            this.player,
+            this.room.interactables
+        );
 
         if (this.player.health < prevHealth) {
             this.hud.triggerDamageFlash();
         }
+
         this.hud.update(deltaTime);
 
         // Update enemies
@@ -86,23 +89,26 @@ export default class Game {
         }
 
         // Remove dead enemies
-        this.enemies = this.enemies.filter(enemy => !enemy.isDead);
+        this.enemies = this.enemies.filter(
+            enemy => !enemy.isDead
+        );
 
         // Clear
         this.renderer.clear();
 
-        // Draw — HUD must come last so it renders on top
+        // Draw
         this.room.draw(this.renderer);
 
         this.player.draw(this.renderer);
-        this.hud.draw(this.renderer, this.player);
 
         // Draw enemies
         for (let enemy of this.enemies) {
             enemy.draw(this.renderer);
         }
 
-        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+        // HUD should render last
+        this.hud.draw(this.renderer, this.player);
+
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 }
