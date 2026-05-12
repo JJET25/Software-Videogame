@@ -14,6 +14,8 @@ export default class Room {
         this.walls = [];
         this.enemies = [];
         this.objects = [];
+        // Objects that respond to E-key interaction (chests, altars, pillars, etc.)
+        this.interactables = [];
 
         this.isCleared = false;
 
@@ -54,10 +56,12 @@ export default class Room {
         }
     }
 
-    // Handless room logic
+    // Handles room logic
     update(deltaTime, player) {
         // Resolve Collisions: Player vs Walls
-        this.walls.forEach(wall => { Collision.resolve(player, wall) });
+        this.walls.forEach(wall => { Collision.resolve(player, wall); });
+        // Hard clamp: keep player inside room boundaries (belt-and-suspenders after wall push-out)
+        Collision.resolveEntityBounds(player, this.width, this.height);
     }
 
     // Renders all the room elements

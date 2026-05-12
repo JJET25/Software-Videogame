@@ -1,4 +1,13 @@
 export default class Collision {
+    // Clamp an entity inside the room boundaries using its hitbox
+    static resolveEntityBounds(entity, roomWidth, roomHeight) {
+        const b = entity.getBounds();
+        if (b.left   < 0)          entity.position.x -= b.left;
+        if (b.right  > roomWidth)  entity.position.x -= (b.right  - roomWidth);
+        if (b.top    < 0)          entity.position.y -= b.top;
+        if (b.bottom > roomHeight) entity.position.y -= (b.bottom - roomHeight);
+    }
+
     // Check if two rectangles overlap. Return True or False
     static rectCollision(boundsA, boundsB) {
         return (
