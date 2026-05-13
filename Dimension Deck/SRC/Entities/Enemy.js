@@ -9,7 +9,8 @@ export default class Enemy extends Entity {
 
         this.player = player;
 
-        this.speed = 120;
+        // Slower movement
+        this.speed = 80;
 
         this.health = 50;
         this.maxHealth = 50;

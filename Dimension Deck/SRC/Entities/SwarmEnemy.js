@@ -7,15 +7,22 @@ export default class SwarmEnemy extends Enemy {
         super(position, player);
 
         // Fast movement
-        this.speed = 220;
+        this.speed = 180;
 
-        // Low HP
-        this.health = 20;
-        this.maxHealth = 20;
+        // Very low HP
+        this.health = 10;
+        this.maxHealth = 10;
+
+        // Smaller size
+        this.width = 20;
+        this.height = 20;
 
         // Different color for testing
         this.color = "purple";
 
         this.originalColor = "purple";
+
+        // Less damage
+        this.contactDamage = 5;
     }
 }
