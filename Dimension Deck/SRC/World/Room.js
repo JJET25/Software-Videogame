@@ -14,6 +14,7 @@ export default class Room {
         this.walls = [];
         this.enemies = [];
         this.objects = [];
+            
         // Objects that respond to E-key interaction (chests, altars, pillars, etc.)
         this.interactables = [];
 
