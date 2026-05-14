@@ -1,7 +1,7 @@
-import { TILE_SIZE, ROOM_WIDTH, ROOM_HEIGHT, ROOM_ROWS, ROOM_COLS } from "../Utils/Constants.js";
-import Wall from "../Objects/Wall.js";
-import Vector from "../Utils/Vector.js";
-import Collision from "../Physics/Collision.js";
+import { TILE_SIZE, ROOM_WIDTH, ROOM_HEIGHT, ROOM_ROWS, ROOM_COLS } from "../../Utils/Constants.js";
+import Wall from "../../Objects/Wall.js";
+import Vector from "../../Utils/Vector.js";
+import Collision from "../../Physics/Collision.js";
 
 export default class Room {
     constructor(position) {

@@ -20,3 +20,9 @@ export const ROOM_WEIGHTS = {
     shrine: 15,
     glitch: 10
 }
+
+// Graph Generation
+export const GENERATION = {
+    MIN_ROOMS: 20,
+    MAX_ROOMS: 30
+}

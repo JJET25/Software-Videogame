@@ -3,13 +3,20 @@ export default class RoomTypeAssigner {
         this.rng = rng; // Random Number Generator
     }
 
-    assign(graph, weights) { }
+    assign(graph, weights, bossType = "boss") {
+        graph.getStartNode().type = "start";
+        graph.getBossNode().type = bossType;
 
-    _weightedRoll(weights) {
+        for (const node of graph.getAllNodes()) {
+            if (node.type === null) node.type = this.#weightedRoll(weights);
+        }
+    }
+
+    #weightedRoll(weights) {
         const arrWeights = this.#buildCumalativeTable(weights);
         const randomWeight = this.rng.int(0, 100);
 
-        for (const weight of arrWeights){
+        for (const weight of arrWeights) {
             if (randomWeight <= weight.limit) return weight.type;
         }
     }
