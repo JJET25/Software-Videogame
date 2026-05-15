@@ -26,3 +26,6 @@ export const GENERATION = {
     MIN_ROOMS: 20,
     MAX_ROOMS: 30
 }
+
+// Player movement between rooms
+export const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };

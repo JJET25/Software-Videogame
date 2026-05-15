@@ -103,9 +103,9 @@ export default class Room {
         if (this.doorDirections.includes("north") && row === 0 && col === Math.floor(ROOM_COLS / 2)) return true;
         // South
         if (this.doorDirections.includes("south") && row === ROOM_ROWS - 1 && col === Math.floor(ROOM_COLS / 2)) return true;
-        // East
-        if (this.doorDirections.includes("east") && row === Math.floor(ROOM_ROWS / 2) && col === ROOM_COLS - 1) return true;
         // West
+        if (this.doorDirections.includes("east") && row === Math.floor(ROOM_ROWS / 2) && col === ROOM_COLS - 1) return true;
+        // East
         if (this.doorDirections.includes("west") && row === Math.floor(ROOM_ROWS / 2) && col === 0) return true;
 
         return false;

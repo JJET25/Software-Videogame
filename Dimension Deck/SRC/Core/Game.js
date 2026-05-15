@@ -3,13 +3,18 @@ import Enemy from "../Entities/Enemy.js";
 
 import Vector from "../Utils/Vector.js";
 
-import Room from "../World/Room/Room.js";
+import Room from "../World/Rooms/Room.js";
 
 import InputManager from "./Input.js";
 import Mouse from "./Mouse.js";
 import Renderer from "./Renderer.js";
 
 import HUD from "../UI/HUD.js";
+import SeededRandom from "../Utils/SeededRandom.js";
+import GraphBuilder from "../Generation/GraphBuilder.js";
+import RoomTypeAssigner from "../Generation/RoomTypeAssigner.js";
+import RoomManager from "../Systems/RoomManager.js";
+import { ROOM_WEIGHTS } from "../Utils/Constants.js";
 
 //import InteractionManager from "../Systems/InteractionManager.js";
 
@@ -23,13 +28,29 @@ export default class Game {
 
         this.mouse = new Mouse(canvas);
 
-        this.room = new Room(['north', 'east', 'south']);
-
         this.player = new Player(
             new Vector(240, 176),
             this.input,
             this.mouse
         );
+
+
+        // Generar un grafo pequeño para testear
+        const rng = new SeededRandom();
+        const builder = new GraphBuilder(rng);
+        const assigner = new RoomTypeAssigner(rng);
+
+        const graph = builder.build(8);  // pequeño para navegar fácil
+        assigner.assign(graph, ROOM_WEIGHTS);
+
+        // Crear RoomManager
+        this.roomManager = new RoomManager(graph, this.player, {
+            onMiniBossDefeated: () => console.log("Mini boss defeated!"),
+            onFinalBossDefeated: () => console.log("Final boss defeated!")
+        });
+
+        this.roomManager.enterStartRoom();
+
 
         this.hud = new HUD();
 
@@ -70,7 +91,7 @@ export default class Game {
         // Update
         this.player.update(deltaTime);
 
-        this.room.update(deltaTime, this.player);
+        this.roomManager.update(deltaTime);
 
         //this.interaction.update(
         //    this.player,
@@ -97,7 +118,7 @@ export default class Game {
         this.renderer.clear();
 
         // Draw
-        this.room.draw(this.renderer);
+        this.roomManager.draw(this.renderer);
 
         this.player.draw(this.renderer);
 
