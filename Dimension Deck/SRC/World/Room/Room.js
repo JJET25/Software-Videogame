@@ -4,8 +4,8 @@ import Vector from "../../Utils/Vector.js";
 import Collision from "../../Physics/Collision.js";
 
 export default class Room {
-    constructor(position) {
-        this.position = position ?? new Vector(0, 0);
+    constructor(doorDirections = []) {
+        this.position = new Vector(0, 0);
         this.width = ROOM_WIDTH;
         this.height = ROOM_HEIGHT;
 
@@ -14,7 +14,8 @@ export default class Room {
         this.walls = [];
         this.enemies = [];
         this.objects = [];
-            
+        this.doorDirections = doorDirections;
+
         // Objects that respond to E-key interaction (chests, altars, pillars, etc.)
         this.interactables = [];
 
@@ -23,6 +24,20 @@ export default class Room {
         // Initialize the room layout
         this.buildGrid();
         this.buildWalls();
+    }
+
+    // Handles room logic
+    update(deltaTime, player) {
+        // Resolve Collisions: Player vs Walls
+        this.walls.forEach(wall => { Collision.resolve(player, wall); });
+        // Hard clamp: keep player inside room boundaries (belt-and-suspenders after wall push-out)
+        Collision.resolveEntityBounds(player, this.width, this.height);
+    }
+
+    // Renders all the room elements
+    draw(renderer) {
+        // Draw walls
+        this.walls.forEach(wall => { wall.draw(renderer) });
     }
 
     // Creates a 2D array representing the room map
@@ -34,7 +49,7 @@ export default class Room {
             for (let j = 0; j < ROOM_COLS; j++) {
                 // If it is an edge of the room, set it as a "wall"
                 if (i === 0 || i === ROOM_ROWS - 1 || j === 0 || j === ROOM_COLS - 1) {
-                    grid[i][j] = "wall";
+                    grid[i][j] = this.#isDoorGap(i, j) ? "door" : "wall";
                 } else {
                     grid[i][j] = "floor";
                 }
@@ -57,17 +72,42 @@ export default class Room {
         }
     }
 
-    // Handles room logic
-    update(deltaTime, player) {
-        // Resolve Collisions: Player vs Walls
-        this.walls.forEach(wall => { Collision.resolve(player, wall); });
-        // Hard clamp: keep player inside room boundaries (belt-and-suspenders after wall push-out)
-        Collision.resolveEntityBounds(player, this.width, this.height);
+    getDoorPosition(direction){
+        let col = 0;
+        let row = 0;
+        switch (direction) {
+            case "north":
+                col = Math.floor(ROOM_COLS / 2);
+                row = 0;
+                break;
+            case "south":
+                col = Math.floor(ROOM_COLS / 2);
+                row = ROOM_ROWS - 1;
+                break;
+            case "east":
+                col = ROOM_COLS - 1;
+                row = Math.floor(ROOM_ROWS / 2);
+                break;
+            case "west":        
+                col = 0
+                row = Math.floor(ROOM_ROWS / 2);
+                break;
+            default:
+                break;
+        }
+        return new Vector(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
     }
 
-    // Renders all the room elements
-    draw(renderer) {
-        // Draw walls
-        this.walls.forEach(wall => { wall.draw(renderer) });
+    #isDoorGap(row, col) {
+        // North
+        if (this.doorDirections.includes("north") && row === 0 && col === Math.floor(ROOM_COLS / 2)) return true;
+        // South
+        if (this.doorDirections.includes("south") && row === ROOM_ROWS - 1 && col === Math.floor(ROOM_COLS / 2)) return true;
+        // East
+        if (this.doorDirections.includes("east") && row === Math.floor(ROOM_ROWS / 2) && col === ROOM_COLS - 1) return true;
+        // West
+        if (this.doorDirections.includes("west") && row === Math.floor(ROOM_ROWS / 2) && col === 0) return true;
+
+        return false;
     }
 }

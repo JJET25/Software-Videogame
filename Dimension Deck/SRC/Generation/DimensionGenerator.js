@@ -15,7 +15,7 @@ export default class DimensionGenerator {
         const count = this.rng.int(GENERATION.MIN_ROOMS, GENERATION.MAX_ROOMS);
         const builder = new GraphBuilder(this.rng);
         const graph = builder.build(count);
-        this.assigner.assign(graph, ROOM_WEIGHTS, "miniBoss");
+        this.assigner.assign(graph, this.dimension.roomWeights, "miniBoss");
         return graph;
     }
 

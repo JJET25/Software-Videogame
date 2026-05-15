@@ -3,7 +3,7 @@ import Enemy from "../Entities/Enemy.js";
 
 import Vector from "../Utils/Vector.js";
 
-import Room from "../World/Room.js";
+import Room from "../World/Room/Room.js";
 
 import InputManager from "./Input.js";
 import Mouse from "./Mouse.js";
@@ -11,7 +11,7 @@ import Renderer from "./Renderer.js";
 
 import HUD from "../UI/HUD.js";
 
-import InteractionManager from "../Systems/InteractionManager.js";
+//import InteractionManager from "../Systems/InteractionManager.js";
 
 export default class Game {
 
@@ -23,7 +23,7 @@ export default class Game {
 
         this.mouse = new Mouse(canvas);
 
-        this.room = new Room();
+        this.room = new Room(['north', 'east', 'south']);
 
         this.player = new Player(
             new Vector(240, 176),
@@ -33,7 +33,7 @@ export default class Game {
 
         this.hud = new HUD();
 
-        this.interaction = new InteractionManager(this.input);
+        //this.interaction = new InteractionManager(this.input);
 
         // Enemy list
         this.enemies = [
@@ -72,10 +72,10 @@ export default class Game {
 
         this.room.update(deltaTime, this.player);
 
-        this.interaction.update(
-            this.player,
-            this.room.interactables
-        );
+        //this.interaction.update(
+        //    this.player,
+        //    this.room.interactables
+        //);
 
         if (this.player.health < prevHealth) {
             this.hud.triggerDamageFlash();
