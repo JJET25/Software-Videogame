@@ -24,7 +24,8 @@ export const ROOM_WEIGHTS = {
 // Graph Generation
 export const GENERATION = {
     MIN_ROOMS: 20,
-    MAX_ROOMS: 30
+    MAX_ROOMS: 30,
+    CONNECTION_CHANCE: 0.4
 }
 
 // Player movement between rooms

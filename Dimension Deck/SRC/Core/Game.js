@@ -40,7 +40,7 @@ export default class Game {
         const builder = new GraphBuilder(rng);
         const assigner = new RoomTypeAssigner(rng);
 
-        const graph = builder.build(8);  // pequeño para navegar fácil
+        const graph = builder.build(20);  // pequeño para navegar fácil
         assigner.assign(graph, ROOM_WEIGHTS);
 
         // Crear RoomManager

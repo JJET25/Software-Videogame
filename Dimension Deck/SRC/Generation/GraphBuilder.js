@@ -1,4 +1,4 @@
-import { DIRECTIONS } from "../Utils/Constants.js";
+import { DIRECTIONS, GENERATION } from "../Utils/Constants.js";
 import RoomGraph from "../World/Graph/RoomGraph.js";
 import RoomNode from "../World/Graph/RoomNode.js";
 
@@ -45,6 +45,7 @@ export default class GraphBuilder {
 
                 const newNode = this.#createNode(newX, newY);
                 graph.addNode(newNode);
+                graph.addEdge(currentNode.id, newNode.id);
                 this.#connectToExistingNeighbors(graph, newNode);
                 frontier.push(newNode);
             }
@@ -73,6 +74,7 @@ export default class GraphBuilder {
             const key = this.#posKey(newX, newY);
 
             if (this.#occupiedGrid.has(key)) {
+                if (this.rng.float() > GENERATION.CONNECTION_CHANCE) continue;
                 const neighbor = this.#occupiedGrid.get(key);
                 graph.addEdge(node.id, neighbor.id);
             }
