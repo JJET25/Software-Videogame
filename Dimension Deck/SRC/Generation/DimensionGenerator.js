@@ -4,8 +4,8 @@ import RoomTypeAssigner from "./RoomTypeAssigner.js";
 
 export default class DimensionGenerator {
     constructor(dimension, rng) {
-        this.dimension = dimension;
-        this.rng = rng // Random Number Generator
+        this.dimension = dimension;                 // Current world/dimension
+        this.rng = rng                              // Random Number Generator
         this.assigner = new RoomTypeAssigner(rng);
     }
 
@@ -15,6 +15,8 @@ export default class DimensionGenerator {
         const count = this.rng.int(GENERATION.MIN_ROOMS, GENERATION.MAX_ROOMS);
         const builder = new GraphBuilder(this.rng);
         const graph = builder.build(count);
+
+        // Uses specific weights from current dimensio
         this.assigner.assign(graph, this.dimension.roomWeights, "miniBoss");
         return graph;
     }

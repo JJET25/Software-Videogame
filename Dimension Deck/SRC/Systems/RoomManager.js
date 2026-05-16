@@ -11,49 +11,53 @@ export default class RoomManager {
         this.currentNodeId = null;
         this.previousNodeId = null;
         this.currentRoom = null;
-        this.trasitionCooldown = 0;
-        this.doors = [];
+        this.trasitionCooldown = 0;     // Prevents instant room transitions
+        this.doors = [];                // Active doors in the current room
     }
 
+    // Teleport player to the start room
     enterStartRoom() { this.enterRoom(this.graph.startNodeId, null) }
 
+    // Load a new room, build its doors and place the player
     enterRoom(nodeId, fromNodeId = null) {
         const node = this.graph.getNode(nodeId);
-
-        console.log(`Entering node ${nodeId} | type: ${node.type} | depth: ${node.depth}`);
-        console.log(`Doors: ${this.graph.getNeighbors(nodeId).map(n => this.#getDirectionBetweem(node, n))}`);
         const neighbors = this.graph.getNeighbors(nodeId);
 
+        //console.log(`Entering node ${nodeId} | type: ${node.type} | depth: ${node.depth}`);
+        //console.log(`Doors: ${this.graph.getNeighbors(nodeId).map(n => this.#getDirectionBetweem(node, n))}`);
+        
         this.currentNodeId = nodeId;
         this.previousNodeId = fromNodeId;
-
         node.isVisited = true;
 
         const doorDirections = neighbors.map(neighbor => this.#getDirectionBetweem(node, neighbor));
-
         this.currentRoom = new Room(doorDirections);
         this.doors = this.#buildDoors(node);
 
         this.#placePlayer(fromNodeId);
 
+        // Loock doors if the room has enemies
         if (this.currentRoom.enemies.length > 0) {
             this.doors.forEach(door => door.lock());
         }
-
-        this.trasitionCooldown = 0.3;
+        this.trasitionCooldown = 0.3;   // Cooldown time in seconds
     }
 
+    // Update loop for room logic and collision checks 
     update(deltaTime) {
         if (this.trasitionCooldown > 0) this.trasitionCooldown -= deltaTime;
         this.currentRoom.update(deltaTime, this.player);
         this.#checkRoomCleared();
         this.#checkDoorTransitions();
     }
+
+    // Render the room layout and its doors
     draw(renderer) {
         this.currentRoom.draw(renderer);
         this.doors.forEach(door => door.draw(renderer));
     }
 
+    // Create door using directions of neighbor rooms
     #buildDoors(node) {
         const arrDoor = [];
         for (const neighbor of this.graph.getNeighbors(node.id)) {
@@ -64,6 +68,7 @@ export default class RoomManager {
         return arrDoor;
     }
 
+    // Place the player at the center (startRoom) or near the door they came from
     #placePlayer(fromNodeId) {
         if (fromNodeId === null) this.player.position = new Vector(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
         else {
@@ -71,9 +76,10 @@ export default class RoomManager {
             const fromNode = this.graph.getNode(fromNodeId);
 
             const direction = this.#getDirectionBetweem(fromNode, currentNode);
-            const oppositeDir = OPPOSITE[direction];
+            const oppositeDir = OPPOSITE[direction];    // Find the door side on the new room
             const doorPos = this.currentRoom.getDoorPosition(oppositeDir);
 
+            // Move the player 1 tile inside 
             switch (oppositeDir) {
                 case "north":
                     this.player.position = doorPos.plus(new Vector(0, TILE_SIZE));
@@ -93,6 +99,7 @@ export default class RoomManager {
         }
     }
 
+    // Check if all enemies are dead to open the doors
     #checkRoomCleared() {
         if (this.currentRoom.isCleared) return;
 
@@ -106,6 +113,7 @@ export default class RoomManager {
         }
     }
 
+    // Check if the player is walking into an unlocked door
     #checkDoorTransitions() {
         if (this.trasitionCooldown > 0) return;
         for (const door of this.doors) {
@@ -116,6 +124,7 @@ export default class RoomManager {
         }
     }
 
+    // Calculate the cardinal direction
     #getDirectionBetweem(fromNode, toNode) {
         const dx = toNode.gridPos.x - fromNode.gridPos.x;
         const dy = toNode.gridPos.y - fromNode.gridPos.y;

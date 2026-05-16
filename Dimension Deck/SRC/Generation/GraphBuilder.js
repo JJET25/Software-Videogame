@@ -7,14 +7,15 @@ export default class GraphBuilder {
     #occupiedGrid;
 
     constructor(rng) {
-        this.rng = rng; // Random Number Generator
-        this.#counter = 0; // Unique IDs
-        this.#occupiedGrid = new Map(); // Map<string, RoomNode>
+        this.rng = rng;                     // Random Number Generator
+        this.#counter = 0;                  // Unique IDs
+        this.#occupiedGrid = new Map();     // Map<string, RoomNode>
     }
 
+    // Create the dungeon map
     build(roomCount) {
         const graph = new RoomGraph();
-        const startNode = this.#createNode(0, 0);
+        const startNode = this.#createNode(0, 0); // Create start room
 
         graph.addNode(startNode);
         graph.setStart(startNode.id);
@@ -25,48 +26,48 @@ export default class GraphBuilder {
         return graph;
     }
 
+    // Create new rooms until roomCount is reached
     #expandDungeon(graph, roomCount) {
-        const frontier = [graph.getStartNode()];
+        const frontier = [graph.getStartNode()]; // List of rooms to expand
 
         while (frontier.length > 0 && graph.size() < roomCount) {
             const randomIndex = this.rng.int(0, frontier.length - 1);
             const currentNode = frontier[randomIndex];
 
-            // Get available directions
             const availableDirection = this.#getAvailableDirections(currentNode.gridPos);
 
             for (const dir of availableDirection) {
-                // Check if room counts is completed
                 if (graph.size() >= roomCount) break;
 
-                // Get new node position
                 const newX = currentNode.gridPos.x + dir.dx;
                 const newY = currentNode.gridPos.y + dir.dy;
 
                 const newNode = this.#createNode(newX, newY);
                 graph.addNode(newNode);
                 graph.addEdge(currentNode.id, newNode.id);
+
+                // Connect with nearby existing rooms using a PROBABILITY 
                 this.#connectToExistingNeighbors(graph, newNode);
                 frontier.push(newNode);
             }
-            // Remove actual node as frontier
+            // Remove room from frontier after expansion
             frontier.splice(randomIndex, 1);
         }
     }
 
+    // Get directions that are not occupied by other rooms
     #getAvailableDirections(pos) {
         const available = DIRECTIONS.filter(dir => {
             const nextX = pos.x + dir.dx;
             const nextY = pos.y + dir.dy;
-
             const posXY = this.#posKey(nextX, nextY);
 
-            // Check if not position have a node
             return !this.#occupiedGrid.has(posXY);
         })
         return available;
     }
 
+    // Randomly connect a room to its neighbors
     #connectToExistingNeighbors(graph, node) {
         for (const dir of DIRECTIONS) {
             const newX = node.gridPos.x + dir.dx;
@@ -74,6 +75,7 @@ export default class GraphBuilder {
             const key = this.#posKey(newX, newY);
 
             if (this.#occupiedGrid.has(key)) {
+                // Use chance to decide if we connect
                 if (this.rng.float() > GENERATION.CONNECTION_CHANCE) continue;
                 const neighbor = this.#occupiedGrid.get(key);
                 graph.addEdge(node.id, neighbor.id);
@@ -81,6 +83,7 @@ export default class GraphBuilder {
         }
     }
 
+    // Calculate distance from start for every room
     #assignDepths(graph) {
         const queueId = [[graph.startNodeId, 0]];
         const visited = new Set();
@@ -100,6 +103,7 @@ export default class GraphBuilder {
         }
     }
 
+    // Set the room with the maximum depth as the boss room
     #selectBossNode(graph) {
         const arrNodes = graph.getAllNodes();
         let bossNode = arrNodes[0];
@@ -111,19 +115,19 @@ export default class GraphBuilder {
         return graph.getBossNode();
     }
 
+    // Create a node and save its position in the grid
     #createNode(x, y) {
         const newNode = new RoomNode(this.#counter, 0);
 
-        // Set grid position
         newNode.gridPos.x = x;
         newNode.gridPos.y = y;
 
-        // Store node position
         this.#occupiedGrid.set(this.#posKey(x, y), newNode);
         this.#counter++;
 
         return newNode;
     }
 
+    // Convert coordinates to a string key
     #posKey(x, y) { return `${x},${y}`; }
 }
