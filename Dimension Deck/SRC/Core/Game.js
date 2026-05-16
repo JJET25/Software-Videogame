@@ -7,6 +7,7 @@ import HUD from "../UI/HUD.js";
 import SeededRandom from "../Utils/SeededRandom.js";
 import DimensionManager from "../Systems/DimensionManager.js";
 import MouseManager from "./MouseManager.js";
+import InteractionManager from "../Systems/InteractionManager.js";
 
 export default class Game {
     constructor(canvas) {
@@ -21,7 +22,8 @@ export default class Game {
     initManagers(canvas) {
         this.renderer = new Renderer(canvas);
         this.input = new InputManager();
-        //this.mouse = new MouseManager(); Tengo problemas con MouseManager, no encontre el error
+        this.interaction = new InteractionManager(this.input);
+        this.mouse = new MouseManager(canvas);
         this.hud = new HUD();
 
         // Render configs
@@ -63,6 +65,9 @@ export default class Game {
 
         this.player.update(deltaTime);
         this.dimManager.getRoomManager().update(deltaTime);
+
+        //this.interaction.update(this.player, this.room.interactables);
+        // Checar como resolver el room.interactables
 
         // Visual effets HUD damage
         if (this.player.health < prevHealth) this.hud.triggerDamageFlash();
