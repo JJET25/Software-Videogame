@@ -1,6 +1,6 @@
 import Vector from "../Utils/Vector.js";
 
-export default class Mouse {
+export default class MouseManager {
     constructor(canvas) {
         this.canvas = canvas;
         this.position = new Vector(0, 0);

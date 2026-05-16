@@ -23,8 +23,8 @@ export default class RoomManager {
         const node = this.graph.getNode(nodeId);
         const neighbors = this.graph.getNeighbors(nodeId);
 
-        //console.log(`Entering node ${nodeId} | type: ${node.type} | depth: ${node.depth}`);
-        //console.log(`Doors: ${this.graph.getNeighbors(nodeId).map(n => this.#getDirectionBetweem(node, n))}`);
+        console.log(`Entering node ${nodeId} | type: ${node.type} | depth: ${node.depth}`);
+        console.log(`Doors: ${this.graph.getNeighbors(nodeId).map(n => this.#getDirectionBetweem(node, n))}`);
         
         this.currentNodeId = nodeId;
         this.previousNodeId = fromNodeId;
