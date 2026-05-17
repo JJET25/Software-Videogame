@@ -7,37 +7,53 @@ import RangedEnemy from "../Entities/RangedEnemy.js";
 
 import Vector from "../Utils/Vector.js";
 
-import Room from "../World/Room.js";
-
-import InputManager from "./Input.js";
-import Mouse from "./Mouse.js";
+import InputManager from "./InputManager.js";
 import Renderer from "./Renderer.js";
-
 import HUD from "../UI/HUD.js";
 
+import SeededRandom from "../Utils/SeededRandom.js";
+import DimensionManager from "../Systems/DimensionManager.js";
+
+import MouseManager from "./MouseManager.js";
 import InteractionManager from "../Systems/InteractionManager.js";
 
 export default class Game {
 
     constructor(canvas) {
 
+        this.lastTime = 0;
+
+        this.initManagers(canvas);
+        this.initEntities();
+        this.initWorld();
+
+        this.start();
+    }
+
+    initManagers(canvas) {
+
         this.renderer = new Renderer(canvas);
 
         this.input = new InputManager();
 
-        this.mouse = new Mouse(canvas);
+        this.interaction = new InteractionManager(this.input);
 
-        this.room = new Room();
-
-        this.player = new Player(
-            new Vector(240, 176),
-            this.input,
-            this.mouse
-        );
+        this.mouse = new MouseManager(canvas);
 
         this.hud = new HUD();
 
-        this.interaction = new InteractionManager(this.input);
+        // Render configs
+        this.renderer.resize();
+        this.renderer.setupResizeListener();
+    }
+
+    initEntities() {
+
+        this.player = new Player(
+            new Vector(0, 0),
+            this.input,
+            this.mouse
+        );
 
         // Credits
         this.credits = [];
@@ -81,14 +97,19 @@ export default class Game {
                 this.credits
             )
         ];
+    }
 
-        this.lastTime = 0;
+    initWorld() {
 
-        this.renderer.resize();
+        const rng = new SeededRandom();
 
-        this.renderer.setupResizeListener();
+        this.dimManager = new DimensionManager(
+            rng,
+            this.player,
+            () => this.onVictory()
+        );
 
-        this.start();
+        this.dimManager.startRun();
     }
 
     start() {
@@ -105,38 +126,46 @@ export default class Game {
 
         this.lastTime = timestamp;
 
+        this.update(deltaTime);
+
+        this.render();
+
+        requestAnimationFrame((ts) => this.gameLoop(ts));
+    }
+
+    update(deltaTime) {
+
         const prevHealth = this.player.health;
 
-        // Update player
+        // Player
         this.player.update(deltaTime);
 
-        // Update room
-        this.room.update(deltaTime, this.player);
+        // World
+        this.dimManager.getRoomManager().update(deltaTime);
 
-        // Update interactions
-        this.interaction.update(
-            this.player,
-            this.room.interactables
-        );
-
-        // Damage flash
+        // HUD flash
         if (this.player.health < prevHealth) {
             this.hud.triggerDamageFlash();
         }
 
         this.hud.update(deltaTime);
 
-        // Update enemies
-        for (let enemy of this.enemies) {
+        // Enemies
+        for (const enemy of this.enemies) {
             enemy.update(deltaTime);
         }
 
-        // Update bullets
-        for (let bullet of this.enemyBullets) {
+        // Remove dead enemies
+        this.enemies = this.enemies.filter(
+            enemy => !enemy.isDead
+        );
+
+        // Bullets
+        for (const bullet of this.enemyBullets) {
             bullet.update(deltaTime);
         }
 
-        // Bullet collision
+        // Bullet collisions
         this.enemyBullets = this.enemyBullets.filter(bullet => {
 
             const distanceX = Math.abs(
@@ -147,7 +176,6 @@ export default class Game {
                 this.player.position.y - bullet.position.y
             );
 
-            // Smaller collision
             if (distanceX < 10 && distanceY < 10) {
 
                 this.player.takeDamage(bullet.damage);
@@ -158,12 +186,7 @@ export default class Game {
             return true;
         });
 
-        // Remove dead enemies
-        this.enemies = this.enemies.filter(
-            enemy => !enemy.isDead
-        );
-
-        // Collect credits
+        // Credits pickup
         this.credits = this.credits.filter(credit => {
 
             const distanceX = Math.abs(
@@ -188,28 +211,32 @@ export default class Game {
 
             return true;
         });
+    }
 
-        // Clear screen
+    render() {
+
         this.renderer.clear();
 
-        // Draw room
-        this.room.draw(this.renderer);
+        // Draw rooms
+        this.dimManager
+            .getRoomManager()
+            .draw(this.renderer);
 
         // Draw player
         this.player.draw(this.renderer);
 
         // Draw enemies
-        for (let enemy of this.enemies) {
+        for (const enemy of this.enemies) {
             enemy.draw(this.renderer);
         }
 
         // Draw bullets
-        for (let bullet of this.enemyBullets) {
+        for (const bullet of this.enemyBullets) {
             bullet.draw(this.renderer);
         }
 
         // Draw credits
-        for (let credit of this.credits) {
+        for (const credit of this.credits) {
 
             this.renderer.drawRect(
                 credit.x,
@@ -222,7 +249,10 @@ export default class Game {
 
         // Draw HUD
         this.hud.draw(this.renderer, this.player);
+    }
 
-        requestAnimationFrame((ts) => this.gameLoop(ts));
+    onVictory() {
+
+        console.log("Victoria! Run completada");
     }
 }

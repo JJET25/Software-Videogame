@@ -1,6 +1,6 @@
 import Vector from "../Utils/Vector.js";
 
-export default class Mouse {
+export default class MouseManager {
     constructor(canvas) {
         this.canvas = canvas;
         this.position = new Vector(0, 0);
@@ -10,11 +10,11 @@ export default class Mouse {
     _setupListeners() {
         this.canvas.addEventListener("mousemove", (e) => {
             const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width  / rect.width;
+            const scaleX = this.canvas.width / rect.width;
             const scaleY = this.canvas.height / rect.height;
             this.position = new Vector(
                 (e.clientX - rect.left) * scaleX,
-                (e.clientY - rect.top)  * scaleY
+                (e.clientY - rect.top) * scaleY
             );
         });
     }
