@@ -2,8 +2,10 @@ import Vector from "../Utils/Vector.js";
 
 export default class Mouse {
     constructor(canvas) {
-        this.canvas = canvas;
-        this.position = new Vector(0, 0);
+        this.canvas        = canvas;
+        this.position      = new Vector(0, 0);
+        this.leftDown      = false;
+        this._clickPending = false;
         this._setupListeners();
     }
 
@@ -17,5 +19,23 @@ export default class Mouse {
                 (e.clientY - rect.top)  * scaleY
             );
         });
+
+        this.canvas.addEventListener("mousedown", (e) => {
+            if (e.button === 0) {
+                this.leftDown     = true;
+                this._clickPending = true;
+            }
+        });
+
+        this.canvas.addEventListener("mouseup", (e) => {
+            if (e.button === 0) this.leftDown = false;
+        });
+    }
+
+    // Returns true once per click; clears the flag so it fires only on the frame it's read
+    consumeClick() {
+        if (!this._clickPending) return false;
+        this._clickPending = false;
+        return true;
     }
 }

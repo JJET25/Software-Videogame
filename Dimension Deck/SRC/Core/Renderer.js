@@ -14,7 +14,6 @@ export default class Renderer {
     }
 
     // Adjusts the canvas size to fit the window
-    // It uses whole numbers (1x, 2x, 3x) to keep pixels sharp
     resize() {
         const scaleX = Math.floor(window.innerWidth / this.GAME_WIDTH);
         const scaleY = Math.floor(window.innerHeight / this.GAME_HEIGHT);

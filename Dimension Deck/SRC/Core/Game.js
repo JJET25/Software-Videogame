@@ -10,6 +10,8 @@ import Mouse from "./Mouse.js";
 import Renderer from "./Renderer.js";
 
 import HUD from "../UI/HUD.js";
+import DeckScreen from "../UI/DeckScreen.js";
+import CardManager from "../Cards/CardManager.js";
 
 import InteractionManager from "../Systems/InteractionManager.js";
 
@@ -31,7 +33,11 @@ export default class Game {
             this.mouse
         );
 
-        this.hud = new HUD();
+        this.cardManager = new CardManager();
+        this.player.cardManager = this.cardManager;
+
+        this.hud        = new HUD();
+        this.deckScreen = new DeckScreen();
 
         this.interaction = new InteractionManager(this.input);
 
@@ -51,7 +57,6 @@ export default class Game {
     }
 
     start() {
-
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
@@ -69,6 +74,7 @@ export default class Game {
 
         // Update
         this.player.update(deltaTime);
+        this.cardManager.update(deltaTime);
 
         this.room.update(deltaTime, this.player);
 
@@ -82,6 +88,7 @@ export default class Game {
         }
 
         this.hud.update(deltaTime);
+        this.deckScreen.update(this.input);
 
         // Update enemies
         for (let enemy of this.enemies) {
@@ -106,8 +113,12 @@ export default class Game {
             enemy.draw(this.renderer);
         }
 
-        // HUD should render last
-        this.hud.draw(this.renderer, this.player);
+        // HUD + overlays render last
+        this.hud.draw(this.renderer, this.player, this.cardManager);
+        this.deckScreen.draw(this.renderer, this.cardManager);
+
+        // Clear pressed-this-frame set after all systems have read input
+        this.input.update();
 
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }

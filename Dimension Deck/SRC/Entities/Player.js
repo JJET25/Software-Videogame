@@ -9,10 +9,11 @@ export default class Player extends Entity {
             hitboxOffset: new Vector(0, 16)
         });
 
-        this.input = input;
-        this.mouse = mouse;
-        this.speed = 300;
-        this.state = "idle";
+        this.input       = input;
+        this.mouse       = mouse;
+        this.speed       = 300;
+        this.state       = "idle";
+        this.cardManager = null; // set by Game after construction
 
         // Direction the player is currently aiming (toward mouse cursor)
         this.aimDirection = new Vector(1, 0);
@@ -66,6 +67,22 @@ export default class Player extends Entity {
         }
 
         this.state = isMoving || this.isDashing ? "moving" : "idle";
+
+        // Card slot selection (keys 1–5) and execution (LMB)
+        if (this.cardManager) {
+            for (let i = 0; i < 5; i++) {
+                if (this.input.wasKeyPressed(String(i + 1)))
+                    this.cardManager.selectSlot(i);
+            }
+            if (this.mouse?.consumeClick()) {
+                this.cardManager.playSelected({
+                    player:  this,
+                    enemies: [],   // populated by Game/Room once enemy system lands
+                    mouse:   this.mouse,
+                });
+            }
+        }
+
         super.update(deltaTime);
     }
 }
