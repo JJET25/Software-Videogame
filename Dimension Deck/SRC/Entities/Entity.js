@@ -19,7 +19,6 @@ export default class Entity {
         this.maxHealth = 100;
 
         this.isDead = false;
-        this.isDead = false;
 
         this._invincibleTimer = 0;
         this._flashTimer = 0;

@@ -40,7 +40,7 @@ export default class Game {
         this.player = new Player(new Vector(0, 0), this.input, this.mouse);
         this.player.cardManager = this.cardManager;
 
-        // Temporary enemy list — remove once enemy system is wired through DimensionManager
+        // No va ser necesario en un futuro, eliminar luego
         this.enemies = [
             new Enemy(new Vector(500, 300), this.player),
             new Enemy(new Vector(700, 200), this.player),
@@ -101,5 +101,6 @@ export default class Game {
 
     onVictory() {
         console.log("Victoria! Run completada");
+        // Aqui implementar pantalla de victoria en un futuro
     }
 }

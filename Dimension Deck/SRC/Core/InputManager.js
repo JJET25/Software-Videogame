@@ -8,8 +8,10 @@ export default class InputManager {
     setUpListeners() {
         window.addEventListener("keydown", (event) => {
             const k = this._normalize(event.key);
+            // event.repeat is true when the browser fires repeated keydown while key is held
             if (!event.repeat) this._pressedThisFrame.add(k);
             this.keys[k] = true;
+            // Prevent Tab from switching browser focus / scrolling the page
             if (k === "TAB") event.preventDefault();
         });
         window.addEventListener("keyup", (event) => {
