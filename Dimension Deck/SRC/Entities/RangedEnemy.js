@@ -21,8 +21,10 @@ export default class RangedEnemy extends Enemy {
 
         this.shootCooldown = -1;
 
-        // No contact damage
+        // No melee damage
         this.contactDamage = 0;
+
+        this.isDead = false;
     }
 
     update(deltaTime) {
@@ -38,18 +40,17 @@ export default class RangedEnemy extends Enemy {
 
         const distance = direction.magnitude();
 
-        // Only move if too far away
+        // Move only if too far
         if (distance > 350) {
 
             this.velocity = normalizedDirection.times(this.speed);
 
         } else {
 
-            // Stop and shoot
             this.velocity = new Vector(0, 0);
         }
 
-        // Shoot bullets
+        // SHOOT
         if (this.shootCooldown <= 0) {
 
             this.bullets.push(
@@ -57,8 +58,11 @@ export default class RangedEnemy extends Enemy {
                 new EnemyBullet(
 
                     new Vector(
-                        this.position.x + normalizedDirection.x * 50,
-                        this.position.y + normalizedDirection.y * 50
+                        this.position.x +
+                        normalizedDirection.x * 50,
+
+                        this.position.y +
+                        normalizedDirection.y * 50
                     ),
 
                     normalizedDirection
@@ -68,7 +72,37 @@ export default class RangedEnemy extends Enemy {
             this.shootCooldown = 1.2;
         }
 
-        // Move enemy
+        // TEMP PLAYER DAMAGE
+        const distanceX = Math.abs(
+            this.player.position.x - this.position.x
+        );
+
+        const distanceY = Math.abs(
+            this.player.position.y - this.position.y
+        );
+
+        if (
+            distanceX < 32 &&
+            distanceY < 32
+        ) {
+
+            this.health -= 2;
+
+            this.color = "red";
+        }
+
+        else {
+
+            this.color = this.originalColor;
+        }
+
+        // Death
+        if (this.health <= 0) {
+
+            this.isDead = true;
+        }
+
+        // Move
         this.position = this.position.plus(
             this.velocity.times(deltaTime)
         );

@@ -21,6 +21,8 @@ export default class Enemy extends Entity {
 
         // Damage to player
         this.contactDamage = 10;
+
+        this.isDead = false;
     }
 
     update(deltaTime) {
@@ -51,22 +53,35 @@ export default class Enemy extends Entity {
         // Collision with player
         if (
             distanceX < 32 &&
-            distanceY < 32 &&
-            this.damageCooldown <= 0
+            distanceY < 32
         ) {
 
             // DAMAGE PLAYER
-            this.player.takeDamage(this.contactDamage);
+            if (this.damageCooldown <= 0) {
 
-            // Visual feedback
+                this.player.takeDamage(
+                    this.contactDamage
+                );
+
+                this.damageCooldown = 0.5;
+            }
+
+            // TEMP DAMAGE TO ENEMY
+            this.health -= 2;
+
+            // Flash red
             this.color = "red";
-
-            this.damageCooldown = 0.5;
         }
 
-        // Restore color
-        if (this.damageCooldown <= 0 && !this.isDead) {
+        else {
+
             this.color = this.originalColor;
+        }
+
+        // Death
+        if (this.health <= 0) {
+
+            this.isDead = true;
         }
 
         // Apply movement
@@ -74,6 +89,7 @@ export default class Enemy extends Entity {
     }
 
     die() {
+
         this.isDead = true;
     }
 }

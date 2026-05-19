@@ -100,34 +100,34 @@ export default class RoomManager {
             bullet.update(deltaTime);
         }
 
-        // Bullet collisions
-        this.enemyBullets =
-            this.enemyBullets.filter(bullet => {
+// Bullet collisions
+this.enemyBullets =
+    this.enemyBullets.filter(bullet => {
 
-                const distanceX = Math.abs(
-                    this.player.position.x -
-                    bullet.position.x
-                );
+        const distanceX = Math.abs(
+            this.player.position.x -
+            bullet.position.x
+        );
 
-                const distanceY = Math.abs(
-                    this.player.position.y -
-                    bullet.position.y
-                );
+        const distanceY = Math.abs(
+            this.player.position.y -
+            bullet.position.y
+        );
 
-                if (
-                    distanceX < 10 &&
-                    distanceY < 10
-                ) {
+        if (
+            distanceX < 24 &&
+            distanceY < 24
+        ) {
 
-                    this.player.takeDamage(
-                        bullet.damage
-                    );
+            this.player.takeDamage(
+                bullet.damage
+            );
 
-                    return false;
-                }
+            return false;
+        }
 
-                return true;
-            });
+        return true;
+    });
 
         this.#checkRoomCleared();
 
