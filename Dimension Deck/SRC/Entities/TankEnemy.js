@@ -6,8 +6,8 @@ export default class TankEnemy extends Enemy {
 
         super(position, player);
 
-        // Slow movement
-        this.speed = 70;
+        // Very slow movement
+        this.speed = 35;
 
         // High HP
         this.health = 150;

@@ -6,8 +6,8 @@ export default class SwarmEnemy extends Enemy {
 
         super(position, player);
 
-        // Fast movement
-        this.speed = 180;
+        // Fast movement but balanced
+        this.speed = 100;
 
         // Very low HP
         this.health = 10;
