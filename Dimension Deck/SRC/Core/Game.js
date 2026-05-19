@@ -38,7 +38,7 @@ export default class Game {
         this.player = new Player(new Vector(0, 0), this.input, this.mouse);
         this.player.cardManager = this.cardManager;
 
-        // No va ser necesario en un futuro, eliminar luego
+        // Temporary enemy placeholder setup
         this.enemies = [
             new Enemy(new Vector(500, 300), this.player),
             new Enemy(new Vector(700, 200), this.player),
@@ -56,7 +56,7 @@ export default class Game {
     }
 
     gameLoop(timestamp) {
-        // Prevent huge delta spikes
+        // Prevent huge delta spikes if browser drops frames
         const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
         this.lastTime = timestamp;
 
@@ -82,7 +82,9 @@ export default class Game {
         this.deckScreen.update(this.input);
 
         // Update and filter alive enemies
-        for (const enemy of this.enemies) { enemy.update(deltaTime); }
+        for (const enemy of this.enemies) { 
+            enemy.update(deltaTime); 
+        }
         this.enemies = this.enemies.filter(enemy => !enemy.isDead);
     }
 
