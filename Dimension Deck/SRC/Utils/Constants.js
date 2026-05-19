@@ -26,7 +26,7 @@ export const ROOM_WEIGHTS = {
 export const GENERATION = {
     MIN_ROOMS: 20,              // Min rooms in a map
     MAX_ROOMS: 30,              // Max rooms in a map
-    CONNECTION_CHANCE: 0.4      // % chance to connect with nearby rooms
+    CONNECTION_CHANCE: 0.2      // % chance to connect with nearby rooms
 }
 
 // Player movement between rooms
