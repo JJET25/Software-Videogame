@@ -55,6 +55,15 @@ export default class Renderer {
         this.context.fillText(text,this.scale * x, this.scale * y);
     }
 
+    drawLine(x1, y1, x2, y2, color, width = 1){
+        this.context.beginPath();
+        this.context.moveTo(x1, y1);
+        this.context.lineTo(x2, y2);
+        this.context.lineWidth(width);
+        this.context.strokeStyle = color;
+        this.context.stroke();
+    }
+
     // Fills the entire canvas with a semi-transparent color (used for damage flash)
     drawFlash(color) {
         this.context.fillStyle = color;
