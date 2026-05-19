@@ -2,11 +2,13 @@ import Player from "../Entities/Player.js";
 import Enemy from "../Entities/Enemy.js";
 import Vector from "../Utils/Vector.js";
 import InputManager from "./InputManager.js";
+import MouseManager from "./MouseManager.js";
 import Renderer from "./Renderer.js";
 import HUD from "../UI/HUD.js";
+import DeckScreen from "../UI/DeckScreen.js";
+import CardManager from "../Cards/CardManager.js";
 import SeededRandom from "../Utils/SeededRandom.js";
 import DimensionManager from "../Systems/DimensionManager.js";
-import MouseManager from "./MouseManager.js";
 import InteractionManager from "../Systems/InteractionManager.js";
 
 export default class Game {
@@ -15,16 +17,17 @@ export default class Game {
         this.initManagers(canvas);
         this.initEntities();
         this.initWorld();
-
         this.start();
     }
 
     initManagers(canvas) {
-        this.renderer = new Renderer(canvas);
-        this.input = new InputManager();
+        this.renderer    = new Renderer(canvas);
+        this.input       = new InputManager();
+        this.mouse       = new MouseManager(canvas);
         this.interaction = new InteractionManager(this.input);
-        this.mouse = new MouseManager(canvas);
-        this.hud = new HUD();
+        this.cardManager = new CardManager();
+        this.hud         = new HUD();
+        this.deckScreen  = new DeckScreen();
 
         // Render configs
         this.renderer.resize();
@@ -33,11 +36,12 @@ export default class Game {
 
     initEntities() {
         this.player = new Player(new Vector(0, 0), this.input, this.mouse);
+        this.player.cardManager = this.cardManager;
 
-        // No va ser necesario en un futuro, eliminar luego
+        // Temporary enemy placeholder setup
         this.enemies = [
             new Enemy(new Vector(500, 300), this.player),
-            new Enemy(new Vector(700, 200), this.player)
+            new Enemy(new Vector(700, 200), this.player),
         ];
     }
 
@@ -47,15 +51,20 @@ export default class Game {
         this.dimManager.startRun();
     }
 
-    start() { requestAnimationFrame((ts) => this.gameLoop(ts)); }
+    start() {
+        requestAnimationFrame((ts) => this.gameLoop(ts));
+    }
 
     gameLoop(timestamp) {
-        // Prevent huge delta spikes
+        // Prevent huge delta spikes if browser drops frames
         const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
         this.lastTime = timestamp;
 
         this.update(deltaTime);
         this.render();
+
+        // Must be last — clears wasKeyPressed flags after all systems have read input
+        this.input.update();
 
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
@@ -64,18 +73,18 @@ export default class Game {
         const prevHealth = this.player.health;
 
         this.player.update(deltaTime);
+        this.cardManager.update(deltaTime);
         this.dimManager.getRoomManager().update(deltaTime);
 
-        //this.interaction.update(this.player, this.room.interactables);
-        // Checar como resolver el room.interactables
-
-        // Visual effets HUD damage
+        // Visual effects HUD damage
         if (this.player.health < prevHealth) this.hud.triggerDamageFlash();
         this.hud.update(deltaTime);
-        // Realmente es necesario hacer esto en game.js??
+        this.deckScreen.update(this.input);
 
         // Update and filter alive enemies
-        for (const enemy of this.enemies) { enemy.update(deltaTime); }
+        for (const enemy of this.enemies) { 
+            enemy.update(deltaTime); 
+        }
         this.enemies = this.enemies.filter(enemy => !enemy.isDead);
     }
 
@@ -89,9 +98,12 @@ export default class Game {
             enemy.draw(this.renderer);
         }
 
-        this.hud.draw(this.renderer, this.player);
+        this.hud.draw(this.renderer, this.player, this.cardManager);
+        this.deckScreen.draw(this.renderer, this.cardManager);
     }
 
-    onVictory() { console.log("Victoria! Run completada"); }
-    // Aqui implementar pantalla de victoria en un futuro
+    onVictory() {
+        console.log("Victoria! Run completada");
+        // Aqui implementar pantalla de victoria en un futuro
+    }
 }

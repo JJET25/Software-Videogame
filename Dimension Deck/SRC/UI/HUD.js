@@ -1,4 +1,4 @@
-import { ROOM_HEIGHT } from "../Utils/Constants.js";
+import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
 const BAR_WIDTH    = 120;
 const BAR_HEIGHT   = 10;
@@ -6,12 +6,22 @@ const BAR_X        = 10;
 const BAR_Y        = ROOM_HEIGHT - 26;
 const FLASH_DURATION = 0.25; // seconds
 
+const SLOT_SIZE = 28;
+const SLOT_GAP  = 4;
+const SLOTS_Y   = ROOM_HEIGHT - 34;
+
+const RARITY_COLOR = {
+    common:    "#888888",
+    rare:      "#4488ff",
+    epic:      "#aa44ff",
+    legendary: "#ffaa00",
+};
+
 export default class HUD {
     constructor() {
         this._screenFlashTimer = 0;
     }
 
-    // Called when the player takes a hit — triggers the red screen overlay
     triggerDamageFlash() {
         this._screenFlashTimer = FLASH_DURATION;
     }
@@ -20,9 +30,10 @@ export default class HUD {
         if (this._screenFlashTimer > 0) this._screenFlashTimer -= deltaTime;
     }
 
-    draw(renderer, player) {
+    draw(renderer, player, cardManager = null) {
         this._drawHealthBar(renderer, player);
         this._drawDashIndicator(renderer, player);
+        if (cardManager) this._drawCardSlots(renderer, cardManager);
         this._drawScreenFlash(renderer);
     }
 
@@ -56,6 +67,70 @@ export default class HUD {
             "9px monospace",
             ready ? "#88eeff" : "#556677"
         );
+    }
+
+    _drawCardSlots(renderer, cardManager) {
+        if (!cardManager.activeSlots) return;
+        const count  = cardManager.activeSlotCount;
+        const totalW = count * SLOT_SIZE + (count - 1) * SLOT_GAP;
+        const startX = Math.floor((ROOM_WIDTH - totalW) / 2);
+
+        for (let i = 0; i < count; i++) {
+            const x    = startX + i * (SLOT_SIZE + SLOT_GAP);
+            const y    = SLOTS_Y;
+            const card = cardManager.activeSlots[i];
+            const selected = cardManager.selectedIndex === i;
+
+            // Slot background
+            renderer.drawRect(x, y, SLOT_SIZE, SLOT_SIZE, "#1a1a1a");
+
+            // Border — 1px drawn as four thin rects
+            const borderColor = selected ? "#ffffff" : "#444444";
+            renderer.drawRect(x - 1, y - 1, SLOT_SIZE + 2, 1, borderColor);
+            renderer.drawRect(x - 1, y + SLOT_SIZE, SLOT_SIZE + 2, 1, borderColor);
+            renderer.drawRect(x - 1, y, 1, SLOT_SIZE, borderColor);
+            renderer.drawRect(x + SLOT_SIZE, y, 1, SLOT_SIZE, borderColor);
+
+            if (card) {
+                // Rarity strip along the bottom of the slot
+                const rarityColor = RARITY_COLOR[card.rarity] ?? "#888888";
+                renderer.drawRect(x, y + SLOT_SIZE - 3, SLOT_SIZE, 3, rarityColor);
+
+                // Card name — truncated to fit
+                const label = card.name.length > 5 ? card.name.slice(0, 4) + "." : card.name;
+                renderer.drawText(label, x + 2, y + 9, "7px monospace", "#dddddd");
+
+                // Cooldown pie-wipe overlay drawn directly on the canvas context
+                if (!cardManager.cooldown.isReady(card.name)) {
+                    const progress = cardManager.cooldown.getProgress(card.name);
+                    const cx  = x + SLOT_SIZE / 2;
+                    const cy  = y + SLOT_SIZE / 2;
+                    const r   = SLOT_SIZE / 2;
+                    const ctx = renderer.context;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (1 - progress) * Math.PI * 2);
+                    ctx.closePath();
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.68)";
+                    ctx.fill();
+                    ctx.restore();
+
+                    // Remaining seconds centred in the slot
+                    const rem = cardManager.cooldown.getRemaining(card.name).toFixed(1);
+                    renderer.drawText(rem, x + 7, y + 18, "8px monospace", "#aaaaaa");
+                }
+            }
+
+            // Key-number label — bottom-right corner
+            renderer.drawText(
+                String(i + 1),
+                x + SLOT_SIZE - 8, y + SLOT_SIZE - 5,
+                "7px monospace",
+                selected ? "#ffffff" : "#555555"
+            );
+        }
     }
 
     _drawScreenFlash(renderer) {

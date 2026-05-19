@@ -21,7 +21,6 @@ export default class Renderer {
     }
 
     // Adjusts the canvas size to fit the window
-    // It uses whole numbers (1x, 2x, 3x) to keep pixels sharp
     resize() {
         // Choose the best scale to fit the screen
         //const scale = Math.max(1, Math.min(this.scaleX, this.scaleY));
