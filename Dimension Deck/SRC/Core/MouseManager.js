@@ -21,7 +21,7 @@ export default class MouseManager {
         });
 
         this.canvas.addEventListener("mousedown", (e) => {
-            if (e.button === 0) {
+            if (e.button === 0) { // 0 is the Left Mouse Button
                 this.leftDown      = true;
                 this._clickPending = true;
             }

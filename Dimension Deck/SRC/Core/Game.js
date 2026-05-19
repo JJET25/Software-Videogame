@@ -1,15 +1,12 @@
 import Player from "../Entities/Player.js";
 import Enemy from "../Entities/Enemy.js";
 import Vector from "../Utils/Vector.js";
-
 import InputManager from "./InputManager.js";
 import MouseManager from "./MouseManager.js";
 import Renderer from "./Renderer.js";
-
 import HUD from "../UI/HUD.js";
 import DeckScreen from "../UI/DeckScreen.js";
 import CardManager from "../Cards/CardManager.js";
-
 import SeededRandom from "../Utils/SeededRandom.js";
 import DimensionManager from "../Systems/DimensionManager.js";
 import InteractionManager from "../Systems/InteractionManager.js";
@@ -32,6 +29,7 @@ export default class Game {
         this.hud         = new HUD();
         this.deckScreen  = new DeckScreen();
 
+        // Render configs
         this.renderer.resize();
         this.renderer.setupResizeListener();
     }
@@ -58,6 +56,7 @@ export default class Game {
     }
 
     gameLoop(timestamp) {
+        // Prevent huge delta spikes
         const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
         this.lastTime = timestamp;
 
@@ -77,10 +76,12 @@ export default class Game {
         this.cardManager.update(deltaTime);
         this.dimManager.getRoomManager().update(deltaTime);
 
+        // Visual effects HUD damage
         if (this.player.health < prevHealth) this.hud.triggerDamageFlash();
         this.hud.update(deltaTime);
         this.deckScreen.update(this.input);
 
+        // Update and filter alive enemies
         for (const enemy of this.enemies) { enemy.update(deltaTime); }
         this.enemies = this.enemies.filter(enemy => !enemy.isDead);
     }
