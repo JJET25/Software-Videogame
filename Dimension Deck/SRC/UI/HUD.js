@@ -70,6 +70,7 @@ export default class HUD {
     }
 
     _drawCardSlots(renderer, cardManager) {
+        if (!cardManager.activeSlots) return;
         const count  = cardManager.activeSlotCount;
         const totalW = count * SLOT_SIZE + (count - 1) * SLOT_GAP;
         const startX = Math.floor((ROOM_WIDTH - totalW) / 2);
