@@ -50,3 +50,8 @@ bin/
 # Logs y Bases de Datos
 *.log
 *.sqlite
+
+# Claude / Herramientas de IA
+.claude/
+claude.json
+*.claude*
