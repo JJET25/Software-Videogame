@@ -10,7 +10,11 @@ export default class MiniMap {
     toggle() { this.visible = !this.visible; }
 
     draw(renderer) {
-        if (!this.visible) return 
+        if (!this.visible) return
+
+        const RoomManager = this.dimensionManager.roomManager;
+        const graph = RoomManager.graph;
+        const currentNodeId;
         // Obtener un graph y currentNodeId
         // Calculamos bounding box
         // Acceder a grid pos
@@ -19,22 +23,33 @@ export default class MiniMap {
         // Dibujar conexiones   
     }
 
-    #getState(node, currentNodeId) { }
+    #getState(node, currentNodeId) {
+        if (node.id === currentNodeId) return "current";
+        if (!node.isVisited) return "undiscovered";
+
+        // Agregar logica boss?
+        return "visited";
+    }
 
     #toScreenPos(gridPos, minX, minY) {
         // Normalized positions
-        const normalX = gridPos.x - minX; 
+        const normalX = gridPos.x - minX;
         const normalY = gridPos.y - minY;
 
         // Scale pixels
-        const scaleX = this.config.originX + normalX * (this.config.roomSize + this.config.gap);
-        const scaleY = this.config.originY + normalY * (this.config.roomSize + this.config.gap);
-    }
-    
-    #drawNode(renderer, screenPos, state) {
-        this.config.colors[state];
-        renderer.drawRect(screenPos.x, screenPos.y, this.config.roomSize, this.config.roomSize)
+        const screenX = this.config.originX + normalX * (this.config.roomSize + this.config.gap);
+        const screenY = this.config.originY + normalY * (this.config.roomSize + this.config.gap);
+
+        return {x: screenX, y: screenY};
     }
 
-    #drawConnection(renderer, posA, posB) { }
+    #drawNode(renderer, screenPos, state) {
+        const color = this.config.colors[state];
+        renderer.drawRect(screenPos.x, screenPos.y, 
+                          this.config.roomSize, this.config.roomSize, color);
+    }
+
+    #drawConnection(renderer, posA, posB) {
+        renderer.drawLine(posA.x, posA.y, posB.x, posB.y, this.config.colors.connection);
+    }
 }

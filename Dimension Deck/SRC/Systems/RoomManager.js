@@ -1,44 +1,29 @@
 import Door from "../Objects/Door.js";
-
 import {
     OPPOSITE,
     ROOM_HEIGHT,
     ROOM_WIDTH,
     TILE_SIZE
 } from "../Utils/Constants.js";
-
 import Vector from "../Utils/Vector.js";
-
 import Room from "../World/Rooms/Room.js";
 
 export default class RoomManager {
-
     constructor(graph, player, callbacks = {}) {
-
         this.graph = graph;
-
         this.player = player;
-
-        this.callbacks = callbacks;
-
+        this.callbacks = callbacks
         this.currentNodeId = null;
-
-        this.previousNodeId = null;
-
+        this.previousNodeId = null
         this.currentRoom = null;
-
         this.trasitionCooldown = 0;
-
         this.doors = [];
 
         // Enemy bullets
         this.enemyBullets = [];
     }
 
-    enterStartRoom() {
-
-        this.enterRoom(this.graph.startNodeId, null);
-    }
+    enterStartRoom() { this.enterRoom(this.graph.startNodeId, null); }
 
     enterRoom(nodeId, fromNodeId = null) {
 
@@ -100,34 +85,34 @@ export default class RoomManager {
             bullet.update(deltaTime);
         }
 
-// Bullet collisions
-this.enemyBullets =
-    this.enemyBullets.filter(bullet => {
+        // Bullet collisions
+        this.enemyBullets =
+            this.enemyBullets.filter(bullet => {
 
-        const distanceX = Math.abs(
-            this.player.position.x -
-            bullet.position.x
-        );
+                const distanceX = Math.abs(
+                    this.player.position.x -
+                    bullet.position.x
+                );
 
-        const distanceY = Math.abs(
-            this.player.position.y -
-            bullet.position.y
-        );
+                const distanceY = Math.abs(
+                    this.player.position.y -
+                    bullet.position.y
+                );
 
-        if (
-            distanceX < 24 &&
-            distanceY < 24
-        ) {
+                if (
+                    distanceX < 24 &&
+                    distanceY < 24
+                ) {
 
-            this.player.takeDamage(
-                bullet.damage
-            );
+                    this.player.takeDamage(
+                        bullet.damage
+                    );
 
-            return false;
-        }
+                    return false;
+                }
 
-        return true;
-    });
+                return true;
+            });
 
         this.#checkRoomCleared();
 
@@ -325,25 +310,13 @@ this.enemyBullets =
         }
     }
 
-    #getDirectionBetweem(
-        fromNode,
-        toNode
-    ) {
-
-        const dx =
-            toNode.gridPos.x -
-            fromNode.gridPos.x;
-
-        const dy =
-            toNode.gridPos.y -
-            fromNode.gridPos.y;
+    #getDirectionBetweem(fromNode, toNode) {
+        const dx = toNode.gridPos.x - fromNode.gridPos.x;
+        const dy = toNode.gridPos.y - fromNode.gridPos.y;
 
         if (dx > 0) return "east";
-
         if (dx < 0) return "west";
-
         if (dy > 0) return "south";
-
         if (dy < 0) return "north";
     }
 }
