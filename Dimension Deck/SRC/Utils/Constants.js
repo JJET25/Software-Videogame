@@ -32,3 +32,20 @@ export const GENERATION = {
 // Player movement between rooms
 // Converts a direction to its opposite side (rooms transitions)
 export const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+
+// Minimap UI Config
+export const MINIMAP_CONFIG = {
+    originX: 10,
+    originY: 10,
+
+    roomSize: 5,
+    gap: 3,
+
+    colors: {
+        undiscover: "#1e1e1e",
+        visited: "#4a4a8a",
+        current: "#7b7bff",
+        background: "#0d0d1a",
+        connection: "#2a2a4a"
+    }
+}
