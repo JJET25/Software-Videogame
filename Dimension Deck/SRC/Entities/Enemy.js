@@ -23,6 +23,8 @@ export default class Enemy extends Entity {
         this.contactDamage = 10;
 
         this.isDead = false;
+
+        this.droppedCredits = false;
     }
 
     update(deltaTime) {
@@ -38,6 +40,7 @@ export default class Enemy extends Entity {
 
         // Cooldown timer
         if (this.damageCooldown > 0) {
+
             this.damageCooldown -= deltaTime;
         }
 
@@ -81,7 +84,7 @@ export default class Enemy extends Entity {
         // Death
         if (this.health <= 0) {
 
-            this.isDead = true;
+            this.die();
         }
 
         // Apply movement

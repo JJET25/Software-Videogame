@@ -13,6 +13,8 @@ import Vector from "../Utils/Vector.js";
 
 import Room from "../World/Rooms/Room.js";
 
+import Credit from "../Entities/Credit.js";
+
 export default class RoomManager {
 
     constructor(graph, player, callbacks = {}) {
@@ -35,6 +37,9 @@ export default class RoomManager {
 
         // Enemy bullets
         this.enemyBullets = [];
+
+        // Credits
+        this.credits = [];
     }
 
     enterStartRoom() {
@@ -69,11 +74,12 @@ export default class RoomManager {
             );
 
         // Create room
-        this.currentRoom = new Room(
-            doorDirections,
-            this.player,
-            this.enemyBullets
-        );
+    this.currentRoom = new Room(
+        doorDirections,
+        this.player,
+        this.enemyBullets,
+        this.credits
+);
 
         this.doors =
             this.#buildDoors(node);
@@ -104,6 +110,68 @@ export default class RoomManager {
             deltaTime,
             this.player
         );
+
+        // Enemy death credits
+        for (let enemy of this.currentRoom.enemies) {
+
+            if (
+                enemy.isDead &&
+                !enemy.droppedCredits
+            ) {
+
+                this.credits.push(
+
+                    new Credit(
+
+                        new Vector(
+                            enemy.position.x,
+                            enemy.position.y
+                        )
+                    )
+                );
+
+                enemy.droppedCredits = true;
+            }
+        }
+
+        // Collect credits
+        for (let credit of this.credits) {
+
+            const distanceX = Math.abs(
+                this.player.position.x -
+                credit.position.x
+            );
+
+            const distanceY = Math.abs(
+                this.player.position.y -
+                credit.position.y
+            );
+
+            if (
+                distanceX < 28 &&
+                distanceY < 28
+            ) {
+
+                this.player.addCredits(
+                    credit.value
+                );
+
+                credit.isDead = true;
+            }
+        }
+
+        // Remove collected credits
+        for (
+            let i = this.credits.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            if (this.credits[i].isDead) {
+
+                this.credits.splice(i, 1);
+            }
+        }
 
         for (const door of this.doors) {
 
@@ -180,6 +248,12 @@ export default class RoomManager {
         for (let bullet of this.enemyBullets) {
 
             bullet.draw(renderer);
+        }
+
+        // Draw credits
+        for (let credit of this.credits) {
+
+            credit.draw(renderer);
         }
     }
 
