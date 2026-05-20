@@ -172,11 +172,11 @@ export default class Player extends Entity {
 
                 this.cardManager.playSelected({
 
-                    player: this,
+                    player:  this,
 
-                    enemies: [],
+                    enemies: this.getEnemies ? this.getEnemies() : [],
 
-                    mouse: this.mouse,
+                    mouse:   this.mouse,
                 });
             }
         }

@@ -143,44 +143,6 @@ export default class Game {
         // Rooms + enemies + bullets (all managed by RoomManager → Room)
         this.dimManager.getRoomManager().update(deltaTime);
 
-        // Enemy bullets
-        for (let bullet of this.enemyBullets) {
-
-            bullet.update(deltaTime);
-        }
-
-        // Bullet collision
-        for (let bullet of this.enemyBullets) {
-
-            const distanceX = Math.abs(
-                this.player.position.x -
-                bullet.position.x
-            );
-
-            const distanceY = Math.abs(
-                this.player.position.y -
-                bullet.position.y
-            );
-
-            if (
-                distanceX < 20 &&
-                distanceY < 20
-            ) {
-
-                this.player.takeDamage(
-                    bullet.damage
-                );
-
-                bullet.isDead = true;
-            }
-        }
-
-        // Remove dead bullets
-        this.enemyBullets =
-            this.enemyBullets.filter(
-                bullet => !bullet.isDead
-            );
-
         // HUD flash
         if (
             this.player.health <
@@ -196,10 +158,6 @@ export default class Game {
             this.input
         );
 
-        // Remove dead enemies
-        this.enemies = this.enemies.filter(
-            enemy => !enemy.isDead
-        );
     }
 
     render() {
@@ -210,18 +168,6 @@ export default class Game {
 
         // Player (drawn on top of room contents)
         this.player.draw(this.renderer);
-
-        // Draw enemies
-        for (let enemy of this.enemies) {
-
-            enemy.draw(this.renderer);
-        }
-
-        // Draw bullets
-        for (let bullet of this.enemyBullets) {
-
-            bullet.draw(this.renderer);
-        }
 
         // Draw minimap
         this.minimap.draw(
