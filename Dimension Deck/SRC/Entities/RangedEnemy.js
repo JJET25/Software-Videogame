@@ -19,7 +19,14 @@ export default class RangedEnemy extends Enemy {
         this.color = "orange";
         this.originalColor = "orange";
 
-        this.shootCooldown = -1;
+        // Shoot immediately
+        this.shootCooldown = 0;
+
+        // Attack distance
+        this.attackRange = 350;
+
+        // Time between shots
+        this.fireRate = 1.2;
 
         // No melee damage
         this.contactDamage = 0;
@@ -30,39 +37,61 @@ export default class RangedEnemy extends Enemy {
     update(deltaTime) {
         if (this.isDead) return;
 
+        // Cooldown timer
         this.shootCooldown -= deltaTime;
 
         const direction           = new Vector(
             this.player.position.x - this.position.x,
             this.player.position.y - this.position.y
         );
-        const normalizedDirection = direction.normalize();
-        const distance            = direction.magnitude();
 
-        // Preferred range: 130–180px. Approach if too far, flee only if player is
-        // very close (< 80px) — keeps the enemy reachable by melee at ~120px.
-        if (distance > 180) {
-            this.velocity = normalizedDirection.times(this.speed);
-        } else if (distance < 80) {
-            this.velocity = normalizedDirection.times(-this.speed);
-        } else {
-            this.velocity = new Vector(0, 0);
+        const normalizedDirection =
+            direction.normalize();
+
+        const distance = direction.magnitude();
+
+        // Move only if too far
+        if (distance > this.attackRange) {
+
+            this.velocity = normalizedDirection.times(
+                this.speed
+            );
         }
 
-        // Shoot at player
-        if (this.shootCooldown <= 0) {
-            this.bullets.push(new EnemyBullet(
-                new Vector(
-                    this.position.x + normalizedDirection.x * 50,
-                    this.position.y + normalizedDirection.y * 50
-                ),
-                normalizedDirection
-            ));
-            this.shootCooldown = 1.2;
+        else {
+
+            this.velocity = new Vector(0, 0);
+
+            // SHOOT
+            if (this.shootCooldown <= 0) {
+
+                this.shoot(normalizedDirection);
+
+                this.shootCooldown = this.fireRate;
+            }
         }
 
         // Tick timers (_flashTimer, _invincibleTimer) + apply movement
         if (this._flashTimer > 0) this._flashTimer -= deltaTime;
         this.position = this.position.plus(this.velocity.times(deltaTime));
+    }
+
+    shoot(direction) {
+
+        this.bullets.push(
+
+            new EnemyBullet(
+
+                new Vector(
+                    this.position.x +
+                    direction.x * 50,
+
+                    this.position.y +
+                    direction.y * 50
+                ),
+
+                direction
+            )
+        );
     }
 }

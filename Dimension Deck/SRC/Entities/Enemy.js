@@ -23,6 +23,8 @@ export default class Enemy extends Entity {
         this.contactDamage = 10;
 
         this.isDead = false;
+
+        this.droppedCredits = false;
     }
 
     update(deltaTime) {
@@ -36,19 +38,56 @@ export default class Enemy extends Entity {
 
         this.velocity = direction.normalize().times(this.speed);
 
-        // Tick contact-damage cooldown
-        if (this.damageCooldown > 0) this.damageCooldown -= deltaTime;
+        // Cooldown timer
+        if (this.damageCooldown > 0) {
 
-        // Contact damage to player
-        const distanceX = Math.abs(this.player.position.x - this.position.x);
-        const distanceY = Math.abs(this.player.position.y - this.position.y);
-
-        if (distanceX < 32 && distanceY < 32 && this.damageCooldown <= 0) {
-            this.player.takeDamage(this.contactDamage);
-            this.damageCooldown = 0.5;
+            this.damageCooldown -= deltaTime;
         }
 
-        // Tick timers + apply movement (Entity.update)
+        // Distance check
+        const distanceX = Math.abs(
+            this.player.position.x - this.position.x
+        );
+
+        const distanceY = Math.abs(
+            this.player.position.y - this.position.y
+        );
+
+        // Collision with player
+        if (
+            distanceX < 32 &&
+            distanceY < 32
+        ) {
+
+            // DAMAGE PLAYER
+            if (this.damageCooldown <= 0) {
+
+                this.player.takeDamage(
+                    this.contactDamage
+                );
+
+                this.damageCooldown = 0.5;
+            }
+
+            // TEMP DAMAGE TO ENEMY
+            this.health -= 2;
+
+            // Flash red
+            this.color = "red";
+        }
+
+        else {
+
+            this.color = this.originalColor;
+        }
+
+        // Death
+        if (this.health <= 0) {
+
+            this.die();
+        }
+
+        // Apply movement
         super.update(deltaTime);
     }
 
