@@ -17,6 +17,7 @@ export default class Entity {
 
         this.health = 100;
         this.maxHealth = 100;
+        this.shield = 0;
 
         this.isDead = false;
 
@@ -28,9 +29,17 @@ export default class Entity {
         return this._invincibleTimer > 0;
     }
 
-    // Apply damage, respecting invincibility frames and death state
+    // Apply damage; shield absorbs first, then health. Respects iframes and death state.
     takeDamage(amount) {
         if (this.isInvincible || this.isDead) return;
+
+        if (this.shield > 0) {
+            const absorbed = Math.min(this.shield, amount);
+            this.shield -= absorbed;
+            amount -= absorbed;
+            if (amount <= 0) return;
+        }
+
         this.health = Math.max(0, this.health - amount);
         this._flashTimer = 0.15;
         if (this.health === 0) {
@@ -38,6 +47,14 @@ export default class Entity {
         } else {
             this._invincibleTimer = 0.6;
         }
+    }
+
+    heal(amount) {
+        this.health = Math.min(this.maxHealth, this.health + amount);
+    }
+
+    die() {
+        this.isDead = true;
     }
 
     // Grant invincibility for at least `duration` seconds (does not shorten existing frames)
@@ -53,27 +70,6 @@ export default class Entity {
             top:    this.position.y + this.hitboxOffset.y - this.hitboxHeight / 2,
             bottom: this.position.y + this.hitboxOffset.y + this.hitboxHeight / 2
         };
-    }
-
-    takeDamage(amount) {
-        this.health -= amount;
-
-        if (this.health <= 0) {
-            this.health = 0;
-            this.die();
-        }
-    }
-
-    heal(amount) {
-        this.health += amount;
-
-        if (this.health > this.maxHealth) {
-            this.health = this.maxHealth;
-        }
-    }
-
-    die() {
-        this.isDead = true;
     }
 
     // Draws the entity, it centers the obj on its position

@@ -23,21 +23,24 @@ export default class Enemy extends Entity {
         this.contactDamage = 10;
 
         this.isDead = false;
+
+        this.droppedCredits = false;
     }
 
     update(deltaTime) {
+        if (this.isDead) return;
 
         // Direction towards player
-        let direction = new Vector(
+        const direction = new Vector(
             this.player.position.x - this.position.x,
             this.player.position.y - this.position.y
         );
 
-        // Normalize direction and apply speed
         this.velocity = direction.normalize().times(this.speed);
 
         // Cooldown timer
         if (this.damageCooldown > 0) {
+
             this.damageCooldown -= deltaTime;
         }
 
@@ -81,11 +84,32 @@ export default class Enemy extends Entity {
         // Death
         if (this.health <= 0) {
 
-            this.isDead = true;
+            this.die();
         }
 
         // Apply movement
         super.update(deltaTime);
+    }
+
+    // Enemies don't need player-style invincibility frames — only flash white on hit
+    takeDamage(amount) {
+        if (this.isDead) return;
+        this.health = Math.max(0, this.health - amount);
+        this._flashTimer = 0.12;
+        if (this.health === 0) this.isDead = true;
+    }
+
+    draw(renderer) {
+        super.draw(renderer);
+
+        // Health bar above sprite
+        const BAR_W = this.width;
+        const BAR_H = 4;
+        const bx    = this.position.x - this.width / 2;
+        const by    = this.position.y - this.height / 2 - BAR_H - 2;
+        renderer.drawRect(bx, by, BAR_W, BAR_H, "#333333");
+        const fill = Math.max(0, (this.health / this.maxHealth) * BAR_W);
+        renderer.drawRect(bx, by, fill, BAR_H, "#22cc44");
     }
 
     die() {

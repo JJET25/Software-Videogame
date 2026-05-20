@@ -17,23 +17,47 @@ import SwarmEnemy from "../../Entities/SwarmEnemy.js";
 import TankEnemy from "../../Entities/TankEnemy.js";
 import RangedEnemy from "../../Entities/RangedEnemy.js";
 
+import Credit from "../../Entities/Credit.js";
+
 export default class Room {
-    constructor(doorDirections = [], player = null, bullets = []) {
+
+    constructor(
+        doorDirections = [],
+        player = null,
+        bullets = [],
+        credits = []
+    ) {
+
         this.position = new Vector(0, 0);
+
         this.width = ROOM_WIDTH;
+
         this.height = ROOM_HEIGHT;
+
         this.tileGrid = null;
+
         this.walls = [];
+
         this.enemies = [];
+
         this.enemyBullets = bullets;
+
+        this.credits = credits;
+
         this.objects = [];
+
         this.doorDirections = doorDirections;
+
         this.interactables = [];
+
         this.isCleared = false;
+
         this.player = player;
 
         this.buildGrid();
+
         this.buildWalls();
+
         this.spawnEnemies();
     }
 
@@ -60,19 +84,48 @@ export default class Room {
             // Keep enemies inside room
             enemy.position.x = Math.max(
                 32,
-                Math.min(enemy.position.x, this.width - 32)
+                Math.min(
+                    enemy.position.x,
+                    this.width - 32
+                )
             );
 
             enemy.position.y = Math.max(
                 32,
-                Math.min(enemy.position.y, this.height - 32)
+                Math.min(
+                    enemy.position.y,
+                    this.height - 32
+                )
             );
         }
 
         // Remove dead enemies
-        this.enemies = this.enemies.filter(
-            enemy => !enemy.isDead
-        );
+        for (
+            let i = this.enemies.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            const enemy =
+                this.enemies[i];
+
+            if (enemy.isDead) {
+
+                // Spawn credit
+                this.credits.push(
+
+                    new Credit(
+
+                        new Vector(
+                            enemy.position.x,
+                            enemy.position.y
+                        )
+                    )
+                );
+
+                this.enemies.splice(i, 1);
+            }
+        }
     }
 
     draw(renderer) {
@@ -91,70 +144,39 @@ export default class Room {
     }
 
     spawnEnemies() {
-
         if (!this.player) return;
 
-        const randomType = Math.floor(
-            Math.random() * 4
-        );
+        // Playable area: leave 2-tile margin from walls (64 px each side)
+        const minX = TILE_SIZE * 2 + 16;
+        const maxX = ROOM_WIDTH  - TILE_SIZE * 2 - 16;
+        const minY = TILE_SIZE * 2 + 16;
+        const maxY = ROOM_HEIGHT - TILE_SIZE * 2 - 16;
+        const rx   = () => minX + Math.random() * (maxX - minX);
+        const ry   = () => minY + Math.random() * (maxY - minY);
+
+        const randomType = Math.floor(Math.random() * 4);
 
         // BASIC ROOM
         if (randomType === 0) {
-
-            this.enemies.push(
-
-                new Enemy(
-                    new Vector(500, 250),
-                    this.player
-                )
-            );
+            this.enemies.push(new Enemy(new Vector(rx(), ry()), this.player));
         }
 
         // SWARM ROOM
         else if (randomType === 1) {
-
             for (let i = 0; i < 4; i++) {
-
-                this.enemies.push(
-
-                    new SwarmEnemy(
-
-                        new Vector(
-                            420 + Math.random() * 180,
-                            180 + Math.random() * 180
-                        ),
-
-                        this.player
-                    )
-                );
+                this.enemies.push(new SwarmEnemy(new Vector(rx(), ry()), this.player));
             }
         }
 
         // TANK ROOM
         else if (randomType === 2) {
-
-            this.enemies.push(
-
-                new TankEnemy(
-                    new Vector(500, 250),
-                    this.player
-                )
-            );
+            this.enemies.push(new TankEnemy(new Vector(rx(), ry()), this.player));
         }
 
         // RANGED ROOM
         else {
-
             this.enemies.push(
-
-                new RangedEnemy(
-
-                    new Vector(500, 250),
-
-                    this.player,
-
-                    this.enemyBullets
-                )
+                new RangedEnemy(new Vector(rx(), ry()), this.player, this.enemyBullets)
             );
         }
     }
@@ -180,8 +202,9 @@ export default class Room {
                         this.#isDoorGap(i, j)
                             ? "door"
                             : "wall";
+                }
 
-                } else {
+                else {
 
                     grid[i][j] = "floor";
                 }
@@ -192,34 +215,58 @@ export default class Room {
     }
 
     buildWalls() {
+
         for (let row = 0; row < ROOM_ROWS; row++) {
+
             for (let col = 0; col < ROOM_COLS; col++) {
-                if (this.tileGrid[row][col] === "wall") {
+
+                if (
+                    this.tileGrid[row][col]
+                    === "wall"
+                ) {
+
                     this.walls.push(
-                        new Wall( new Vector(col * TILE_SIZE + TILE_SIZE / 2,
-                                             row * TILE_SIZE + TILE_SIZE / 2)));
+
+                        new Wall(
+
+                            new Vector(
+                                col * TILE_SIZE +
+                                TILE_SIZE / 2,
+
+                                row * TILE_SIZE +
+                                TILE_SIZE / 2
+                            )
+                        )
+                    );
                 }
             }
         }
     }
 
-    getDoorPosition(direction){
+    getDoorPosition(direction) {
 
         let col = 0;
+
         let row = 0;
 
         switch (direction) {
 
             case "north":
 
-                col = Math.floor(ROOM_COLS / 2);
+                col = Math.floor(
+                    ROOM_COLS / 2
+                );
+
                 row = 0;
 
                 break;
 
             case "south":
 
-                col = Math.floor(ROOM_COLS / 2);
+                col = Math.floor(
+                    ROOM_COLS / 2
+                );
+
                 row = ROOM_ROWS - 1;
 
                 break;
@@ -227,47 +274,73 @@ export default class Room {
             case "east":
 
                 col = ROOM_COLS - 1;
-                row = Math.floor(ROOM_ROWS / 2);
+
+                row = Math.floor(
+                    ROOM_ROWS / 2
+                );
 
                 break;
 
             case "west":
 
                 col = 0;
-                row = Math.floor(ROOM_ROWS / 2);
+
+                row = Math.floor(
+                    ROOM_ROWS / 2
+                );
 
                 break;
         }
 
         return new Vector(
-            col * TILE_SIZE + TILE_SIZE / 2,
-            row * TILE_SIZE + TILE_SIZE / 2
+
+            col * TILE_SIZE +
+            TILE_SIZE / 2,
+
+            row * TILE_SIZE +
+            TILE_SIZE / 2
         );
     }
 
     #isDoorGap(row, col) {
 
         if (
-            this.doorDirections.includes("north") &&
+            this.doorDirections.includes(
+                "north"
+            ) &&
             row === 0 &&
-            col === Math.floor(ROOM_COLS / 2)
+            col === Math.floor(
+                ROOM_COLS / 2
+            )
         ) return true;
 
         if (
-            this.doorDirections.includes("south") &&
+            this.doorDirections.includes(
+                "south"
+            ) &&
             row === ROOM_ROWS - 1 &&
-            col === Math.floor(ROOM_COLS / 2)
+            col === Math.floor(
+                ROOM_COLS / 2
+            )
         ) return true;
 
         if (
-            this.doorDirections.includes("east") &&
-            row === Math.floor(ROOM_ROWS / 2) &&
+            this.doorDirections.includes(
+                "east"
+            ) &&
+            row === Math.floor(
+                ROOM_ROWS / 2
+            ) &&
             col === ROOM_COLS - 1
         ) return true;
 
         if (
-            this.doorDirections.includes("west") &&
-            row === Math.floor(ROOM_ROWS / 2) &&
+            this.doorDirections.includes(
+                "west"
+            ) &&
+            row === Math.floor(
+                ROOM_ROWS / 2
+            ) &&
             col === 0
         ) return true;
 

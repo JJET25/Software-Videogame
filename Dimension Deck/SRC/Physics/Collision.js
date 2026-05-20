@@ -32,27 +32,24 @@ export default class Collision {
         const boundsA = objectA.getBounds();
         const boundsB = objectB.getBounds();
 
-        // If there is no collision, do nothing
         if (!this.rectCollision(boundsA, boundsB)) return;
 
         const { overlapX, overlapY } = this.getOverlap(boundsA, boundsB);
 
-        // Check if the collision is more horizontal or vertical
+        // Use hitbox centres for push direction — entity.position is the
+        // sprite centre which can differ from the hitbox centre (e.g. Player
+        // has a 16 px downward hitbox offset), so comparing positions directly
+        // gives the wrong push direction when the hitbox is offset.
         if (overlapX < overlapY) {
-            // Horizontal: move object left or right
-            if (objectA.position.x < objectB.position.x) {
-                objectA.position.x -= overlapX;
-            } else { objectA.position.x += overlapX; }
-
-            objectA.velocity.x = 0;
-
+            const cAx = (boundsA.left + boundsA.right)  / 2;
+            const cBx = (boundsB.left + boundsB.right)  / 2;
+            objectA.position.x += cAx < cBx ? -overlapX : overlapX;
+            objectA.velocity.x  = 0;
         } else {
-            // Vertical: move object up or down
-            if (objectA.position.y < objectB.position.y) {
-                objectA.position.y -= overlapY;
-            } else { objectA.position.y += overlapY }
-
-            objectA.velocity.y = 0;
+            const cAy = (boundsA.top  + boundsA.bottom) / 2;
+            const cBy = (boundsB.top  + boundsB.bottom) / 2;
+            objectA.position.y += cAy < cBy ? -overlapY : overlapY;
+            objectA.velocity.y  = 0;
         }
     }
 }
