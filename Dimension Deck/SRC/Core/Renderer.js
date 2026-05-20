@@ -13,9 +13,6 @@ export default class Renderer {
         this.scaleY = window.innerHeight / this.GAME_HEIGHT;
         this.scale = Math.max(1, Math.min(this.scaleX, this.scaleY))
 
-        console.log(this.scaleX);
-        console.log(this.scaleY);
-
         this.canvas.width = this.scale * this.GAME_WIDTH;
         this.canvas.height = this.scale * this.GAME_HEIGHT;
     }
@@ -57,9 +54,9 @@ export default class Renderer {
 
     drawLine(x1, y1, x2, y2, color, width = 1){
         this.context.beginPath();
-        this.context.moveTo(x1, y1);
-        this.context.lineTo(x2, y2);
-        this.context.lineWidth(width);
+        this.context.moveTo(this.scale * x1, this.scale * y1);
+        this.context.lineTo(this.scale * x2, this.scale * y2);
+        this.context.lineWidth = width;
         this.context.strokeStyle = color;
         this.context.stroke();
     }
