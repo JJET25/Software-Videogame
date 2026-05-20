@@ -4,8 +4,8 @@ import Vector from "../Utils/Vector.js";
 export default class Player extends Entity {
     constructor(position, input, mouse) {
         super(position, 32, 64, "#4488ff", {
-            hitboxHeight: 16,
-            hitboxWidth:  16,
+            hitboxHeight: 32,
+            hitboxWidth:  32,
             hitboxOffset: new Vector(0, 16)
         });
 

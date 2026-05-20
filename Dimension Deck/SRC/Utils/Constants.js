@@ -35,17 +35,19 @@ export const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'e
 
 // Minimap UI Config
 export const MINIMAP_CONFIG = {
-    originX: 10,
-    originY: 10,
+    anchorX: TILE_SIZE * (ROOM_COLS - 1) + TILE_SIZE / 2,
+    anchorY: TILE_SIZE * (ROOM_ROWS - 1) + TILE_SIZE / 2,
 
-    roomSize: 5,
-    gap: 3,
+    roomSize: 8,
+    gap: 4,
 
     colors: {
-        undiscover: "#1e1e1e",
+        undiscovered: "#1e1e1e",
         visited: "#4a4a8a",
         current: "#7b7bff",
-        background: "#0d0d1a",
-        connection: "#2a2a4a"
-    }
+        boss: "#990000",
+        connection: "#ffffff"
+    },
+
+    lineWidth: 3
 }

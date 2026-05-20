@@ -22,40 +22,26 @@ import SeededRandom from "../Utils/SeededRandom.js";
 
 import DimensionManager from "../Systems/DimensionManager.js";
 import InteractionManager from "../Systems/InteractionManager.js";
+import MiniMap from "../UI/Minimap.js";
 
 export default class Game {
-
     constructor(canvas) {
-
         this.lastTime = 0;
-
         this.initManagers(canvas);
-
         this.initEntities();
-
         this.initWorld();
-
+        this.initGUI();
         this.start();
     }
 
     initManagers(canvas) {
-
         this.renderer = new Renderer(canvas);
-
         this.input = new InputManager();
-
         this.mouse = new MouseManager(canvas);
-
         this.interaction = new InteractionManager(this.input);
-
         this.cardManager = new CardManager();
 
-        this.hud = new HUD();
-
-        this.deckScreen = new DeckScreen();
-
         this.renderer.resize();
-
         this.renderer.setupResizeListener();
     }
 
@@ -99,7 +85,6 @@ export default class Game {
     }
 
     initWorld() {
-
         const rng = new SeededRandom();
 
         this.dimManager = new DimensionManager(
@@ -111,35 +96,26 @@ export default class Game {
         this.dimManager.startRun();
     }
 
-    start() {
-
-        requestAnimationFrame(
-            (ts) => this.gameLoop(ts)
-        );
+    initGUI(){
+        this.hud = new HUD();
+        this.deckScreen = new DeckScreen();
+        this.minimap = new MiniMap(this.dimManager);
     }
 
+    start() { requestAnimationFrame((ts) => this.gameLoop(ts)); }
+
     gameLoop(timestamp) {
-
-        const deltaTime = Math.min(
-            (timestamp - this.lastTime) / 1000,
-            0.05
-        );
-
+        const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
         this.lastTime = timestamp;
 
         this.update(deltaTime);
-
         this.render();
-
         this.input.update();
-
-        requestAnimationFrame(
-            (ts) => this.gameLoop(ts)
-        );
+        
+        requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
     update(deltaTime) {
-
         const prevHealth = this.player.health;
 
         // Player
@@ -183,13 +159,10 @@ export default class Game {
         });
 
         // HUD flash
-        if (this.player.health < prevHealth) {
-
-            this.hud.triggerDamageFlash();
-        }
+        if (this.player.health < prevHealth) { this.hud.triggerDamageFlash(); }
+        if (this.input.isKeyDown("M")) this.minimap.toggle();
 
         this.hud.update(deltaTime);
-
         this.deckScreen.update(this.input);
 
         // Remove dead enemies
@@ -234,12 +207,9 @@ export default class Game {
             this.renderer,
             this.cardManager
         );
+
+        this.minimap.draw(this.renderer);
     }
 
-    onVictory() {
-
-        console.log(
-            "Victory! Run completed"
-        );
-    }
+    onVictory() { console.log("Victory! Run completed"); }
 }

@@ -18,40 +18,22 @@ import TankEnemy from "../../Entities/TankEnemy.js";
 import RangedEnemy from "../../Entities/RangedEnemy.js";
 
 export default class Room {
-
-    constructor(
-        doorDirections = [],
-        player = null,
-        bullets = []
-    ) {
-
+    constructor(doorDirections = [], player = null, bullets = []) {
         this.position = new Vector(0, 0);
-
         this.width = ROOM_WIDTH;
         this.height = ROOM_HEIGHT;
-
         this.tileGrid = null;
-
         this.walls = [];
-
         this.enemies = [];
-
         this.enemyBullets = bullets;
-
         this.objects = [];
-
         this.doorDirections = doorDirections;
-
         this.interactables = [];
-
         this.isCleared = false;
-
         this.player = player;
 
         this.buildGrid();
-
         this.buildWalls();
-
         this.spawnEnemies();
     }
 
@@ -210,23 +192,12 @@ export default class Room {
     }
 
     buildWalls() {
-
         for (let row = 0; row < ROOM_ROWS; row++) {
-
             for (let col = 0; col < ROOM_COLS; col++) {
-
                 if (this.tileGrid[row][col] === "wall") {
-
                     this.walls.push(
-
-                        new Wall(
-
-                            new Vector(
-                                col * TILE_SIZE + TILE_SIZE / 2,
-                                row * TILE_SIZE + TILE_SIZE / 2
-                            )
-                        )
-                    );
+                        new Wall( new Vector(col * TILE_SIZE + TILE_SIZE / 2,
+                                             row * TILE_SIZE + TILE_SIZE / 2)));
                 }
             }
         }

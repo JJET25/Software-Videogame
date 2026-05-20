@@ -1,4 +1,5 @@
 import Door from "../Objects/Door.js";
+import Collision from "../Physics/Collision.js";
 import {
     OPPOSITE,
     ROOM_HEIGHT,
@@ -26,23 +27,15 @@ export default class RoomManager {
     enterStartRoom() { this.enterRoom(this.graph.startNodeId, null); }
 
     enterRoom(nodeId, fromNodeId = null) {
-
         const node = this.graph.getNode(nodeId);
-
         const neighbors = this.graph.getNeighbors(nodeId);
 
         this.currentNodeId = nodeId;
-
         this.previousNodeId = fromNodeId;
-
         node.isVisited = true;
 
-        const doorDirections = neighbors.map(
-            neighbor =>
-                this.#getDirectionBetweem(
-                    node,
-                    neighbor
-                )
+        const doorDirections = neighbors.map(neighbor => 
+            this.#getDirectionBetweem(node, neighbor)
         );
 
         // Create room
@@ -53,32 +46,29 @@ export default class RoomManager {
         );
 
         this.doors = this.#buildDoors(node);
-
         this.#placePlayer(fromNodeId);
 
         // Lock room if enemies exist
         if (this.currentRoom.enemies.length > 0) {
-
-            this.doors.forEach(
-                door => door.lock()
-            );
+            this.doors.forEach(door => door.lock());
         }
-
         this.trasitionCooldown = 0.3;
     }
 
     update(deltaTime) {
-
         if (this.trasitionCooldown > 0) {
-
             this.trasitionCooldown -= deltaTime;
         }
 
-        this.currentRoom.update(
-            deltaTime,
-            this.player
-        );
+        this.currentRoom.update(deltaTime, this.player);
 
+        for (const door of this.doors){
+            if (door.isLocked){
+                Collision.resolve(this.player, door);
+            } 
+        }
+
+        // ESTO NO LO DEBE HACER ROOM MANAGER
         // Update bullets
         for (let bullet of this.enemyBullets) {
 
@@ -115,17 +105,12 @@ export default class RoomManager {
             });
 
         this.#checkRoomCleared();
-
         this.#checkDoorTransitions();
     }
 
     draw(renderer) {
-
         this.currentRoom.draw(renderer);
-
-        this.doors.forEach(
-            door => door.draw(renderer)
-        );
+        this.doors.forEach(door => door.draw(renderer));
 
         // Draw bullets
         for (let bullet of this.enemyBullets) {
@@ -166,22 +151,10 @@ export default class RoomManager {
     }
 
     #placePlayer(fromNodeId) {
-
-        if (fromNodeId === null) {
-
-            this.player.position =
-                new Vector(
-                    ROOM_WIDTH / 2,
-                    ROOM_HEIGHT / 2
-                );
-        }
+        if (fromNodeId === null) this.player.position = new Vector(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
 
         else {
-
-            const currentNode =
-                this.graph.getNode(
-                    this.currentNodeId
-                );
+            const currentNode = this.graph.getNode(this.currentNodeId);
 
             const fromNode =
                 this.graph.getNode(fromNodeId);
