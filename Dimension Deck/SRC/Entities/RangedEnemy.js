@@ -19,7 +19,14 @@ export default class RangedEnemy extends Enemy {
         this.color = "orange";
         this.originalColor = "orange";
 
-        this.shootCooldown = -1;
+        // Shoot immediately
+        this.shootCooldown = 0;
+
+        // Attack distance
+        this.attackRange = 350;
+
+        // Time between shots
+        this.fireRate = 1.2;
 
         // No melee damage
         this.contactDamage = 0;
@@ -29,6 +36,7 @@ export default class RangedEnemy extends Enemy {
 
     update(deltaTime) {
 
+        // Cooldown timer
         this.shootCooldown -= deltaTime;
 
         const direction = new Vector(
@@ -36,40 +44,30 @@ export default class RangedEnemy extends Enemy {
             this.player.position.y - this.position.y
         );
 
-        const normalizedDirection = direction.normalize();
+        const normalizedDirection =
+            direction.normalize();
 
         const distance = direction.magnitude();
 
         // Move only if too far
-        if (distance > 350) {
+        if (distance > this.attackRange) {
 
-            this.velocity = normalizedDirection.times(this.speed);
-
-        } else {
-
-            this.velocity = new Vector(0, 0);
+            this.velocity = normalizedDirection.times(
+                this.speed
+            );
         }
 
-        // SHOOT
-        if (this.shootCooldown <= 0) {
+        else {
 
-            this.bullets.push(
+            this.velocity = new Vector(0, 0);
 
-                new EnemyBullet(
+            // SHOOT
+            if (this.shootCooldown <= 0) {
 
-                    new Vector(
-                        this.position.x +
-                        normalizedDirection.x * 50,
+                this.shoot(normalizedDirection);
 
-                        this.position.y +
-                        normalizedDirection.y * 50
-                    ),
-
-                    normalizedDirection
-                )
-            );
-
-            this.shootCooldown = 1.2;
+                this.shootCooldown = this.fireRate;
+            }
         }
 
         // TEMP PLAYER DAMAGE
@@ -105,6 +103,25 @@ export default class RangedEnemy extends Enemy {
         // Move
         this.position = this.position.plus(
             this.velocity.times(deltaTime)
+        );
+    }
+
+    shoot(direction) {
+
+        this.bullets.push(
+
+            new EnemyBullet(
+
+                new Vector(
+                    this.position.x +
+                    direction.x * 50,
+
+                    this.position.y +
+                    direction.y * 50
+                ),
+
+                direction
+            )
         );
     }
 }
