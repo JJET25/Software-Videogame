@@ -14,6 +14,7 @@ export default class Player extends Entity {
         this.speed       = 300;
         this.state       = "idle";
         this.cardManager = null; // set by Game after construction
+        this.getEnemies  = null; // set by Game after construction — () => Enemy[]
 
         // Direction the player is currently aiming (toward mouse cursor)
         this.aimDirection = new Vector(1, 0);
@@ -24,6 +25,11 @@ export default class Player extends Entity {
         this._dashCooldown      = 0.8;   // seconds before next dash is allowed
         this._dashTimer         = 0;
         this._dashCooldownTimer = 0;
+
+        // Melee strike visual (set by QuickStrike card)
+        this._strikeTimer = 0;
+        this._strikeDir   = new Vector(1, 0);
+        this._strikeRange = 120;
     }
 
     get isDashing() {
@@ -77,12 +83,43 @@ export default class Player extends Entity {
             if (this.mouse?.consumeClick()) {
                 this.cardManager.playSelected({
                     player:  this,
-                    enemies: [],   // populated by Game/Room once enemy system lands
+                    enemies: this.getEnemies ? this.getEnemies() : [],
                     mouse:   this.mouse,
                 });
             }
         }
 
+        if (this._strikeTimer > 0) this._strikeTimer = Math.max(0, this._strikeTimer - deltaTime);
+
         super.update(deltaTime);
+    }
+
+    draw(renderer) {
+        // Draw melee arc behind the player sprite
+        if (this._strikeTimer > 0) {
+            const DURATION = 0.18;
+            const alpha    = this._strikeTimer / DURATION;
+            const angle    = Math.atan2(this._strikeDir.y, this._strikeDir.x);
+            const SPREAD   = Math.PI * 0.6; // ~108° arc
+            const r        = this._strikeRange;
+            const ctx      = renderer.context;
+            const s        = renderer.scale;
+            const cx       = this.position.x * s;
+            const cy       = this.position.y * s;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r * s, angle - SPREAD / 2, angle + SPREAD / 2);
+            ctx.closePath();
+            ctx.fillStyle   = `rgba(255, 230, 80, ${(alpha * 0.30).toFixed(2)})`;
+            ctx.fill();
+            ctx.strokeStyle = `rgba(255, 200, 50, ${(alpha * 0.90).toFixed(2)})`;
+            ctx.lineWidth   = 2 * s;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        super.draw(renderer);
     }
 }

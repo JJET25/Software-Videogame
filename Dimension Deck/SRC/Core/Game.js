@@ -1,12 +1,4 @@
 import Player from "../Entities/Player.js";
-
-import Enemy from "../Entities/Enemy.js";
-import SwarmEnemy from "../Entities/SwarmEnemy.js";
-import TankEnemy from "../Entities/TankEnemy.js";
-import RangedEnemy from "../Entities/RangedEnemy.js";
-
-import EnemyBullet from "../Entities/EnemyBullet.js";
-
 import Vector from "../Utils/Vector.js";
 
 import InputManager from "./InputManager.js";
@@ -17,6 +9,9 @@ import HUD from "../UI/HUD.js";
 import DeckScreen from "../UI/DeckScreen.js";
 
 import CardManager from "../Cards/CardManager.js";
+import QuickStrike from "../Cards/QuickStrike.js";
+import HealPulse   from "../Cards/HealPulse.js";
+import WoodShield  from "../Cards/WoodShield.js";
 
 import SeededRandom from "../Utils/SeededRandom.js";
 
@@ -46,7 +41,6 @@ export default class Game {
     }
 
     initEntities() {
-
         this.player = new Player(
             new Vector(0, 0),
             this.input,
@@ -55,33 +49,15 @@ export default class Game {
 
         this.player.cardManager = this.cardManager;
 
-        // Enemy bullets
-        this.enemyBullets = [];
+        // Always read enemies from the current room so QuickStrike targets
+        // room enemies instead of a stale hardcoded array
+        this.player.getEnemies = () =>
+            this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
 
-        // Temporary enemy setup
-        this.enemies = [
-
-            new Enemy(
-                new Vector(500, 300),
-                this.player
-            ),
-
-            new SwarmEnemy(
-                new Vector(700, 200),
-                this.player
-            ),
-
-            new TankEnemy(
-                new Vector(850, 300),
-                this.player
-            ),
-
-            new RangedEnemy(
-                new Vector(900, 150),
-                this.player,
-                this.enemyBullets
-            )
-        ];
+        // Starter cards
+        this.cardManager.addCard(new QuickStrike());
+        this.cardManager.addCard(new HealPulse());
+        this.cardManager.addCard(new WoodShield());
     }
 
     initWorld() {
@@ -111,7 +87,7 @@ export default class Game {
         this.update(deltaTime);
         this.render();
         this.input.update();
-        
+
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
@@ -124,90 +100,29 @@ export default class Game {
         // Cards
         this.cardManager.update(deltaTime);
 
-        // Rooms
-        this.dimManager
-            .getRoomManager()
-            .update(deltaTime);
+        // Rooms + enemies + bullets (all managed by RoomManager → Room)
+        this.dimManager.getRoomManager().update(deltaTime);
 
-        // Enemy bullets
-        for (let bullet of this.enemyBullets) {
-
-            bullet.update(deltaTime);
-        }
-
-        // Bullet collision
-        this.enemyBullets = this.enemyBullets.filter(bullet => {
-
-            const distanceX = Math.abs(
-                this.player.position.x - bullet.position.x
-            );
-
-            const distanceY = Math.abs(
-                this.player.position.y - bullet.position.y
-            );
-
-            if (distanceX < 20 && distanceY < 20) {
-
-                this.player.takeDamage(
-                    bullet.damage
-                );
-
-                return false;
-            }
-
-            return true;
-        });
-
-        // HUD flash
+        // HUD flash — checked after RoomManager so bullet/contact damage is included
         if (this.player.health < prevHealth) { this.hud.triggerDamageFlash(); }
         if (this.input.isKeyDown("M")) this.minimap.toggle();
 
         this.hud.update(deltaTime);
         this.deckScreen.update(this.input);
-
-        // Remove dead enemies
-        this.enemies = this.enemies.filter(
-            enemy => !enemy.isDead
-        );
     }
 
     render() {
-
         this.renderer.clear();
 
-        // Draw room
-        this.dimManager
-            .getRoomManager()
-            .draw(this.renderer);
+        // Room walls + enemies + doors + bullets
+        this.dimManager.getRoomManager().draw(this.renderer);
 
-        // Draw player
+        // Player (drawn on top of room contents)
         this.player.draw(this.renderer);
 
-        // Draw enemies
-        for (let enemy of this.enemies) {
-
-            enemy.draw(this.renderer);
-        }
-
-        // Draw bullets
-        for (let bullet of this.enemyBullets) {
-
-            bullet.draw(this.renderer);
-        }
-
-        // Draw HUD
-        this.hud.draw(
-            this.renderer,
-            this.player,
-            this.cardManager
-        );
-
-        // Draw deck screen
-        this.deckScreen.draw(
-            this.renderer,
-            this.cardManager
-        );
-
+        // HUD
+        this.hud.draw(this.renderer, this.player, this.cardManager);
+        this.deckScreen.draw(this.renderer, this.cardManager);
         this.minimap.draw(this.renderer);
     }
 

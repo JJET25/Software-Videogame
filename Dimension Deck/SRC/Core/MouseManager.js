@@ -1,4 +1,5 @@
 import Vector from "../Utils/Vector.js";
+import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
 
 export default class MouseManager {
     constructor(canvas) {
@@ -11,12 +12,14 @@ export default class MouseManager {
 
     _setupListeners() {
         this.canvas.addEventListener("mousemove", (e) => {
-            const rect   = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width  / rect.width;
-            const scaleY = this.canvas.height / rect.height;
+            const rect      = this.canvas.getBoundingClientRect();
+            // Convert from CSS pixels to game-space pixels so that
+            // mouse.position is comparable to entity positions (0–480, 0–352)
+            const gameScaleX = this.canvas.width  / ROOM_WIDTH;
+            const gameScaleY = this.canvas.height / ROOM_HEIGHT;
             this.position = new Vector(
-                (e.clientX - rect.left) * scaleX,
-                (e.clientY - rect.top)  * scaleY
+                (e.clientX - rect.left) / gameScaleX,
+                (e.clientY - rect.top)  / gameScaleY
             );
         });
 

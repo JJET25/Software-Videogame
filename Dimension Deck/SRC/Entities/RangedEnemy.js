@@ -28,83 +28,41 @@ export default class RangedEnemy extends Enemy {
     }
 
     update(deltaTime) {
+        if (this.isDead) return;
 
         this.shootCooldown -= deltaTime;
 
-        const direction = new Vector(
+        const direction           = new Vector(
             this.player.position.x - this.position.x,
             this.player.position.y - this.position.y
         );
-
         const normalizedDirection = direction.normalize();
+        const distance            = direction.magnitude();
 
-        const distance = direction.magnitude();
-
-        // Move only if too far
-        if (distance > 350) {
-
+        // Preferred range: 130–180px. Approach if too far, flee only if player is
+        // very close (< 80px) — keeps the enemy reachable by melee at ~120px.
+        if (distance > 180) {
             this.velocity = normalizedDirection.times(this.speed);
-
+        } else if (distance < 80) {
+            this.velocity = normalizedDirection.times(-this.speed);
         } else {
-
             this.velocity = new Vector(0, 0);
         }
 
-        // SHOOT
+        // Shoot at player
         if (this.shootCooldown <= 0) {
-
-            this.bullets.push(
-
-                new EnemyBullet(
-
-                    new Vector(
-                        this.position.x +
-                        normalizedDirection.x * 50,
-
-                        this.position.y +
-                        normalizedDirection.y * 50
-                    ),
-
-                    normalizedDirection
-                )
-            );
-
+            this.bullets.push(new EnemyBullet(
+                new Vector(
+                    this.position.x + normalizedDirection.x * 50,
+                    this.position.y + normalizedDirection.y * 50
+                ),
+                normalizedDirection
+            ));
             this.shootCooldown = 1.2;
         }
 
-        // TEMP PLAYER DAMAGE
-        const distanceX = Math.abs(
-            this.player.position.x - this.position.x
-        );
-
-        const distanceY = Math.abs(
-            this.player.position.y - this.position.y
-        );
-
-        if (
-            distanceX < 32 &&
-            distanceY < 32
-        ) {
-
-            this.health -= 2;
-
-            this.color = "red";
-        }
-
-        else {
-
-            this.color = this.originalColor;
-        }
-
-        // Death
-        if (this.health <= 0) {
-
-            this.isDead = true;
-        }
-
-        // Move
-        this.position = this.position.plus(
-            this.velocity.times(deltaTime)
-        );
+        // Tick timers (_flashTimer, _invincibleTimer) + apply movement
+        if (this._flashTimer > 0) this._flashTimer -= deltaTime;
+        this.position = this.position.plus(this.velocity.times(deltaTime));
     }
 }

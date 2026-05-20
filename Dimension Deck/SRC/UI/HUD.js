@@ -32,6 +32,7 @@ export default class HUD {
 
     draw(renderer, player, cardManager = null) {
         this._drawHealthBar(renderer, player);
+        this._drawShieldBar(renderer, player);
         this._drawDashIndicator(renderer, player);
         if (cardManager) this._drawCardSlots(renderer, cardManager);
         this._drawScreenFlash(renderer);
@@ -54,6 +55,21 @@ export default class HUD {
             BAR_Y - 4,
             "9px monospace",
             "#cccccc"
+        );
+    }
+
+    _drawShieldBar(renderer, player) {
+        if (!player.shield || player.shield <= 0) return;
+        const shieldY = BAR_Y - 14;
+        renderer.drawRect(BAR_X, shieldY, BAR_WIDTH, BAR_HEIGHT, "#333333");
+        const fillWidth = Math.min(BAR_WIDTH, Math.floor((player.shield / 100) * BAR_WIDTH));
+        renderer.drawRect(BAR_X, shieldY, fillWidth, BAR_HEIGHT, "#44aaff");
+        renderer.drawText(
+            `SH  ${player.shield}`,
+            BAR_X,
+            shieldY - 4,
+            "9px monospace",
+            "#88ccff"
         );
     }
 

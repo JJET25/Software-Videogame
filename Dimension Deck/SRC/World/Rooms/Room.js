@@ -91,70 +91,39 @@ export default class Room {
     }
 
     spawnEnemies() {
-
         if (!this.player) return;
 
-        const randomType = Math.floor(
-            Math.random() * 4
-        );
+        // Playable area: leave 2-tile margin from walls (64 px each side)
+        const minX = TILE_SIZE * 2 + 16;
+        const maxX = ROOM_WIDTH  - TILE_SIZE * 2 - 16;
+        const minY = TILE_SIZE * 2 + 16;
+        const maxY = ROOM_HEIGHT - TILE_SIZE * 2 - 16;
+        const rx   = () => minX + Math.random() * (maxX - minX);
+        const ry   = () => minY + Math.random() * (maxY - minY);
+
+        const randomType = Math.floor(Math.random() * 4);
 
         // BASIC ROOM
         if (randomType === 0) {
-
-            this.enemies.push(
-
-                new Enemy(
-                    new Vector(500, 250),
-                    this.player
-                )
-            );
+            this.enemies.push(new Enemy(new Vector(rx(), ry()), this.player));
         }
 
         // SWARM ROOM
         else if (randomType === 1) {
-
             for (let i = 0; i < 4; i++) {
-
-                this.enemies.push(
-
-                    new SwarmEnemy(
-
-                        new Vector(
-                            420 + Math.random() * 180,
-                            180 + Math.random() * 180
-                        ),
-
-                        this.player
-                    )
-                );
+                this.enemies.push(new SwarmEnemy(new Vector(rx(), ry()), this.player));
             }
         }
 
         // TANK ROOM
         else if (randomType === 2) {
-
-            this.enemies.push(
-
-                new TankEnemy(
-                    new Vector(500, 250),
-                    this.player
-                )
-            );
+            this.enemies.push(new TankEnemy(new Vector(rx(), ry()), this.player));
         }
 
         // RANGED ROOM
         else {
-
             this.enemies.push(
-
-                new RangedEnemy(
-
-                    new Vector(500, 250),
-
-                    this.player,
-
-                    this.enemyBullets
-                )
+                new RangedEnemy(new Vector(rx(), ry()), this.player, this.enemyBullets)
             );
         }
     }
