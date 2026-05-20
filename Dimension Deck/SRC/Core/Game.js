@@ -13,6 +13,7 @@ import Renderer from "./Renderer.js";
 
 import HUD from "../UI/HUD.js";
 import DeckScreen from "../UI/DeckScreen.js";
+import MiniMap from "../UI/Minimap.js";
 
 import CardManager from "../Cards/CardManager.js";
 
@@ -110,6 +111,11 @@ export default class Game {
         );
 
         this.dimManager.startRun();
+
+        // Minimap
+        this.minimap = new MiniMap(
+            this.dimManager
+        );
     }
 
     start() {
@@ -237,6 +243,11 @@ export default class Game {
 
             bullet.draw(this.renderer);
         }
+
+        // Draw minimap
+        this.minimap.draw(
+            this.renderer
+        );
 
         // Draw HUD
         this.hud.draw(
