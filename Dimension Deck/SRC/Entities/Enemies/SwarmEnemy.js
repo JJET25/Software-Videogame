@@ -1,4 +1,4 @@
-import Enemy from "./Enemy.js";
+import Enemy from "../Enemy.js";
 
 export default class SwarmEnemy extends Enemy {
 
@@ -19,7 +19,6 @@ export default class SwarmEnemy extends Enemy {
 
         // Different color for testing
         this.color = "purple";
-
         this.originalColor = "purple";
 
         // Less damage

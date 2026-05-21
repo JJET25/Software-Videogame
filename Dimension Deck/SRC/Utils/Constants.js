@@ -22,6 +22,10 @@ export const ROOM_WEIGHTS = {
     // Store room??
 }
 
+// Room Configs
+export const MIN_ENEMIES = 2;
+export const MAX_ENEMIES = 8;
+
 // Graph Generation
 export const GENERATION = {
     MIN_ROOMS: 20,              // Min rooms in a map
