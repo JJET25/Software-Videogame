@@ -1,0 +1,61 @@
+:root {
+  --bg: #3c1864;
+  --primary-color: #1c0536;
+  --secondary-color: #5b21b6;
+  --primary-text: #f0e6ff;
+  --secondary-text: #000000;
+  --highlight-text: #ff8f33;
+  --acent: #00ffb9;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  height: 100vh;
+
+  background-color: var(--bg);
+  color: var(--primary-text);
+}
+
+.login__container {
+  padding: 2.5rem;
+  margin: 1rem;
+
+  border-radius: 2rem;
+
+  background-color: var(--primary-color);
+}
+
+.login__container button {
+  width: 100%;
+  padding: 1rem;
+
+  border-radius: 4.5rem;
+
+  background-color: var(--acent);
+  color: var(--secondary-text);
+  border: none;
+
+  cursor: pointer;
+}
+
+.logo__container {
+  border: 2px solid red;
+}
+
+.logo__container h1 {
+  border: 2px solid blue;
+}
+
+.logo__container img {
+  border: 2px solid green;
+}
