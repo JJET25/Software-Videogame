@@ -1,6 +1,6 @@
-import Enemy from "./Enemy.js";
-import EnemyBullet from "./EnemyBullet.js";
-import Vector from "../Utils/Vector.js";
+import Enemy from "../Enemy.js";
+import EnemyBullet from "../EnemyBullet.js";
+import Vector from "../../Utils/Vector.js";
 
 export default class RangedEnemy extends Enemy {
 

@@ -1,0 +1,22 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #110025;
+  --primary-color: #3d1070;
+  --secondary-color: #5b21b6;
+  --primary--text: #f0e6ff;
+  --secondary-text: #9c7bc0;
+  --acent: #22d3ee;
+}
+
+/* HEADER */
+header{
+    background-color: var(--primary-color);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}

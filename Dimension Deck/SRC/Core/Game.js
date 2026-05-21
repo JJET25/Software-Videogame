@@ -1,9 +1,6 @@
 import Player from "../Entities/Player.js";
 
 import Enemy from "../Entities/Enemy.js";
-import SwarmEnemy from "../Entities/SwarmEnemy.js";
-import TankEnemy from "../Entities/TankEnemy.js";
-import RangedEnemy from "../Entities/RangedEnemy.js";
 
 import Vector from "../Utils/Vector.js";
 

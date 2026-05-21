@@ -53,7 +53,7 @@ export default class DimensionManager {
             onFinalBossDefeated: () => this.onFinalBossDefeated()
         }
 
-        this.roomManager = new RoomManager(graph, this.player, callbacks);
+        this.roomManager = new RoomManager(graph, this.player, this.getCurrentDimension(), this.rng, callbacks);
         this.roomManager.enterStartRoom();
     }
 
