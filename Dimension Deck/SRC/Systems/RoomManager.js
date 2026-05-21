@@ -26,6 +26,7 @@ export default class RoomManager {
     this.doors = [];
     this.bullets = [];
     this.credits = [];
+    this.roomCache = new Map();
   }
 
   enterStartRoom() {
@@ -34,29 +35,30 @@ export default class RoomManager {
 
   enterRoom(nodeId, fromNodeId = null) {
     const node = this.graph.getNode(nodeId);
-
     const neighbors = this.graph.getNeighbors(nodeId);
 
     this.currentNodeId = nodeId;
-
     this.previousNodeId = fromNodeId;
-
     node.isVisited = true;
 
     const doorDirections = neighbors.map((neighbor) =>
       this.#getDirectionBetweem(node, neighbor),
     );
 
-    // Create room
-    this.currentRoom = RoomFactory.create(
-      node,
-      doorDirections,
-      this.player,
-      this.bullets,
-      this.credits,
-      this.dimension,
-      this.rng,
-    );
+    if (!this.roomCache.has(nodeId)) {
+      const newRoom = RoomFactory.create(
+        node,
+        doorDirections,
+        this.player,
+        this.bullets,
+        this.credits,
+        this.dimension,
+        this.rng,
+      );
+      this.roomCache.set(nodeId, newRoom);
+    }
+
+    this.currentRoom = this.roomCache.get(nodeId);
     this.doors = this.#buildDoors(node);
 
     this.#placePlayer(fromNodeId);

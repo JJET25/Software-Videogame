@@ -6,7 +6,7 @@ export default class Door extends GameObject {
         super(position, 32, 32, "#00AA44", "door");
         this.position = position;
         this.targetNodeId = targetNodeId;
-        this.isLocked = true;
+        this.isLocked = false;
     }
 
     lock() {
