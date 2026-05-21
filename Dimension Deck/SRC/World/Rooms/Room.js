@@ -22,6 +22,7 @@ export default class Room {
     this.enemies = [];
     this.objects = [];
     this.isCleared = false;
+    this.spawnDelay = 0;
 
     this.buildGrid();
     this.buildWalls();
@@ -29,13 +30,13 @@ export default class Room {
   populate() {}
 
   update(deltaTime, player) {
-    // Player vs walls
-    this.walls.forEach((wall) => {
-      Collision.resolve(player, wall);
-    });
-
-    // Keep player inside room
+    this.walls.forEach((wall) => Collision.resolve(player, wall));
     Collision.resolveEntityBounds(player, ROOM_WIDTH, ROOM_HEIGHT);
+
+    if (this.spawnDelay > 0) {
+      this.spawnDelay -= deltaTime;
+      return;
+    }
 
     // Update enemies
     for (let enemy of this.enemies) {

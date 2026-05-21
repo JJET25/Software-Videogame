@@ -15,16 +15,22 @@ export default class CombatRoom extends Room {
     this.rng = rng;
 
     this.populate();
+    this.spawnDelay = 0.3;
   }
 
   populate() {
     const quantityEnemies = this.rng.int(MIN_ENEMIES, MAX_ENEMIES);
 
     for (let i = 0; i < quantityEnemies; i++) {
-      const enemyType = this.#getRandomEnemyType(this.dimension.enemyPool, this.rng);
+      const enemyType = this.#getRandomEnemyType(
+        this.dimension.enemyPool,
+        this.rng,
+      );
       const enemyPos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
 
-      this.enemies.push(new enemyType(enemyPos, this.player, this.bullets, this.credits));
+      this.enemies.push(
+        new enemyType(enemyPos, this.player, this.bullets, this.credits),
+      );
     }
   }
 

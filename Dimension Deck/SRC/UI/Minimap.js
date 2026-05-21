@@ -54,9 +54,9 @@ export default class MiniMap {
 
     #getState(node, currentNodeId) {
         if (node.id === currentNodeId) return "current";
-        if (!node.isVisited) return "undiscovered";
-
         if (node.type === "miniBoss" || node.type === "finalBoss") return "boss";
+        
+        if (!node.isVisited) return "undiscovered";        
         return "visited";
     }
 

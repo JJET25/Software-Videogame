@@ -15,11 +15,11 @@ export const DIRECTIONS = [
 
 // Room Probability Weights
 export const ROOM_WEIGHTS = {
-    combat: 50,     // % chance for combat room
-    chest: 25,      // % chance for chest room
-    shrine: 15,     // % chance for shrine room
-    glitch: 10      // % chance for glitch room
-    // Store room??
+    combat: 80,     // % chance for combat room
+    chest: 10,      // % chance for chest room
+    shrine: 5,     // % chance for shrine room
+    glitch: 5,     // % chance for glitch room
+    store: 0        // % chance for store room
 }
 
 // Room Configs
@@ -30,7 +30,7 @@ export const MAX_ENEMIES = 8;
 export const GENERATION = {
     MIN_ROOMS: 20,              // Min rooms in a map
     MAX_ROOMS: 30,              // Max rooms in a map
-    CONNECTION_CHANCE: 0.2      // % chance to connect with nearby rooms
+    CONNECTION_CHANCE: 0.3      // % chance to connect with nearby rooms
 }
 
 // Player movement between rooms
@@ -49,7 +49,7 @@ export const MINIMAP_CONFIG = {
         undiscovered: "#1e1e1e",
         visited: "#4a4a8a",
         current: "#7b7bff",
-        boss: "#990000",
+        boss: "#c20c0c",
         connection: "#ffffff"
     },
 
