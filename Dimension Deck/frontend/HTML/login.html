@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/Dimension Deck/frontend/CSS/login.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DD - Log in</title>
+  </head>
+  <body>
+    <div class="loading-overlay"></div>
+
+    <div class="login__container">
+      <div class="logo__container">
+        <h1>
+          <img
+            src="/Dimension Deck/Assets/Website/DimensionDeck_Logo.png"
+            alt="Dimension Deck"
+          />
+        </h1>
+      </div>
+
+      <form id="loginForm">
+        <div class="input__container">
+          <label for="username">Username:</label>
+          <input type="text" name="username" id="username"  />
+        </div>
+
+        <div class="input__container">
+          <label for="password">Password:</label>
+          <input type="password" name="password" id="password" />
+        </div>
+
+        <p class="error-msg" id="errorMsg">LOG IN ERROR: Check your user or password</p>
+        <button type="submit">LOG IN</button>
+
+        <a href="/Dimension Deck/index.html">Back to the menu</a>
+      </form>
+    </div>
+
+    <script src="/frontend/JavaScript/login.js"></script>
+  </body>
+</html>
