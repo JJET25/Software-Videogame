@@ -41,7 +41,7 @@ loginForm.addEventListener("submit", async (event) => {
   overlay.classList.add("active");
 
   try {
-    const response = await fetch("/api/login", {
+    const response = await fetch("/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,12 +51,8 @@ loginForm.addEventListener("submit", async (event) => {
 
     const data = await response.json();
 
-    if (response.ok) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.username);
-
-      window.location.href = "../HTML/game.html";
-    } else {
+    if (response.ok) handleAuthSuccess(data.token, data.username);
+    else {
       overlay.classList.remove("active");
       errorLogin.classList.add("visible");
     }
@@ -83,7 +79,7 @@ signupForm.addEventListener("submit", async (event) => {
   overlay.classList.add("active");
 
   try {
-    const response = await fetch("/api/register", {
+    const response = await fetch("/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,10 +89,8 @@ signupForm.addEventListener("submit", async (event) => {
 
     const data = await response.json();
 
-    if (response.ok) {
-      overlay.classList.remove("active");
-      tabs[0].click();
-    } else {
+    if (response.ok) handleAuthSuccess(data.token, data.username);
+    else {
       overlay.classList.remove("active");
       errorSignup.classList.add("visible");
     }
@@ -105,3 +99,18 @@ signupForm.addEventListener("submit", async (event) => {
     errorSignup.classList.add("visible");
   }
 });
+
+function handleAuthSuccess(token, username){
+    localStorage.setItem("token", token);
+    localStorage.setItem("username", username);
+
+    const redirectAfter = localStorage.getItem("redirectAfter");
+
+    if (!redirectAfter) {
+        window.location.href = "../../index.html";
+        return;
+    } 
+    
+    localStorage.removeItem("redirectAfter");
+    window.location.href = redirectAfter;
+}

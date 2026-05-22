@@ -1,3 +1,4 @@
+import SkeletonKing from "../../Entities/Enemies/DarkAgesEnemies/SkeletonKing.js";
 import Bandit from "../../Entities/Enemies/OldWestEnemies/Bandit.js";
 import CactusThung from "../../Entities/Enemies/OldWestEnemies/CactusThug.js";
 import DesertRat from "../../Entities/Enemies/OldWestEnemies/DesertRat.js";
@@ -15,6 +16,8 @@ export default class OldWestDimension extends Dimension {
                 tank: [CactusThung],
                 ranged: [Bandit]
             },
+            miniBoss: SkeletonKing,
+            finalBoss: SkeletonKing,
             tileSetId: "tilesOldWest"
         })
     }

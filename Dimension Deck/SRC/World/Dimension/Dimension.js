@@ -5,6 +5,8 @@ export default class Dimension{
         this.roomWeights = config.roomWeights;
         this.enemyPool = config.enemyPool;
         this.tileSetId = config.tileSetId; 
+        this.miniBoss = config.miniBoss ?? null;
+        this.finalBoss = config.finalBoss ?? null;
         //this.musicId
     }
 }
