@@ -2,16 +2,17 @@ import ActiveCard from './ActiveCard.js';
 import { Rarity } from './Card.js';
 
 export default class HealPulse extends ActiveCard {
-    constructor() {
+    constructor({ healAmount = 25, cooldown = 10 } = {}) {
         super({
             name:         'Heal Pulse',
-            description:  'Restore 25 HP.',
+            description:  `Restore ${healAmount} HP.`,
             rarity:       Rarity.COMMON,
-            baseCooldown: 10,
+            baseCooldown: cooldown,
         });
+        this.healAmount = healAmount;
     }
 
     effect({ player }) {
-        player.heal(25);
+        player.heal(this.healAmount);
     }
 }

@@ -12,10 +12,9 @@ import HUD from "../UI/HUD.js";
 import DeckScreen from "../UI/DeckScreen.js";
 import MiniMap from "../UI/Minimap.js";
 
-import CardManager from "../Cards/CardManager.js";
-import QuickStrike from "../Cards/QuickStrike.js";
-import HealPulse   from "../Cards/HealPulse.js";
-import WoodShield  from "../Cards/WoodShield.js";
+import CardManager  from "../Cards/CardManager.js";
+import { createCard, STARTER_CARDS } from "../Cards/CardFactory.js";
+import { fetchCards } from "../Utils/Api.js";
 
 import SeededRandom from "../Utils/SeededRandom.js";
 
@@ -75,10 +74,8 @@ export default class Game {
         this.player.getEnemies = () =>
             this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
 
-        // Starter cards
-        this.cardManager.addCard(new QuickStrike());
-        this.cardManager.addCard(new HealPulse());
-        this.cardManager.addCard(new WoodShield());
+        // Starter cards are loaded from the API in loadStarterCards()
+        this.loadStarterCards();
     }
 
     initWorld() {
@@ -97,6 +94,25 @@ export default class Game {
         this.minimap = new MiniMap(
             this.dimManager
         );
+    }
+
+    async loadStarterCards() {
+        try {
+            const allCards = await fetchCards();
+            for (const name of STARTER_CARDS) {
+                const data = allCards.find(c => c.card_name === name);
+                if (data) this.cardManager.addCard(createCard(data));
+            }
+        } catch (err) {
+            console.warn('Could not load cards from API, using defaults:', err.message);
+            // Fallback: instantiate with hardcoded defaults so game is never broken
+            const { default: QuickStrike } = await import('../Cards/QuickStrike.js');
+            const { default: HealPulse }   = await import('../Cards/HealPulse.js');
+            const { default: WoodShield }  = await import('../Cards/WoodShield.js');
+            this.cardManager.addCard(new QuickStrike());
+            this.cardManager.addCard(new HealPulse());
+            this.cardManager.addCard(new WoodShield());
+        }
     }
 
     start() {

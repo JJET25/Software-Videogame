@@ -1,37 +1,31 @@
 import ActiveCard from './ActiveCard.js';
 import { Rarity } from './Card.js';
 
-const RANGE  = 120; // pixels — melee reach
-const DAMAGE = 200;
-
 export default class QuickStrike extends ActiveCard {
-    constructor() {
+    constructor({ damage = 200, range = 120, cooldown = 3 } = {}) {
         super({
             name:         'Quick Strike',
-            description:  `Deal ${DAMAGE} damage to enemies in front within ${RANGE}px.`,
+            description:  `Deal ${damage} damage to enemies within ${range}px.`,
             rarity:       Rarity.COMMON,
-            baseCooldown: 3,
+            baseCooldown: cooldown,
         });
+        this.damage = damage;
+        this.range  = range;
     }
 
     effect({ player, enemies }) {
-        // Always show the swing visual in the aim direction
         player._strikeTimer = 0.18;
         player._strikeDir   = player.aimDirection;
-        player._strikeRange = RANGE;
+        player._strikeRange = this.range;
 
-        if (!enemies || enemies.length === 0) return;
+        if (!enemies?.length) return;
 
-        // Hit every living enemy within RANGE — no angle restriction so
-        // the attack reliably connects with nearby targets
         for (const enemy of enemies) {
             if (enemy.isDead) continue;
-
-            const dx   = enemy.position.x - player.position.x;
-            const dy   = enemy.position.y - player.position.y;
-
-            if (dx * dx + dy * dy <= RANGE * RANGE) {
-                enemy.takeDamage(DAMAGE);
+            const dx = enemy.position.x - player.position.x;
+            const dy = enemy.position.y - player.position.y;
+            if (dx * dx + dy * dy <= this.range * this.range) {
+                enemy.takeDamage(this.damage);
             }
         }
     }

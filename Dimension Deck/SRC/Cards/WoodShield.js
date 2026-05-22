@@ -2,16 +2,17 @@ import ActiveCard from './ActiveCard.js';
 import { Rarity } from './Card.js';
 
 export default class WoodShield extends ActiveCard {
-    constructor() {
+    constructor({ shieldAmount = 20, cooldown = 8 } = {}) {
         super({
             name:         'Wood Shield',
-            description:  'Absorb the next 20 damage.',
+            description:  `Absorb the next ${shieldAmount} damage.`,
             rarity:       Rarity.COMMON,
-            baseCooldown: 8,
+            baseCooldown: cooldown,
         });
+        this.shieldAmount = shieldAmount;
     }
 
     effect({ player }) {
-        player.shield += 20;
+        player.shield += this.shieldAmount;
     }
 }
