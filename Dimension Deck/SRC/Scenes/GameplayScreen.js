@@ -8,6 +8,8 @@ import CardManager from "../Cards/CardManager.js";
 import QuickStrike from "../Cards/QuickStrike.js";
 import HealPulse from "../Cards/HealPulse.js";
 import WoodShield from "../Cards/WoodShield.js";
+import { createCard, STARTER_CARDS } from "../Cards/CardFactory.js";
+import { fetchCards } from "../Utils/Api.js";
 
 import HUD from "../UI/HUD.js";
 import DeckScreen from "../UI/DeckScreen.js";
@@ -33,10 +35,8 @@ export default class GameplayScreen extends Screen {
     this.player.getEnemies = () =>
       this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
 
-    // CARDS
-    this.cardManager.addCard(new QuickStrike());
-    this.cardManager.addCard(new HealPulse());
-    this.cardManager.addCard(new WoodShield());
+    // CARDS — cargadas desde el API; fallback a hardcoded si el backend no está
+    this.loadStarterCards();
 
     // WORLD
     const rng = new SeededRandom();
@@ -47,6 +47,21 @@ export default class GameplayScreen extends Screen {
 
     // MINIMAP
     this.minimap = new MiniMap(this.dimManager);
+  }
+
+  async loadStarterCards() {
+    try {
+      const allCards = await fetchCards();
+      for (const name of STARTER_CARDS) {
+        const data = allCards.find((c) => c.card_name === name);
+        if (data) this.cardManager.addCard(createCard(data));
+      }
+    } catch (err) {
+      console.warn("No se pudo cargar cartas del API, usando defaults:", err.message);
+      this.cardManager.addCard(new QuickStrike());
+      this.cardManager.addCard(new HealPulse());
+      this.cardManager.addCard(new WoodShield());
+    }
   }
 
   exit() {}
