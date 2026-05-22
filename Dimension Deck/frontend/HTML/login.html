@@ -7,8 +7,11 @@
     <title>DD - Log in</title>
   </head>
   <body>
-    <div class="loading-overlay"></div>
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
 
+    <!-- Logo -->
     <div class="login__container">
       <div class="logo__container">
         <h1>
@@ -19,10 +22,17 @@
         </h1>
       </div>
 
+      <!-- Tab switcher -->
+      <div class="tabs__container">
+        <button class="tab-active" data-tab="login">LOG IN</button>
+        <button class="tab" data-tab="signup">SIGN UP</button>
+      </div>
+
+      <!-- LOG IN FORM-->
       <form id="loginForm">
         <div class="input__container">
           <label for="username">Username:</label>
-          <input type="text" name="username" id="username"  />
+          <input type="text" name="username" id="username" />
         </div>
 
         <div class="input__container">
@@ -30,13 +40,38 @@
           <input type="password" name="password" id="password" />
         </div>
 
-        <p class="error-msg" id="errorMsg">LOG IN ERROR: Check your user or password</p>
+        <p class="error-msg" id="errorMsgLogin">
+          LOG IN ERROR: Check your user or password
+        </p>
         <button type="submit">LOG IN</button>
-
-        <a href="/Dimension Deck/index.html">Back to the menu</a>
       </form>
+
+      <!-- SIGN UP FORM -->
+      <form id="signupForm">
+        <div class="input__container">
+          <label for="signup-username">Username:</label>
+          <input type="text" name="username" id="signup-username" />
+        </div>
+
+        <div class="input__container">
+          <label for="signup-email">Email:</label>
+          <input type="email" name="email" id="signup-email" />
+        </div>
+
+        <div class="input__container">
+          <label for="signup-password">Password:</label>
+          <input type="password" name="password" id="signup-password" />
+        </div>
+
+        <p class="error-msg" id="errorMsgSignup">
+          SIGN UP ERROR: Create account fail
+        </p>
+        <button type="submit">SIGN UP</button>
+      </form>
+
+      <a href="/Dimension Deck/index.html">Back to the menu</a>
     </div>
 
-    <script src="/frontend/JavaScript/login.js"></script>
+    <script src="../JavaScript/login.js"></script>
   </body>
 </html>
