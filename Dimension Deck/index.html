@@ -17,12 +17,13 @@
       <div id="signupUser" class="signup_user">
         <a href="frontend/HTML/login.html" class="loginBtn">SIGN UP</a>
       </div>
-      <div id="user" class="user">
+      <div id="user" class="user" style="display: none;">
         <p>Hi! <span id="usernameDisplay"></span></p>
       </div>
     </header>
 
     <main>
+      <!-- HERO -->
       <section class="hero__container">
         <video class="hero__bg" autoplay muted loop playsinline>
           <source src="#" type="video/mp4" />
@@ -31,12 +32,13 @@
         <div class="hero__overlay"></div>
 
         <div class="hero__content">
-          <h1><img src="#" alt="Dimension Deck" /></h1>
+          <h1><img src="/Assets/Website/DimensionDeck_Logo.png" alt="Dimension Deck" /></h1>
           <p>A Roguelite Card Battler Across Dimensions</p>
           <a href="#" class="btn-play" id="heroPlay">PLAY NOW</a>
         </div>
       </section>
 
+      <!-- FEATURES -->
       <section class="features__container">
         <article class="feature">
           <img src="#" alt="Roguelite icon" />
@@ -112,5 +114,7 @@
         ©<time datetime="2026">2026</time> Dimension Deck. All rights reserved
       </p>
     </footer>
+
+    <script src="/frontend/JavaScript/index.js"></script>
   </body>
 </html>
