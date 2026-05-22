@@ -1,4 +1,4 @@
-import mysql, { Pool, PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
+import mysql, { Pool, PoolConnection, RowDataPacket, ResultSetHeader, ExecuteValues } from 'mysql2/promise';
 
 // ─── Pool singleton ──────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ export function getPool(): Pool {
 /** Run a SELECT query and return typed rows. */
 export async function query<T extends RowDataPacket>(
   sql: string,
-  params?: unknown[]
+  params?: ExecuteValues
 ): Promise<T[]> {
   const [rows] = await getPool().execute<T[]>(sql, params);
   return rows;
@@ -35,7 +35,7 @@ export async function query<T extends RowDataPacket>(
 /** Run an INSERT / UPDATE / DELETE and return the result header. */
 export async function execute(
   sql: string,
-  params?: unknown[]
+  params?: ExecuteValues
 ): Promise<ResultSetHeader> {
   const [result] = await getPool().execute<ResultSetHeader>(sql, params);
   return result;

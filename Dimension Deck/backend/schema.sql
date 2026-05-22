@@ -31,18 +31,6 @@ CREATE TABLE IF NOT EXISTS card (
   PRIMARY KEY (card_id)
 );
 
-CREATE TABLE IF NOT EXISTS synergy (
-  synergy_id        INT          NOT NULL AUTO_INCREMENT,
-  trigger_card_id   INT          NOT NULL,
-  catalyst_card_id  INT          NOT NULL,
-  result_name       VARCHAR(128) NOT NULL,
-  damage_multiplier FLOAT        NOT NULL DEFAULT 1.0,
-  radius_tiles      TINYINT      NOT NULL DEFAULT 0,
-  duration_seconds  FLOAT        NOT NULL DEFAULT 0.0,
-  PRIMARY KEY (synergy_id),
-  CONSTRAINT fk_syn_trigger  FOREIGN KEY (trigger_card_id)  REFERENCES card(card_id),
-  CONSTRAINT fk_syn_catalyst FOREIGN KEY (catalyst_card_id) REFERENCES card(card_id)
-);
 
 CREATE TABLE IF NOT EXISTS enemy_type (
   enemy_type_id INT          NOT NULL AUTO_INCREMENT,
@@ -72,15 +60,28 @@ CREATE TABLE IF NOT EXISTS hub_upgrade (
 -- ---------------------------------------------
 
 CREATE TABLE IF NOT EXISTS player (
-  player_id        INT          NOT NULL AUTO_INCREMENT,
-  username         VARCHAR(64)  NOT NULL UNIQUE,
-  email            VARCHAR(256) NOT NULL UNIQUE,
-  password_hash    VARCHAR(256) NOT NULL,
-  hub_credits      INT          NOT NULL DEFAULT 0,
-  total_runs       INT          NOT NULL DEFAULT 0,
-  total_victories  INT          NOT NULL DEFAULT 0,
-  created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  player_id           INT          NOT NULL AUTO_INCREMENT,
+  username            VARCHAR(64)  NOT NULL UNIQUE,
+  email               VARCHAR(256) NOT NULL UNIQUE,
+  password_hash       VARCHAR(256) NOT NULL,
+  hub_credits         INT          NOT NULL DEFAULT 0,
+  total_runs          INT          NOT NULL DEFAULT 0,
+  total_victories     INT          NOT NULL DEFAULT 0,
+  tutorial_completed  TINYINT(1)   NOT NULL DEFAULT 0,
+  created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (player_id)
+);
+
+-- Settings persisted per player (populated by the Settings screen)
+CREATE TABLE IF NOT EXISTS player_settings (
+  player_id       INT          NOT NULL,
+  music_volume    TINYINT      NOT NULL DEFAULT 80,   -- 0-100
+  sfx_volume      TINYINT      NOT NULL DEFAULT 80,
+  fullscreen      TINYINT(1)   NOT NULL DEFAULT 0,
+  language        VARCHAR(8)   NOT NULL DEFAULT 'en',
+  updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (player_id),
+  CONSTRAINT fk_ps_player FOREIGN KEY (player_id) REFERENCES player(player_id)
 );
 
 CREATE TABLE IF NOT EXISTS player_hub_upgrade (
@@ -179,7 +180,6 @@ CREATE TABLE IF NOT EXISTS card_usage_event (
   run_id              INT      NOT NULL,
   run_room_id         INT      NOT NULL,
   card_id             INT      NOT NULL,
-  resulted_in_synergy TINYINT(1) NOT NULL DEFAULT 0,
   used_at             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (event_id),
   CONSTRAINT fk_cue_run  FOREIGN KEY (run_id)      REFERENCES run(run_id),
@@ -187,17 +187,6 @@ CREATE TABLE IF NOT EXISTS card_usage_event (
   CONSTRAINT fk_cue_card FOREIGN KEY (card_id)     REFERENCES card(card_id)
 );
 
-CREATE TABLE IF NOT EXISTS synergy_trigger_event (
-  event_id     INT      NOT NULL AUTO_INCREMENT,
-  run_id       INT      NOT NULL,
-  run_room_id  INT      NOT NULL,
-  synergy_id   INT      NOT NULL,
-  triggered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (event_id),
-  CONSTRAINT fk_ste_run     FOREIGN KEY (run_id)      REFERENCES run(run_id),
-  CONSTRAINT fk_ste_room    FOREIGN KEY (run_room_id) REFERENCES run_room(run_room_id),
-  CONSTRAINT fk_ste_synergy FOREIGN KEY (synergy_id)  REFERENCES synergy(synergy_id)
-);
 
 -- ---------------------------------------------
 -- VIEWS
@@ -213,15 +202,8 @@ SELECT
   c.base_damage,
   c.base_heal,
   c.cooldown_seconds,
-  s.synergy_id,
-  s.result_name     AS synergy_result,
-  s.damage_multiplier AS synergy_multiplier,
-  tc.name           AS synergy_trigger_card,
-  cc.name           AS synergy_catalyst_card
-FROM card c
-LEFT JOIN synergy s  ON s.trigger_card_id = c.card_id OR s.catalyst_card_id = c.card_id
-LEFT JOIN card tc ON tc.card_id = s.trigger_card_id
-LEFT JOIN card cc ON cc.card_id = s.catalyst_card_id;
+  c.effect_json
+FROM card c;
 
 CREATE OR REPLACE VIEW v_active_deck AS
 SELECT
@@ -311,8 +293,7 @@ SELECT
   c.name        AS card_name,
   c.card_type,
   c.rarity,
-  COUNT(*)      AS times_used,
-  SUM(cue.resulted_in_synergy) AS synergy_triggers
+  COUNT(*)      AS times_used
 FROM card_usage_event cue
 JOIN card c ON c.card_id = cue.card_id
 GROUP BY cue.run_id, c.card_id, c.name, c.card_type, c.rarity;
@@ -345,6 +326,46 @@ FROM player p
 LEFT JOIN player_hub_upgrade phu ON phu.player_id = p.player_id
 LEFT JOIN hub_upgrade hu         ON hu.upgrade_id  = phu.upgrade_id
 GROUP BY p.player_id, p.username, p.hub_credits, p.total_runs, p.total_victories, p.created_at;
+
+-- V9: Full statistics for the Statistics screen
+CREATE OR REPLACE VIEW v_player_statistics AS
+SELECT
+  p.player_id,
+  p.username,
+  p.total_runs,
+  p.total_victories,
+  ROUND(100.0 * p.total_victories / NULLIF(p.total_runs, 0), 1)  AS win_rate_pct,
+  -- Best run: most rooms cleared before dying or winning
+  (SELECT MAX(current_room_number) FROM run r2 WHERE r2.player_id = p.player_id)
+    AS best_run_rooms,
+  -- Longest run in minutes
+  (SELECT ROUND(MAX(TIMESTAMPDIFF(SECOND, r2.started_at, COALESCE(r2.ended_at, NOW()))) / 60, 1)
+   FROM run r2 WHERE r2.player_id = p.player_id AND r2.outcome != 'in_progress')
+    AS longest_run_minutes,
+  -- Most used card across all runs
+  (SELECT c.name FROM card_usage_event cue
+   JOIN run r2 ON r2.run_id = cue.run_id
+   JOIN card c ON c.card_id = cue.card_id
+   WHERE r2.player_id = p.player_id
+   GROUP BY cue.card_id ORDER BY COUNT(*) DESC LIMIT 1)
+    AS most_used_card,
+  -- Most used card type (active vs automatic)
+  (SELECT c.card_type FROM card_usage_event cue
+   JOIN run r2 ON r2.run_id = cue.run_id
+   JOIN card c ON c.card_id = cue.card_id
+   WHERE r2.player_id = p.player_id
+   GROUP BY c.card_type ORDER BY COUNT(*) DESC LIMIT 1)
+    AS preferred_card_type,
+  -- Total credits earned across all runs
+  (SELECT COALESCE(SUM(r2.total_credits_earned), 0) FROM run r2 WHERE r2.player_id = p.player_id)
+    AS total_credits_earned,
+  -- Room where the player dies most often
+  (SELECT death_room_number FROM run r2
+   WHERE r2.player_id = p.player_id AND r2.outcome = 'defeat' AND r2.death_room_number IS NOT NULL
+   GROUP BY death_room_number ORDER BY COUNT(*) DESC LIMIT 1)
+    AS most_common_death_room,
+  p.created_at AS player_since
+FROM player p;
 
 -- ---------------------------------------------
 -- SEED DATA
