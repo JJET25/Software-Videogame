@@ -212,7 +212,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-  opacity: 0.88;
+  opacity: 0.8;
   transform: translateY(-1px);
 }
  

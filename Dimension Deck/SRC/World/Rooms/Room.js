@@ -22,7 +22,7 @@ export default class Room {
     this.enemies = [];
     this.objects = [];
     this.isCleared = false;
-    this.spawnDelay = 0;
+    this.spawnDelay = 5;
 
     this.buildGrid();
     this.buildWalls();
