@@ -15,7 +15,7 @@ export default class CombatRoom extends Room {
     this.rng = rng;
 
     this.populate();
-    this.spawnDelay = 0.3;
+    this.spawnDelay = 1;
   }
 
   populate() {

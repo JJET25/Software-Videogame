@@ -3,29 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="frontend/CSS/index.css">
+    <link rel="stylesheet" href="frontend/CSS/index.css" />
     <title>Dimension Deck</title>
   </head>
   <body>
     <header>
       <nav>
-        <a href="frontend/HTML/game.html">PLAY</a>
-        <a href="#">CARDS</a>
-        <a href="#">TUTORIAL</a>
-        <a href="#">STATS</a>
+        <a href="frontend/HTML/game.html" id="navPlay">PLAY</a>
+        <a href="#" id="navCards">CARDS</a>
+        <a href="#" id="navTutorial">TUTORIAL</a>
+        <a href="#" id="navStats">STATS</a>
       </nav>
-      <div class="nav__actions">
-        <a href="frontend/HTML/login.html" class="loginBtn">LOGIN</a>
+      <div id="signupUser" class="signup_user">
+        <a href="frontend/HTML/login.html" class="loginBtn">SIGN UP</a>
+      </div>
+      <div id="user" class="user" style="display: none;">
+        <p>Hi! <span id="usernameDisplay"></span></p>
       </div>
     </header>
 
     <main>
+      <!-- HERO -->
       <section class="hero__container">
-        <h1><img src="#" alt="Dimension Deck" /></h1>
-        <p>A Roguelite Card Battler Across Dimensions</p>
-        <a href="#" class="btn-play">PLAY NOW</a>
+        <video class="hero__bg" autoplay muted loop playsinline>
+          <source src="#" type="video/mp4" />
+        </video>
+
+        <div class="hero__overlay"></div>
+
+        <div class="hero__content">
+          <h1><img src="/Assets/Website/DimensionDeck_Logo.png" alt="Dimension Deck" /></h1>
+          <p>A Roguelite Card Battler Across Dimensions</p>
+          <a href="#" class="btn-play" id="heroPlay">PLAY NOW</a>
+        </div>
       </section>
 
+      <!-- FEATURES -->
       <section class="features__container">
         <article class="feature">
           <img src="#" alt="Roguelite icon" />
@@ -101,5 +114,7 @@
         ©<time datetime="2026">2026</time> Dimension Deck. All rights reserved
       </p>
     </footer>
+
+    <script src="/frontend/JavaScript/index.js"></script>
   </body>
 </html>

@@ -1,22 +1,202 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
+
+:root {
+  --bg: #2c0c50;
+  --primary-color: #36145c;
+  --secondary-color: #5b21b6;
+  --primary-text: #000000;
+  --secondary-text: #866ea7;
+  --highlight-text: #ff8f33;
+  --error: #e81132;
+  --acent: #00ffb9;
+  --font: "Nunito", sans-serif;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-:root {
-  --bg: #110025;
-  --primary-color: #3d1070;
-  --secondary-color: #5b21b6;
-  --primary--text: #f0e6ff;
-  --secondary-text: #9c7bc0;
-  --acent: #22d3ee;
+/* ==== BODY ==== */
+body {
+  font-family: var(--font);
+  color: var(--primary-text);
+  background-color: var(--bg);
 }
 
-/* HEADER */
-header{
-    background-color: var(--primary-color);
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+/* ==== HEADER ===== */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  padding: 1rem 2rem;
+  background: transparent;
+  transition:
+    background 0.4s ease,
+    backdrop-filter 0.4s ease;
+
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+header.scrolled {
+  background: rgba(20, 5, 40, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+}
+
+.signup_user,
+.user {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.user p {
+  color: var(--secondary-text);
+  font-weight: 700;
+}
+.user span {
+  color: var(--acent);
+}
+
+/* ==== NAV LINKS ==== */
+nav a {
+  position: relative;
+  padding-bottom: 0.2rem;
+  color: var(--secondary-text);
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: 2px;
+  transition: color 0.2s ease;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--acent);
+  transition: width 0.25s ease;
+}
+
+nav a:hover {
+  color: var(--highlight-text);
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* ==== SIGN UP BUTTON ==== */
+.loginBtn {
+  padding: 0.65rem 2rem;
+  border-radius: 2.5rem;
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background-color: var(--acent);
+  color: var(--primary-text);
+
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
+}
+
+.loginBtn:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
+
+.loginBtn:active {
+  transform: translateY(0);
+}
+
+/* ==== HERO ==== */
+.hero__container {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse at center,
+    #3d1070 0%,
+    #110025 70%
+  ); /* PROVISIONAL: Falta video o imagen de fondo*/
+  overflow: hidden;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3.2rem;
+  text-align: center;
+}
+
+.hero__content img {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+}
+
+.hero__content p {
+  color: var(--highlight-text);
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+}
+
+.btn-play {
+  padding: 0.65rem 2rem;
+  border-radius: 2.5rem;
+  text-decoration: none;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background-color: var(--acent);
+  color: var(--primary-text);
+
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
+}
+
+.btn-play:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
+
+.loginBtn:active {
+  transform: translateY(0);
 }

@@ -18,6 +18,20 @@
   box-sizing: border-box;
 }
 
+/* ==== BODY ==== */
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 2.5rem;
+
+  font-family: var(--font);
+  color: var(--primary-text);
+  background-color: var(--bg);
+  overflow: hidden;
+}
+
 /* ==== LOADING OVERLAY ==== */
 .loading-overlay {
   display: none;
@@ -53,20 +67,6 @@
   100% {
     transform: rotate(360deg);
   }
-}
-
-/* ==== BODY ==== */
-body {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1.5rem 2.5rem;
-
-  font-family: var(--font);
-  color: var(--primary-text);
-  background-color: var(--bg);
-  overflow: hidden;
 }
 
 /* ==== LOGIN CARD ==== */
@@ -212,7 +212,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-  opacity: 0.88;
+  opacity: 0.8;
   transform: translateY(-1px);
 }
  

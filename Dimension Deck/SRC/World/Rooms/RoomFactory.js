@@ -31,7 +31,7 @@ export default class RoomFactory {
     }
 
     if (node.type === "miniBoss" || node.type === "finalBoss") {
-      return new BossRoom(doorDirections, player, bullets, credits); // Falta agregar la logica del BossRoom
+      return new BossRoom(doorDirections, player, bullets, credits, dimension, rng, node.type);
     } else {
       return new Room(doorDirections, player, bullets, credits);
     }
