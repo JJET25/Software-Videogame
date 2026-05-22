@@ -1,116 +1,456 @@
 import Enemy from "../Enemy.js";
+
+import EnemyBullet from "../EnemyBullet.js";
+
+import SwarmEnemy from "./SwarmEnemy.js";
+
+import RangedEnemy from "./RangedEnemy.js";
+
+import TankEnemy from "./TankEnemy.js";
+
 import Vector from "../../Utils/Vector.js";
 
 export default class BossEnemy extends Enemy {
-  constructor(position, player, bullets, credits) {
-    super(position, player);
 
-    this.bullets = bullets;
-    this.credits = credits;
+    constructor(
+        position,
+        player,
+        bullets,
+        credits
+    ) {
 
-    // Phases
-    this.phase = 1;
-    this.isEnraged = false;
-    this.hasSummoned = false;
+        super(position, player);
 
-    // Boss size
-    this.width = 64;
-    this.height = 64;
+        this.bullets = bullets;
 
-    // Stats base
-    this.health = 900;
-    this.maxHealth = 900;
-    this.speed = 28;
-    this.contactDamage = 25;
+        this.credits = credits;
 
-    // Dash
-    this.dashSpeed = 340;
-    this.dashCooldown = 0;
-    this.isDashing = false;
-    this.dashTimer = 0;
-    this.dashDirection = new Vector(0, 0);
+        // Boss size
+        this.width = 80;
 
-    this.enemyList = null;
-  }
+        this.height = 80;
 
-  update(deltaTime) {
-    if (this.isDead) return;
+        // Stats
+        this.health = 2500;
 
-    this.dashCooldown -= deltaTime;
-    this.dashTimer -= deltaTime;
-    if (this._flashTimer > 0) this._flashTimer -= deltaTime;
-    if (this.damageCooldown > 0) this.damageCooldown -= deltaTime;
+        this.maxHealth = 2500;
 
-    // Trasition phase 2
-    if (!this.isEnraged && this.health <= this.maxHealth * 0.4) {
-      this.enterPhase2();
+        this.speed = 32;
+
+        this.contactDamage = 35;
+
+        // Phases
+        this.phase = 1;
+
+        this.isEnraged = false;
+
+        // Dash
+        this.dashSpeed = 380;
+
+        this.dashCooldown = 0;
+
+        this.isDashing = false;
+
+        this.dashTimer = 0;
+
+        this.dashDirection =
+            new Vector(0, 0);
+
+        // Attacks
+        this.attackCooldown = 0;
+
+        this.radialCooldown = 0;
+
+        // Summons
+        this.summonCooldown = 6;
+
+        this.enemyList = null;
     }
 
-    // Summon phase 2
-    if (!this.hasSummoned && this.health <= this.maxHealth * 0.25) {
-      this.hasSummoned = true;
-      this.summonMinions();
+    update(deltaTime) {
+
+        if (this.isDead) return;
+
+        // Timers
+        this.dashCooldown -= deltaTime;
+
+        this.dashTimer -= deltaTime;
+
+        this.attackCooldown -= deltaTime;
+
+        this.radialCooldown -= deltaTime;
+
+        this.summonCooldown -= deltaTime;
+
+        if (this._flashTimer > 0) {
+
+            this._flashTimer -= deltaTime;
+        }
+
+        if (this.damageCooldown > 0) {
+
+            this.damageCooldown -= deltaTime;
+        }
+
+        // Phase transitions
+        this.updatePhase();
+
+        // Direction
+        const dir = new Vector(
+
+            this.player.position.x -
+            this.position.x,
+
+            this.player.position.y -
+            this.position.y
+        );
+
+        const normDir =
+            dir.normalize();
+
+        const distance =
+            dir.magnitude();
+
+        // Dash behavior
+        if (this.isDashing) {
+
+            this.velocity =
+                this.dashDirection.times(
+                    this.dashSpeed
+                );
+
+            if (this.dashTimer <= 0) {
+
+                this.isDashing = false;
+            }
+        }
+
+        else {
+
+            this.velocity =
+                normDir.times(
+                    this.speed
+                );
+
+            // Dash trigger
+            if (
+                distance < 320 &&
+                this.dashCooldown <= 0
+            ) {
+
+                this.startDash(normDir);
+            }
+        }
+
+        // Shoot attacks
+        if (this.attackCooldown <= 0) {
+
+            this.shootBurst(normDir);
+
+            this.attackCooldown =
+                this.phase === 3
+                    ? 0.8
+                    : 1.5;
+        }
+
+        // Radial attack
+        if (
+            this.phase >= 2 &&
+            this.radialCooldown <= 0
+        ) {
+
+            this.radialAttack();
+
+            this.radialCooldown =
+                this.phase === 3
+                    ? 2
+                    : 4;
+        }
+
+        // Summons
+        if (this.summonCooldown <= 0) {
+
+            this.summonEnemies();
+        }
+
+        // Contact damage
+        const dx = Math.abs(
+
+            this.player.position.x -
+            this.position.x
+        );
+
+        const dy = Math.abs(
+
+            this.player.position.y -
+            this.position.y
+        );
+
+        if (
+
+            dx < 60 &&
+            dy < 60 &&
+            this.damageCooldown <= 0
+        ) {
+
+            this.player.takeDamage(
+                this.contactDamage
+            );
+
+            this.damageCooldown = 0.5;
+        }
+
+        // Move
+        this.position =
+            this.position.plus(
+
+                this.velocity.times(
+                    deltaTime
+                )
+            );
+
+        // Death
+        if (this.health <= 0) {
+
+            this.die();
+        }
     }
 
-    const dir = new Vector(
-      this.player.position.x - this.position.x,
-      this.player.position.y - this.position.y,
-    );
-    const normDir = dir.normalize();
-    const distance = dir.magnitude();
+    updatePhase() {
 
-    if (this.isDashing) {
-      this.velocity = this.dashDirection.times(this.dashSpeed);
-      if (this.dashTimer <= 0) this.isDashing = false;
-    } else {
-      this.velocity = normDir.times(this.speed);
-      if (distance < 280 && this.dashCooldown <= 0) {
+        // Phase 2
+        if (
+            this.health <=
+            this.maxHealth * 0.65 &&
+            this.phase === 1
+        ) {
+
+            this.phase = 2;
+
+            this.speed = 45;
+
+            this.dashSpeed = 500;
+        }
+
+        // Phase 3
+        if (
+            this.health <=
+            this.maxHealth * 0.3 &&
+            this.phase === 2
+        ) {
+
+            this.phase = 3;
+
+            this.speed = 60;
+
+            this.dashSpeed = 700;
+
+            this.isEnraged = true;
+        }
+    }
+
+    startDash(direction) {
+
         this.isDashing = true;
-        this.dashTimer = 0.55;
-        this.dashCooldown = this.isEnraged ? 1.5 : 3.5;
-        this.dashDirection = normDir;
-      }
+
+        this.dashTimer = 0.45;
+
+        this.dashDirection = direction;
+
+        this.dashCooldown =
+            this.phase === 3
+                ? 1.2
+                : 3;
     }
 
-    const dx = Math.abs(this.player.position.x - this.position.x);
-    const dy = Math.abs(this.player.position.y - this.position.y);
-    if (dx < 48 && dy < 48 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.6;
+    shootBurst(direction) {
+
+        const spread = [-0.25, 0, 0.25];
+
+        for (let angle of spread) {
+
+            const rotated =
+                new Vector(
+
+                    direction.x *
+                    Math.cos(angle) -
+
+                    direction.y *
+                    Math.sin(angle),
+
+                    direction.x *
+                    Math.sin(angle) +
+
+                    direction.y *
+                    Math.cos(angle)
+                );
+
+            this.bullets.push(
+
+                new EnemyBullet(
+
+                    new Vector(
+
+                        this.position.x,
+
+                        this.position.y
+                    ),
+
+                    rotated.normalize()
+                )
+            );
+        }
     }
 
-    this.position = this.position.plus(this.velocity.times(deltaTime));
-    if (this.health <= 0) this.die();
-  }
+    radialAttack() {
 
-  enterPhase2() {
-    this.isEnraged = true;
-    this.phase = 2;
-    this.speed = 42;
-    this.dashSpeed = 500;
-  }
+        const bulletCount =
+            this.phase === 3
+                ? 18
+                : 12;
 
-  getMinionClass() {
-    return null;
-  }
+        for (
+            let i = 0;
+            i < bulletCount;
+            i++
+        ) {
 
-  summonMinions() {
-    const MinionClass = this.getMinionClass();
-    if (!MinionClass || !this.enemyList) return;
+            const angle =
+                (Math.PI * 2 / bulletCount)
+                * i;
 
-    for (let i = 0; i < 5; i++) {
-      const offset = new Vector(
-        (Math.random() - 0.5) * 160,
-        (Math.random() - 0.5) * 160,
-      );
-      this.enemyList.push(
-        new MinionClass(
-          this.position.plus(offset),
-          this.player,
-          this.bullets,
-          this.credits,
-        ),
-      );
+            const dir =
+                new Vector(
+
+                    Math.cos(angle),
+
+                    Math.sin(angle)
+                );
+
+            this.bullets.push(
+
+                new EnemyBullet(
+
+                    new Vector(
+
+                        this.position.x,
+
+                        this.position.y
+                    ),
+
+                    dir
+                )
+            );
+        }
     }
-  }
+
+    summonEnemies() {
+
+        if (!this.enemyList) return;
+
+        // Phase 1
+        if (this.phase === 1) {
+
+            for (let i = 0; i < 3; i++) {
+
+                this.enemyList.push(
+
+                    new SwarmEnemy(
+
+                        this.randomSpawn(),
+
+                        this.player
+                    )
+                );
+            }
+
+            this.summonCooldown = 7;
+        }
+
+        // Phase 2
+        else if (this.phase === 2) {
+
+            for (let i = 0; i < 4; i++) {
+
+                this.enemyList.push(
+
+                    new SwarmEnemy(
+
+                        this.randomSpawn(),
+
+                        this.player
+                    )
+                );
+            }
+
+            this.enemyList.push(
+
+                new RangedEnemy(
+
+                    this.randomSpawn(),
+
+                    this.player,
+
+                    this.bullets
+                )
+            );
+
+            this.summonCooldown = 5;
+        }
+
+        // Phase 3
+        else {
+
+            for (let i = 0; i < 5; i++) {
+
+                this.enemyList.push(
+
+                    new SwarmEnemy(
+
+                        this.randomSpawn(),
+
+                        this.player
+                    )
+                );
+            }
+
+            this.enemyList.push(
+
+                new TankEnemy(
+
+                    this.randomSpawn(),
+
+                    this.player,
+
+                    this.enemyList
+                )
+            );
+
+            this.enemyList.push(
+
+                new RangedEnemy(
+
+                    this.randomSpawn(),
+
+                    this.player,
+
+                    this.bullets
+                )
+            );
+
+            this.summonCooldown = 4;
+        }
+    }
+
+    randomSpawn() {
+
+        return new Vector(
+
+            this.position.x +
+            (Math.random() - 0.5) * 260,
+
+            this.position.y +
+            (Math.random() - 0.5) * 260
+        );
+    }
 }
