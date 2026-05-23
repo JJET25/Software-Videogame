@@ -375,17 +375,11 @@ INSERT IGNORE INTO dimension (name, order_in_run) VALUES
   ('Old West',  1),
   ('Dark Ages', 2);
 
-INSERT IGNORE INTO card (name, card_type, rarity, energy_cost, base_damage, base_heal, cooldown_seconds) VALUES
-  ('Quick Strike',      'active',    'common',    1, 20,  0,  1.5),
-  ('Area Blast',        'active',    'common',    2, 15,  0,  2.0),
-  ('Heal Pulse',        'active',    'common',    2,  0, 25,  4.0),
-  ('Oil Slick',         'automatic', 'common',    0,  0,  0,  0.0),
-  ('Iron Skin',         'automatic', 'rare',      0,  0,  0,  0.0),
-  ('Freeze Shot',       'active',    'rare',      2, 10,  0,  3.0),
-  ('Toxic Spore',       'automatic', 'rare',      0,  0,  0,  0.0),
-  ('Chain Lightning',   'active',    'epic',      3, 25,  0,  5.0),
-  ('Void Anchor',       'automatic', 'epic',      0,  0,  0,  0.0),
-  ('Dimensional Edge',  'active',    'legendary', 4, 50,  0, 15.0);
+INSERT IGNORE INTO card (name, card_type, rarity, energy_cost, base_damage, base_heal, cooldown_seconds, effect_json) VALUES
+  -- Starter deck (implemented in game engine)
+  ('Quick Strike', 'active', 'common', 1, 200,  0,  3.0, '{"range":120}'),
+  ('Heal Pulse',   'active', 'common', 2,   0, 25, 10.0, NULL),
+  ('Wood Shield',  'active', 'common', 2,   0,  0,  8.0, '{"shield":20}');
 
 INSERT IGNORE INTO hub_upgrade (name, description, credit_cost, upgrade_type, value) VALUES
   ('Extra Active Slot',    'Increase max active card slots by 1 (up to 5)',       100, 'slot_expansion', 1),
