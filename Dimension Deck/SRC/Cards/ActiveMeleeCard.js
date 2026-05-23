@@ -1,22 +1,18 @@
 import ActiveCard from './ActiveCard.js';
-import { Rarity } from './Card.js';
 
-export default class QuickStrike extends ActiveCard {
-    constructor({ damage = 200, range = 120, cooldown = 3 } = {}) {
-        super({
-            name:         'Quick Strike',
-            description:  `Deal ${damage} damage to enemies within ${range}px.`,
-            rarity:       Rarity.COMMON,
-            baseCooldown: cooldown,
-        });
+export default class ActiveMeleeCard extends ActiveCard {
+    constructor({ name, description, rarity, damage, range, cooldown, spread = Math.PI * 0.6, level = 1 }) {
+        super({ name, description, rarity, baseCooldown: cooldown, level });
         this.damage = damage;
         this.range  = range;
+        this.spread = spread;
     }
 
     effect({ player, enemies }) {
-        player._strikeTimer = 0.18;
-        player._strikeDir   = player.aimDirection;
-        player._strikeRange = this.range;
+        player._strikeTimer  = 0.18 + (this.range / 1000);
+        player._strikeDir    = player.aimDirection;
+        player._strikeRange  = this.range;
+        player._strikeSpread = this.spread;
 
         if (!enemies?.length) return;
 

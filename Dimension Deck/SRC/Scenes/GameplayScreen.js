@@ -5,9 +5,7 @@ import Player from "../Entities/Player.js";
 import Vector from "../Utils/Vector.js";
 
 import CardManager from "../Cards/CardManager.js";
-import QuickStrike from "../Cards/QuickStrike.js";
-import HealPulse from "../Cards/HealPulse.js";
-import WoodShield from "../Cards/WoodShield.js";
+import { STARTER_DECK } from "../Cards/CardCatalog.js";
 
 import HUD from "../UI/HUD.js";
 import DeckScreen from "../UI/DeckScreen.js";
@@ -34,9 +32,9 @@ export default class GameplayScreen extends Screen {
       this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
 
     // CARDS
-    this.cardManager.addCard(new QuickStrike());
-    this.cardManager.addCard(new HealPulse());
-    this.cardManager.addCard(new WoodShield());
+    for (const create of STARTER_DECK) {
+      this.cardManager.addCard(create());
+    }
 
     // WORLD
     const rng = new SeededRandom();
