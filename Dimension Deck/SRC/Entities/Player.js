@@ -1,5 +1,6 @@
 import Entity from "./Entity.js";
 import Vector from "../Utils/Vector.js";
+import { Trigger } from "../Cards/AutomaticCard.js";
 
 export default class Player extends Entity {
 
@@ -39,15 +40,25 @@ export default class Player extends Entity {
 
         this._dashCooldownTimer = 0;
 
-        // Melee strike visual (set by QuickStrike card)
-        this._strikeTimer = 0;
-        this._strikeDir   = new Vector(1, 0);
-        this._strikeRange = 120;
+        // Melee strike visual (set by damage cards)
+        this._strikeTimer  = 0;
+        this._strikeDir    = new Vector(1, 0);
+        this._strikeRange  = 120;
+        this._strikeSpread = Math.PI * 0.6;
     }
 
     get isDashing() {
 
         return this._dashTimer > 0;
+    }
+
+    takeDamage(amount) {
+        const healthBefore = this.health;
+        super.takeDamage(amount);
+        if (this.cardManager && this.health < healthBefore) {
+            const enemies = this.getEnemies ? this.getEnemies() : [];
+            this.cardManager.fireTrigger(Trigger.ON_DAMAGE, { player: this, enemies });
+        }
     }
 
     addCredits(amount) {
@@ -138,6 +149,11 @@ export default class Player extends Entity {
             this.grantInvincibility(
                 this._dashDuration
             );
+
+            if (this.cardManager) {
+                const dashEnemies = this.getEnemies ? this.getEnemies() : [];
+                this.cardManager.fireTrigger(Trigger.ON_DASH, { player: this, enemies: dashEnemies });
+            }
         }
 
         else {
@@ -170,14 +186,20 @@ export default class Player extends Entity {
 
             if (this.mouse?.consumeClick()) {
 
-                this.cardManager.playSelected({
+                const enemies   = this.getEnemies ? this.getEnemies() : [];
+                const snapshots = enemies.map(e => ({ enemy: e, health: e.health, wasDead: e.isDead }));
 
-                    player:  this,
+                this.cardManager.playSelected({ player: this, enemies, mouse: this.mouse });
 
-                    enemies: this.getEnemies ? this.getEnemies() : [],
-
-                    mouse:   this.mouse,
-                });
+                for (const snap of snapshots) {
+                    if (snap.wasDead) continue;
+                    const combatState = { player: this, enemies, enemy: snap.enemy };
+                    if (snap.enemy.isDead) {
+                        this.cardManager.fireTrigger(Trigger.ON_KILL, combatState);
+                    } else if (snap.enemy.health < snap.health) {
+                        this.cardManager.fireTrigger(Trigger.ON_HIT, combatState);
+                    }
+                }
             }
         }
 
@@ -192,7 +214,7 @@ export default class Player extends Entity {
             const DURATION = 0.18;
             const alpha    = this._strikeTimer / DURATION;
             const angle    = Math.atan2(this._strikeDir.y, this._strikeDir.x);
-            const SPREAD   = Math.PI * 0.6; // ~108° arc
+            const SPREAD   = this._strikeSpread;
             const r        = this._strikeRange;
             const ctx      = renderer.context;
             const s        = renderer.scale;

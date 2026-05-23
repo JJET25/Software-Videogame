@@ -15,6 +15,12 @@ export default class AutomaticCard extends Card {
             throw new Error(`AutomaticCard "${cfg.name}": invalid trigger "${cfg.trigger}"`);
         }
         this.trigger = cfg.trigger;
+        if (cfg.effect) this._effectFn = cfg.effect;
+    }
+
+    effect(combatState) {
+        if (this._effectFn) return this._effectFn(combatState);
+        throw new Error(`AutomaticCard "${this.name}" must implement effect(combatState)`);
     }
 
     onTrigger(combatState) {
