@@ -1,3 +1,4 @@
+// Tracks named cooldown timers and reports readiness for any system that needs cooldown gating
 export default class CooldownSystem {
     constructor() {
         this._cooldowns = new Map();
@@ -15,10 +16,12 @@ export default class CooldownSystem {
         }
     }
 
+    // Returns true when no active cooldown exists for the given name
     isReady(name) {
         return !this._cooldowns.has(name);
     }
 
+    // Returns a 0-to-1 progress value where 1 means the cooldown has expired
     getProgress(name) {
         const cd = this._cooldowns.get(name);
         if (!cd) return 1;

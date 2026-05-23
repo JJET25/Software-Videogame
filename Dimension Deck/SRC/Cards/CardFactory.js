@@ -2,8 +2,7 @@ import QuickStrike from './QuickStrike.js';
 import HealPulse   from './HealPulse.js';
 import WoodShield  from './WoodShield.js';
 
-// Maps DB card_name → card constructor using DB stats.
-// Add new entries here as more cards are implemented.
+// If new cards are added, entries should be implemented here
 const REGISTRY = {
     'Quick Strike': (d) => new QuickStrike({
         damage:   d.base_damage,
@@ -29,5 +28,5 @@ export function createCard(dbData) {
     return factory(dbData);
 }
 
-// Returns the three starter card names in slot order.
+// Returns the three starter cards names in the slot order
 export const STARTER_CARDS = ['Quick Strike', 'Heal Pulse', 'Wood Shield'];

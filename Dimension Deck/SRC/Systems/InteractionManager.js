@@ -1,12 +1,13 @@
 const INTERACTION_RANGE = 48; // pixels from player center to object center
 
+// Detects a single-frame E press and triggers the nearest in-range interactable
 export default class InteractionManager {
     constructor(input) {
-        this.input    = input;
-        this._ePrev   = false; // previous frame E state — used to detect press edge
+        this.input  = input;
+        this._ePrev = false;
     }
 
-    // Call once per frame; triggers interact() on the nearest in-range interactable
+    // Must be called once per frame; fires interact() on the closest object within range
     update(player, interactables) {
         const eDown   = this.input.isKeyDown("E");
         const pressed = eDown && !this._ePrev;
@@ -14,14 +15,13 @@ export default class InteractionManager {
 
         if (!pressed) return;
 
-        // Find the closest interactable within range
-        let closest = null;
+        let closest     = null;
         let closestDist = Infinity;
 
         for (const obj of interactables) {
             const dist = this._distanceSq(player.position, obj.position);
             if (dist <= INTERACTION_RANGE ** 2 && dist < closestDist) {
-                closest    = obj;
+                closest     = obj;
                 closestDist = dist;
             }
         }

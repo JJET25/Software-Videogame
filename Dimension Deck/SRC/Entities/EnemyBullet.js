@@ -3,17 +3,12 @@ import Entity from "./Entity.js";
 export default class EnemyBullet extends Entity {
 
     constructor(position, direction) {
-
         super(position, 12, 12, "yellow");
-
         this.speed = 250;
-
         this.velocity = direction.times(
             this.speed
         );
-
         this.damage = 15;
-
         this.isDead = false;
     }
 
@@ -30,7 +25,6 @@ export default class EnemyBullet extends Entity {
             this.position.y < -200 ||
             this.position.y > 4000
         ) {
-
             this.isDead = true;
         }
     }

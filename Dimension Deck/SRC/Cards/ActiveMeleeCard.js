@@ -1,5 +1,6 @@
 import ActiveCard from './ActiveCard.js';
 
+// Active card that deals area damage in a cone format of the player aim direction
 export default class ActiveMeleeCard extends ActiveCard {
     constructor({ name, description, rarity, damage, range, cooldown, spread = Math.PI * 0.6, level = 1 }) {
         super({ name, description, rarity, baseCooldown: cooldown, level });
@@ -8,6 +9,7 @@ export default class ActiveMeleeCard extends ActiveCard {
         this.spread = spread;
     }
 
+    // Sets the visual arc state on the player and applies damage to all enemies within range
     effect({ player, enemies }) {
         player._strikeTimer  = 0.18 + (this.range / 1000);
         player._strikeDir    = player.aimDirection;

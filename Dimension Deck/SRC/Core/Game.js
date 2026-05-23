@@ -4,6 +4,7 @@ import Renderer from "./Renderer.js";
 import ScreenManager from "../Systems/ScreenManager.js";
 import GameplayScreen from "../Scenes/GameplayScreen.js";
 
+// Root game object: owns the renderer, input, and screen manager, and drives the loop
 export default class Game {
   constructor(canvas) {
     this.lastTime = 0;
@@ -30,6 +31,7 @@ export default class Game {
     requestAnimationFrame((ts) => this.gameLoop(ts));
   }
 
+  // Fixed the loop, prevents a spiral of death on loss
   gameLoop(timestamp) {
     const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
     this.lastTime = timestamp;

@@ -1,3 +1,4 @@
+// Tracks keyboard inputs
 export default class InputManager {
     constructor() {
         this.keys = {};
@@ -8,12 +9,10 @@ export default class InputManager {
     setUpListeners() {
         window.addEventListener("keydown", (event) => {
             const k = this._normalize(event.key);
-            
-            // event.repeat is true when the browser fires repeated keydown while key is held
+            // Prevents the same call of the key if already held
             if (!event.repeat) this._pressedThisFrame.add(k);
             this.keys[k] = true;
-            
-            // Prevent Tab from switching browser focus / scrolling the page
+            // Prevents that tabs moves the player to switching the focus of the browser
             if (k === "TAB") event.preventDefault();
         });
 
@@ -22,17 +21,17 @@ export default class InputManager {
         });
     }
 
-    // Call once at the END of each game loop frame, after all systems have read input
+    // Must be called at the end of each game loop after all systems have read the input
     update() {
         this._pressedThisFrame.clear();
     }
 
-    // True every frame the key is held down
+    // Returns true every frame the key is held down
     isKeyDown(key) {
         return this.keys[key.toUpperCase()] ?? false;
     }
 
-    // True only on the single frame the key was first pressed (not while held)
+    // Returns true only on the single frame the key was first pressed, not while held
     wasKeyPressed(key) {
         return this._pressedThisFrame.has(key.toUpperCase());
     }

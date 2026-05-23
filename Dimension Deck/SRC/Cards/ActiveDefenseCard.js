@@ -1,6 +1,6 @@
 import ActiveCard from './ActiveCard.js';
 
-// invincibility: optional seconds of iframes granted alongside the shield.
+// Active card that adds shield and optionally gives a burst of invincibility to the player
 export default class ActiveDefenseCard extends ActiveCard {
     constructor({ name, description, rarity, shieldAmount, cooldown, level = 1, invincibility = 0 }) {
         super({ name, description, rarity, baseCooldown: cooldown, level });

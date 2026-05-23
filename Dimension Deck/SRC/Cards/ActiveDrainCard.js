@@ -1,6 +1,6 @@
 import ActiveCard from './ActiveCard.js';
 
-// Damages the nearest living enemy and heals the player for healAmount.
+// Active card that damages the enemies
 export default class ActiveDrainCard extends ActiveCard {
     constructor({ name, description, rarity, damage, healAmount, cooldown, level = 1 }) {
         super({ name, description, rarity, baseCooldown: cooldown, level });
@@ -8,6 +8,7 @@ export default class ActiveDrainCard extends ActiveCard {
         this.healAmount = healAmount;
     }
 
+    // Finds the closest enemy, deals damage, then heals the player
     effect({ player, enemies }) {
         if (!enemies?.length) return;
 

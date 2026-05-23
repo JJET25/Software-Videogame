@@ -1,14 +1,14 @@
+// Routes update and draw calls to the active screen and handles screen transitions
 export default class ScreenManager {
   constructor(services) {
-    // services = {renderer, input, mouse}
-    // We add references itself for screen can call this.screenManager.changeTo(...)
+    // Inject self so screens can call this.screenManager.changeTo(...)
     this.services = { ...services, screenManager: this };
-    this.current = null;
+    this.current  = null;
   }
 
+  // Exits the current screen, attaches services to the new one, and calls its enter hook
   changeTo(newScreen, context = {}) {
     if (this.current) this.current.exit();
-
     this.current = newScreen;
     this.current.attach(this.services);
     this.current.enter(context);

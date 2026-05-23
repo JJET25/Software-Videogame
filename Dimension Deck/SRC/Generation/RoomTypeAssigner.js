@@ -39,6 +39,5 @@ export default class RoomTypeAssigner {
             });
         });
         return arrWeights;
-        //[ {type:'combat', limit:70}, {type:'chest', limit:85}, ... ]
     }
 }
