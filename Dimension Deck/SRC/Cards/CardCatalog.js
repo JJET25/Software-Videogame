@@ -43,7 +43,7 @@ export const shadowBlade = () => new ActiveMeleeCard({
     name:        'Shadow Blade',
     description: 'A devastating strike dealing 180 damage to enemies within 160px.',
     rarity:      Rarity.LEGENDARY,
-    damage:      180,  // ~5 hits en boss, muy poderoso pero no trivial
+    damage:      180,
     range:       160,
     cooldown:    15,
     spread:      Math.PI * 0.75,  // 135° — amplio pero no total
@@ -62,7 +62,7 @@ export const bloodSiphon = () => new ActiveDrainCard({
     name:        'Blood Siphon',
     description: 'Drain the nearest enemy for 40 damage and restore 20 HP.',
     rarity:      Rarity.RARE,
-    damage:      40,   // ~4 hits en tank, roba la mitad como curación
+    damage:      40,
     healAmount:  20,
     cooldown:    12,
 });
@@ -79,7 +79,7 @@ export const phoenixElixir = () => new ActiveHealCard({
     name:        'Phoenix Elixir',
     description: 'Consume a legendary elixir to fully restore all HP.',
     rarity:      Rarity.LEGENDARY,
-    healAmount:  null,  // null → full heal (player.maxHealth)
+    healAmount:  null,
     cooldown:    30,
 });
 
