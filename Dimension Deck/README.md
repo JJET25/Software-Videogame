@@ -27,16 +27,29 @@ Dimension Deck/
 
 - Node.js 18 or higher
 
+## Node.js installation
+
+Download and install nvm:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+
+in lieu of restarting the shell
+\. "$HOME/.nvm/nvm.sh"
+
+Download and install Node.js:
+nvm install 24
+
+Verify the Node.js version:
+node -v # Should print "v24.16.0".
+
+Verify npm version:
+npm -v # Should print "11.13.0".
+
+
 ## Running the game
 
 The game is a static site. You need to serve the files from the `Dimension Deck` folder using an HTTP server.
 
 ```
+cd Dimension Deck
 npm start
 ```
-
-## Notes
-
-- The backend is not required to play. The game runs fully offline with hardcoded card values.
-- The `testing` branch connects the frontend to the backend API for cards. The `main` branch uses hardcoded cards only.
-- Live reload is supported if you use VS Code with the Live Server extension, pointing the server root at the `Dimension Deck` folder.
