@@ -15,6 +15,6 @@ export default class ChestRoom extends Room {
       (TILE_SIZE * ROOM_ROWS) / 2,
     );
 
-    this.objects.push(new Chest(centerPos));
+    this.objects.push(new Chest(centerPos, 0));
   }
 }

@@ -18,6 +18,7 @@ export default class Room {
     this.credits = credits;
 
     this.tileGrid = null;
+    this.variantGrid = null;
     this.walls = [];
     this.enemies = [];
     this.objects = [];
@@ -70,33 +71,38 @@ export default class Room {
   }
 
   draw(renderer) {
-    // Draw walls
-    this.walls.forEach((wall) => {
-      wall.draw(renderer);
-    });
+    this.walls.forEach((wall) => wall.draw(renderer));
 
-    // Draw enemies
-    for (let enemy of this.enemies) {
+    for (const obj of this.objects) {
+      obj.draw(renderer); 
+    }
+
+    for (const enemy of this.enemies) {
       enemy.draw(renderer);
     }
   }
 
   buildGrid() {
     const grid = [];
+    const variants = [];
 
     for (let i = 0; i < ROOM_ROWS; i++) {
       grid[i] = [];
+      variants[i] = [];
 
       for (let j = 0; j < ROOM_COLS; j++) {
         if (i === 0 || i === ROOM_ROWS - 1 || j === 0 || j === ROOM_COLS - 1) {
           grid[i][j] = this.#isDoorGap(i, j) ? "door" : "wall";
+          variants[i][j] = 0;
         } else {
           grid[i][j] = "floor";
+          variants[i][j] = (i * 7 + j * 13) % 4;
         }
       }
     }
 
     this.tileGrid = grid;
+    this.variantGrid = variants;
   }
 
   buildWalls() {

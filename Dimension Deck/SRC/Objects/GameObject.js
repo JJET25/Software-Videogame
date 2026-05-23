@@ -1,32 +1,48 @@
 import Vector from "../Utils/Vector.js";
 
 export default class GameObject {
-    constructor(position, width, height, color, type) {
-        this.position = position;
-        this.velocity = new Vector(0, 0);
+  constructor(position, width, height, color, type) {
+    this.position = position;
+    this.velocity = new Vector(0, 0);
+    this.width = width;
+    this.height = height;
+    this.color = color;
+    this.type = type;
 
-        this.width = width;
-        this.height = height;
+    this.spriteSheet = null;
+    this.spriteFrame = null;
+  }
 
-        this.color = color;
-        this.type = type; 
+  // Returns the hitbox edges for collisions
+  getBounds() {
+    return {
+      left: this.position.x - this.width / 2,
+      right: this.position.x + this.width / 2,
+      top: this.position.y - this.height / 2,
+      bottom: this.position.y + this.height / 2,
+    };
+  }
+
+  // Draws the gameObject, it centers the obj on its position
+  draw(renderer) {
+    const dx = this.position.x - this.width / 2;
+    const dy = this.position.y - this.height / 2;
+
+    if (this.spriteSheet?.ready && this.spriteFrame) {
+      const { sx, sy, sw, sh } = this.spriteFrame;
+      renderer.drawSprite(
+        this.spriteSheet.image,
+        sx,
+        sy,
+        sw,
+        sh,
+        dx,
+        dy,
+        this.width,
+        this.height,
+      );
+    } else {
+      renderer.drawRect(dx, dy, this.width, this.height, this.color);
     }
-
-    // Returns the hitbox edges for collisions
-    getBounds() {
-        return {
-            left: this.position.x - this.width / 2,
-            right: this.position.x + this.width / 2,
-            top: this.position.y - this.height / 2,
-            bottom: this.position.y + this.height / 2
-        };
-    }
-
-    // Draws the gameObject, it centers the obj on its position
-    draw(renderer) {
-        const drawX = this.position.x - this.width / 2;
-        const drawY = this.position.y - this.height / 2;
-
-        renderer.drawRect(drawX, drawY, this.width, this.height, this.color);
-    }
+  }
 }

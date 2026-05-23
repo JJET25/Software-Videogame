@@ -1,3 +1,4 @@
+import Rock from "../../Objects/Rock.js";
 import {
   MAX_ENEMIES,
   MIN_ENEMIES,
@@ -20,7 +21,6 @@ export default class CombatRoom extends Room {
 
   populate() {
     const quantityEnemies = this.rng.int(MIN_ENEMIES, MAX_ENEMIES);
-
     for (let i = 0; i < quantityEnemies; i++) {
       const enemyType = this.#getRandomEnemyType(
         this.dimension.enemyPool,
@@ -32,6 +32,7 @@ export default class CombatRoom extends Room {
         new enemyType(enemyPos, this.player, this.bullets, this.credits),
       );
     }
+    this.#populateObjects();
   }
 
   #getRandomEnemyType(pool, rng) {
@@ -51,5 +52,30 @@ export default class CombatRoom extends Room {
         return new Vector(col * TILE_SIZE, row * TILE_SIZE);
       }
     }
+  }
+
+  #populateObjects() {
+    // Rocas: 1-3 por sala
+    const rockCount = this.rng.int(1, 3);
+    for (let i = 0; i < rockCount; i++) {
+      const pos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
+      const variant = this.rng.int(0, 2); // 3 tipos
+      this.objects.push(new Rock(pos, variant));
+    }
+
+    // Cajas: 0-2 por sala
+    //const crateCount = this.rng.int(0, 2);
+    //for (let i = 0; i < crateCount; i++) {
+    //  const pos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
+    //  const variant = this.rng.int(0, 5); // 6 tipos
+    //  this.objects.push(new Crate(pos, variant));
+    //}
+
+    // Pinchos: 0-1 grupos por sala (50% chance)
+    //if (this.rng.float() > 0.5) {
+    //  const pos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
+    //  const variant = this.rng.int(0, 3); // 4 tipos
+    //  this.objects.push(new Spike(pos, variant));
+    //}
   }
 }

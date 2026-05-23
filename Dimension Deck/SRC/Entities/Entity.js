@@ -77,6 +77,7 @@ export default class Entity {
     draw(renderer) {
         const drawX = this.position.x - this.width / 2;
         const drawY = this.position.y - this.height / 2;
+
         const color = this._flashTimer > 0 ? "#ffffff" : this.color;
         renderer.drawRect(drawX, drawY, this.width, this.height, color);
     }
