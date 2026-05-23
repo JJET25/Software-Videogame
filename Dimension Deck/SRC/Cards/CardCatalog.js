@@ -11,9 +11,9 @@ import ActiveDrainCard   from './ActiveDrainCard.js';
 // Damage
 export const quickStrike = () => new ActiveMeleeCard({
     name:        'Quick Strike',
-    description: 'Deal 200 damage to enemies within 120px.',
+    description: 'Deal 20 damage to enemies within 120px.',
     rarity:      Rarity.COMMON,
-    damage:      200,
+    damage:      20,   // mata un swarm (25 HP) en 2 hits, un base (50 HP) en 3
     range:       120,
     cooldown:    3,
     spread:      Math.PI * 0.6,   // 108° — cono estándar
@@ -21,9 +21,9 @@ export const quickStrike = () => new ActiveMeleeCard({
 
 export const ironFist = () => new ActiveMeleeCard({
     name:        'Iron Fist',
-    description: 'A powerful close-range blow dealing 320 damage within 90px.',
+    description: 'A powerful close-range blow dealing 55 damage within 90px.',
     rarity:      Rarity.RARE,
-    damage:      320,
+    damage:      55,   // tank/ranged (150 HP) en ~3 hits
     range:       90,
     cooldown:    5,
     spread:      Math.PI * 0.35,  // 63° — golpe concentrado, cono angosto
@@ -31,9 +31,9 @@ export const ironFist = () => new ActiveMeleeCard({
 
 export const novaBurst = () => new ActiveMeleeCard({
     name:        'Nova Burst',
-    description: 'Unleash an explosion dealing 450 damage to all enemies within 200px.',
+    description: 'Unleash an explosion dealing 110 damage to all enemies within 200px.',
     rarity:      Rarity.EPIC,
-    damage:      450,
+    damage:      110,  // área + ~9 hits en boss (900 HP)
     range:       200,
     cooldown:    9,
     spread:      Math.PI * 1.0,   // 180° — semicírculo completo
@@ -41,9 +41,9 @@ export const novaBurst = () => new ActiveMeleeCard({
 
 export const shadowBlade = () => new ActiveMeleeCard({
     name:        'Shadow Blade',
-    description: 'A devastating strike dealing 750 damage to enemies within 160px.',
+    description: 'A devastating strike dealing 180 damage to enemies within 160px.',
     rarity:      Rarity.LEGENDARY,
-    damage:      750,
+    damage:      180,  // ~5 hits en boss, muy poderoso pero no trivial
     range:       160,
     cooldown:    15,
     spread:      Math.PI * 0.75,  // 135° — amplio pero no total
@@ -60,10 +60,10 @@ export const healPulse = () => new ActiveHealCard({
 
 export const bloodSiphon = () => new ActiveDrainCard({
     name:        'Blood Siphon',
-    description: 'Drain the nearest enemy for 80 damage and restore 40 HP.',
+    description: 'Drain the nearest enemy for 40 damage and restore 20 HP.',
     rarity:      Rarity.RARE,
-    damage:      80,
-    healAmount:  40,
+    damage:      40,   // ~4 hits en tank, roba la mitad como curación
+    healAmount:  20,
     cooldown:    12,
 });
 
@@ -136,7 +136,7 @@ export const ironSkin = () => new AutomaticCard({
 
 export const rebound = () => new AutomaticCard({
     name:        'Rebound',
-    description: 'When hit, deal 60 damage to enemies within 150px.',
+    description: 'When hit, deal 15 damage to enemies within 150px.',
     rarity:      Rarity.RARE,
     trigger:     Trigger.ON_DAMAGE,
     effect:      ({ player, enemies }) => {
@@ -145,14 +145,14 @@ export const rebound = () => new AutomaticCard({
             if (enemy.isDead) continue;
             const dx = enemy.position.x - player.position.x;
             const dy = enemy.position.y - player.position.y;
-            if (dx * dx + dy * dy <= 150 * 150) enemy.takeDamage(60);
+            if (dx * dx + dy * dy <= 150 * 150) enemy.takeDamage(15);
         }
     },
 });
 
 export const berserkerRush = () => new AutomaticCard({
     name:        'Berserker Rush',
-    description: 'Dashing deals 80 damage to enemies within 100px.',
+    description: 'Dashing deals 20 damage to enemies within 100px.',
     rarity:      Rarity.RARE,
     trigger:     Trigger.ON_DASH,
     effect:      ({ player, enemies }) => {
@@ -161,7 +161,7 @@ export const berserkerRush = () => new AutomaticCard({
             if (enemy.isDead) continue;
             const dx = enemy.position.x - player.position.x;
             const dy = enemy.position.y - player.position.y;
-            if (dx * dx + dy * dy <= 100 * 100) enemy.takeDamage(80);
+            if (dx * dx + dy * dy <= 100 * 100) enemy.takeDamage(20);
         }
     },
 });
@@ -180,7 +180,7 @@ export const lastStand = () => new AutomaticCard({
 
 export const chainKill = () => new AutomaticCard({
     name:        'Chain Kill',
-    description: 'Killing an enemy deals 50 damage to all others within 200px.',
+    description: 'Killing an enemy deals 25 damage to all others within 200px.',
     rarity:      Rarity.EPIC,
     trigger:     Trigger.ON_KILL,
     effect:      ({ player, enemies, enemy: origin }) => {
@@ -191,7 +191,7 @@ export const chainKill = () => new AutomaticCard({
             if (enemy.isDead || enemy === origin) continue;
             const dx = enemy.position.x - ox;
             const dy = enemy.position.y - oy;
-            if (dx * dx + dy * dy <= 200 * 200) enemy.takeDamage(50);
+            if (dx * dx + dy * dy <= 200 * 200) enemy.takeDamage(25);
         }
     },
 });
