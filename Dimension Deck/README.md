@@ -13,15 +13,12 @@ Cards also come in four rarities: common, rare, epic, and legendary. Rarer cards
 Your starting deck is Quick Strike, Heal Pulse, and Wood Shield.
 
 ## Project Structure
-
-```
 Dimension Deck/
   SRC/          game logic (JavaScript modules)
   frontend/     HTML pages, CSS, and non-game JavaScript
   backend/      REST API (TypeScript, Express, MySQL)
   Assets/       sprites and images
   index.html    landing page
-```
 
 ## Requirements
 
@@ -46,10 +43,5 @@ npm -v # Should print "11.13.0".
 
 
 ## Running the game
-
-The game is a static site. You need to serve the files from the `Dimension Deck` folder using an HTTP server.
-
-```
 cd Dimension Deck
 npm start
-```
