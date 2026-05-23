@@ -1,9 +1,11 @@
 import BossRoom from "./BossRoom.js";
 import ChestRoom from "./ChestRoom.js";
 import CombatRoom from "./CombatRoom.js";
+import ShopRoom from "./ShopRoom.js";
 import Room from "./Room.js";
 
 export default class RoomFactory {
+
   static create(
     node,
     doorDirections,
@@ -13,7 +15,9 @@ export default class RoomFactory {
     dimension,
     rng,
   ) {
+
     if (node.type === "combat") {
+
       return new CombatRoom(
         doorDirections,
         player,
@@ -24,16 +28,47 @@ export default class RoomFactory {
       );
     }
 
-    // Falta agregar rooms shrine, glitch y store
+    if (node.type === "shop") {
+
+      return new ShopRoom(
+        doorDirections,
+        player,
+        bullets,
+        credits
+      );
+    }
 
     if (node.type === "chest") {
-      return new ChestRoom(doorDirections, player, bullets, credits);
+
+      return new ChestRoom(
+        doorDirections,
+        player,
+        bullets,
+        credits
+      );
     }
 
-    if (node.type === "miniBoss" || node.type === "finalBoss") {
-      return new BossRoom(doorDirections, player, bullets, credits, dimension, rng, node.type);
-    } else {
-      return new Room(doorDirections, player, bullets, credits);
+    if (
+      node.type === "miniBoss" ||
+      node.type === "finalBoss"
+    ) {
+
+      return new BossRoom(
+        doorDirections,
+        player,
+        bullets,
+        credits,
+        dimension,
+        rng,
+        node.type
+      );
     }
+
+    return new Room(
+      doorDirections,
+      player,
+      bullets,
+      credits
+    );
   }
 }
