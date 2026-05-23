@@ -44,31 +44,31 @@
           <img src="#" alt="Roguelite icon" />
           <h2>Roguelite</h2>
           <ul>
-            <li>Procedural maps</li>
-            <li>No run repeats</li>
+            <li>Branching room maps every run</li>
+            <li>Combat, shop, chest and shrine rooms</li>
           </ul>
         </article>
         <article class="feature">
           <img src="#" alt="Deck building icon" />
           <h2>Deck Building</h2>
           <ul>
-            <li>Collect cards</li>
-            <li>Chain synergies</li>
+            <li>Active cards for attacks, heals and shields</li>
+            <li>Automatic cards that trigger on conditions</li>
           </ul>
         </article>
         <article class="feature">
           <img src="#" alt="Combat icon" />
           <h2>Real-time Combat</h2>
           <ul>
-            <li>...</li>
-            <li>...</li>
+            <li>Top-down movement and mouse aiming</li>
+            <li>Dash to dodge, time your card plays</li>
           </ul>
         </article>
       </section>
 
       <section class="dimensions__container">
         <h2>Dimensions</h2>
-        <p>Discover two dimensions, recollect and defeat different enemies</p>
+        <p>Two distinct worlds, each with their own enemies, bosses and visual identity</p>
         <figure class="dimension">
           <img src="#" alt="Old West dimension room" />
           <figcaption>OLD WEST</figcaption>
@@ -84,22 +84,34 @@
         <ul class="cards__grid">
           <li>
             <article class="card">
-              <img src="#" alt="Card name description" />
+              <img src="./Assets/Sprites/action cards/action-card.png" alt="Quick Strike card" />
+              <h3>Quick Strike</h3>
+              <span class="card__type">Active &mdash; Common</span>
+              <p>Deal 20 damage to enemies within range in a forward cone.</p>
             </article>
           </li>
           <li>
             <article class="card">
-              <img src="#" alt="Card name description" />
+              <img src="./Assets/Sprites/action cards/heal-card.png" alt="Heal Pulse card" />
+              <h3>Heal Pulse</h3>
+              <span class="card__type">Active &mdash; Common</span>
+              <p>Restore 25 HP instantly.</p>
             </article>
           </li>
           <li>
             <article class="card">
-              <img src="#" alt="Card name description" />
+              <img src="./Assets/Sprites/action cards/wood-shield.png" alt="Wood Shield card" />
+              <h3>Wood Shield</h3>
+              <span class="card__type">Active &mdash; Common</span>
+              <p>Absorb the next 20 damage with a temporary shield.</p>
             </article>
           </li>
           <li>
             <article class="card">
-              <img src="#" alt="Card name description" />
+              <img src="#" alt="Lifetap card" />
+              <h3>Lifetap</h3>
+              <span class="card__type">Automatic &mdash; Common</span>
+              <p>Restore 20 HP every time you kill an enemy.</p>
             </article>
           </li>
         </ul>
@@ -115,6 +127,6 @@
       </p>
     </footer>
 
-    <script src="/frontend/JavaScript/index.js"></script>
+    <script src="frontend/JavaScript/index.js"></script>
   </body>
 </html>
