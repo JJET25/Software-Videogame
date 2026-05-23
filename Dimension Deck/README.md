@@ -29,13 +29,10 @@ Dimension Deck/
 
 ## Running the game
 
-The game is a static site. You need to serve the files from the `Dimension Deck` folder using an HTTP server. Opening the HTML file directly in a browser will not work because ES modules require a server.
-
-**Node serve**
+The game is a static site. You need to serve the files from the `Dimension Deck` folder using an HTTP server.
 
 ```
-cd "Dimension Deck"
-npx serve
+npm start
 ```
 
 ## Notes

@@ -13,17 +13,17 @@ export const quickStrike = () => new ActiveMeleeCard({
     name:        'Quick Strike',
     description: 'Deal 20 damage to enemies within 120px.',
     rarity:      Rarity.COMMON,
-    damage:      20,   // mata un swarm (25 HP) en 2 hits, un base (50 HP) en 3
+    damage:      20,
     range:       120,
     cooldown:    3,
-    spread:      Math.PI * 0.6,   // 108° — cono estándar
+    spread:      Math.PI * 0.2,
 });
 
 export const ironFist = () => new ActiveMeleeCard({
     name:        'Iron Fist',
     description: 'A powerful close-range blow dealing 55 damage within 90px.',
     rarity:      Rarity.RARE,
-    damage:      55,   // tank/ranged (150 HP) en ~3 hits
+    damage:      55,
     range:       90,
     cooldown:    5,
     spread:      Math.PI * 0.35,  // 63° — golpe concentrado, cono angosto
@@ -33,10 +33,10 @@ export const novaBurst = () => new ActiveMeleeCard({
     name:        'Nova Burst',
     description: 'Unleash an explosion dealing 110 damage to all enemies within 200px.',
     rarity:      Rarity.EPIC,
-    damage:      110,  // área + ~9 hits en boss (900 HP)
+    damage:      110,
     range:       200,
     cooldown:    9,
-    spread:      Math.PI * 1.0,   // 180° — semicírculo completo
+    spread:      Math.PI * 1.0,
 });
 
 export const shadowBlade = () => new ActiveMeleeCard({
@@ -46,7 +46,7 @@ export const shadowBlade = () => new ActiveMeleeCard({
     damage:      180,
     range:       160,
     cooldown:    15,
-    spread:      Math.PI * 0.75,  // 135° — amplio pero no total
+    spread:      Math.PI * 0.75,
 });
 
 // Heal
