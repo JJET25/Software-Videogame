@@ -1,29 +1,22 @@
 {
-  "name": "dimension-deck-backend",
+  "name": "software-videogame",
   "version": "1.0.0",
-  "description": "REST API backend for Dimension Deck",
-  "main": "dist/server.js",
+  "type": "module",
+  "main": "app.js",
   "scripts": {
-    "dev":    "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build":  "tsc",
-    "start":  "node dist/server.js",
-    "schema": "mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < schema.sql"
+    "start": "node app.js",
+    "dev": "node --watch app.js"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "bcryptjs":   "^2.4.3",
-    "cors":       "^2.8.5",
-    "dotenv":     "^16.4.5",
-    "express":    "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "mysql2":     "^3.10.0"
-  },
-  "devDependencies": {
-    "@types/bcryptjs":     "^2.4.6",
-    "@types/cors":         "^2.8.17",
-    "@types/express":      "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.6",
-    "@types/node":         "^20.14.0",
-    "ts-node-dev":         "^2.0.0",
-    "typescript":          "^5.5.0"
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.22.3"
   }
 }
