@@ -5,7 +5,7 @@ const BAR_HEIGHT = 6;
 
 // TOP LEFT POSITION
 const BAR_X = 10;
-const BAR_Y = 18;
+const BAR_Y = 26;
 
 const FLASH_DURATION = 0.25;
 
@@ -89,7 +89,8 @@ export default class HUD {
   _drawShieldBar(renderer, player) {
     if (!player.shield || player.shield <= 0) return;
 
-    const shieldY = BAR_Y - 12;
+    // Above HP bar
+    const shieldY = BAR_Y - 18;
 
     renderer.drawRect(
       BAR_X,
@@ -111,14 +112,6 @@ export default class HUD {
       BAR_HEIGHT,
       "#44aaff",
     );
-
-    renderer.drawText(
-      `SHIELD ${player.shield}`,
-      BAR_X,
-      shieldY - 6,
-      "10px monospace",
-      "#88ccff",
-    );
   }
 
   _drawDashIndicator(renderer, player) {
@@ -129,7 +122,7 @@ export default class HUD {
         ? "DASH READY"
         : `DASH ${player._dashCooldownTimer.toFixed(1)}`,
       BAR_X,
-      BAR_Y + 16,
+      BAR_Y + 12,
       "12px monospace",
       ready ? "#88eeff" : "#556677",
     );
@@ -139,7 +132,7 @@ export default class HUD {
     renderer.drawText(
       `CREDITS ${player.credits}`,
       BAR_X,
-      BAR_Y + 30,
+      BAR_Y + 24,
       "12px monospace",
       "#ffcc33",
     );
