@@ -3,7 +3,7 @@
 :root {
   --bg: #2c0c50;
   --primary-color: #36145c;
-  --secondary-color: #5b21b6;
+  --secondary-color: #4c2875;
   --primary-text: #000000;
   --secondary-text: #866ea7;
   --highlight-text: #ff8f33;
@@ -58,6 +58,7 @@ nav {
 
 .signup_user,
 .user {
+  width: 180px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -66,6 +67,7 @@ nav {
 .user p {
   color: var(--secondary-text);
   font-weight: 700;
+  font-size: 1.5rem;
 }
 .user span {
   color: var(--acent);
@@ -151,6 +153,7 @@ nav a:hover::after {
 
 .hero__overlay {
   position: absolute;
+  z-index: 1;
   inset: 0;
   background: rgba(0, 0, 0, 0.1);
 }
@@ -199,4 +202,230 @@ nav a:hover::after {
 
 .loginBtn:active {
   transform: translateY(0);
+}
+
+/* ==== FEATURES ==== */
+.features__container {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding: 2rem 3rem;
+  margin: 3rem;
+  background-color: var(--primary-color);
+  border-radius: 2rem;
+  width: min(1200px, 90%);
+  margin-inline: auto;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  padding: 2.5rem 1.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.feature h2 {
+  letter-spacing: 3px;
+  color: var(--highlight-text);
+}
+
+.feature ul {
+  list-style: none;
+  color: var(--primary-text);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.2rem;
+}
+
+/* ==== DIMENSIONS ==== */
+.dimensions__container {
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dimensions__container h2 {
+  align-items: center;
+  text-align: center;
+  color: var(--highlight-text);
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.dimensions__container p {
+  align-items: center;
+  text-align: center;
+  color: var(--secondary-text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.dimension {
+  width: 85%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 2rem;
+  background-color: var(--secondary-color);
+  border-radius: 2rem;
+}
+
+.dimension:nth-of-type(odd) {
+  margin-right: auto;
+}
+
+.dimension:nth-of-type(even) {
+  margin-left: auto;
+  flex-direction: row-reverse;
+}
+.dimension img {
+  width: 50%;
+  max-width: 700px;
+  object-fit: cover;
+}
+
+.dimension__info {
+  letter-spacing: 4px;
+  font-size: 2rem;
+  color: var(--highlight-text);
+}
+
+/* ==== CARDS ==== */
+.cards__container {
+  padding: 3rem;
+}
+
+.cards__container h2 {
+  padding-bottom: 3rem;
+  align-items: center;
+  text-align: center;
+  color: var(--highlight-text);
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.cards__grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.card {
+  background-color: var(--primary-color);
+  border-radius: 2rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  scale: 105%;
+}
+
+.card img {
+  width: 100%;
+  object-fit: cover;
+  aspect-ratio: 3/4;
+}
+
+.card h3 {
+  padding: 0.8rem 0.8rem 0.2rem;
+  font-size: 1.5rem;
+}
+
+.card .card__type {
+  color: var(--acent);
+  padding: 0 0.8rem;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+}
+
+.card p {
+  padding: 0.4rem 0.8rem 0.8rem;
+  color: var(--secondary-text);
+  font-size: 1rem;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* ==== FOOTER ==== */
+footer {
+  margin-top: 6rem;
+  padding: 1rem 4rem;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  background: var(--primary-color);
+  border-top: 2px solid var(--acent);
+}
+
+footer a {
+  text-decoration: none;
+  color: var(--secondary-text);
+
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  font-size: 1.5rem;
+  font-weight: 700;
+  transition: 0.25s;
+}
+
+footer a::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--acent);
+  transition: width 0.25s ease;
+}
+
+footer a:hover {
+  color: var(--highlight-text);
+}
+
+footer a:hover::after {
+  width: 100%;
+}
+
+footer img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.footer__authors {
+  text-align: center;
+}
+
+.footer__authors h3 {
+  color: var(--highlight-text);
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+}
+
+.footer__authors p {
+  color: var(--secondary-text);
+  line-height: 1.6;
+}
+
+.footer__copyright {
+  text-align: right;
+  color: var(--secondary-text);
+  font-size: 0.95rem;
 }

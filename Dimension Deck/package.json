@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "npx serve .",
     "dev": "node SRC/Main.js",
     "test": "vitest",
     "test:run": "vitest run"
