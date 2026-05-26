@@ -1,18 +1,19 @@
 import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
-const BAR_WIDTH = 52;
-const BAR_HEIGHT = 5;
+const BAR_WIDTH = 58;
+const BAR_HEIGHT = 6;
 
+// TOP LEFT POSITION
 const BAR_X = 10;
-const BAR_Y = ROOM_HEIGHT - 30;
+const BAR_Y = 18;
 
 const FLASH_DURATION = 0.25;
 
 // Card slots
-const SLOT_SIZE = 18;
+const SLOT_SIZE = 20;
 const SLOT_GAP = 4;
 
-const SLOTS_Y = ROOM_HEIGHT - 36;
+const SLOTS_Y = ROOM_HEIGHT - 40;
 
 const RARITY_COLOR = {
   common: "#888888",
@@ -38,6 +39,8 @@ export default class HUD {
 
   draw(renderer, player, cardManager = null) {
     this._drawHealthBar(renderer, player);
+
+    this._drawShieldBar(renderer, player);
 
     this._drawDashIndicator(renderer, player);
 
@@ -78,8 +81,43 @@ export default class HUD {
       `HP ${player.health}/${player.maxHealth}`,
       BAR_X,
       BAR_Y - 6,
-      "10px monospace",
+      "12px monospace",
       "#cccccc",
+    );
+  }
+
+  _drawShieldBar(renderer, player) {
+    if (!player.shield || player.shield <= 0) return;
+
+    const shieldY = BAR_Y - 12;
+
+    renderer.drawRect(
+      BAR_X,
+      shieldY,
+      BAR_WIDTH,
+      BAR_HEIGHT,
+      "#333333",
+    );
+
+    const fillWidth = Math.min(
+      BAR_WIDTH,
+      Math.floor((player.shield / 100) * BAR_WIDTH),
+    );
+
+    renderer.drawRect(
+      BAR_X,
+      shieldY,
+      fillWidth,
+      BAR_HEIGHT,
+      "#44aaff",
+    );
+
+    renderer.drawText(
+      `SHIELD ${player.shield}`,
+      BAR_X,
+      shieldY - 6,
+      "10px monospace",
+      "#88ccff",
     );
   }
 
@@ -91,8 +129,8 @@ export default class HUD {
         ? "DASH READY"
         : `DASH ${player._dashCooldownTimer.toFixed(1)}`,
       BAR_X,
-      BAR_Y + 14,
-      "10px monospace",
+      BAR_Y + 16,
+      "12px monospace",
       ready ? "#88eeff" : "#556677",
     );
   }
@@ -101,8 +139,8 @@ export default class HUD {
     renderer.drawText(
       `CREDITS ${player.credits}`,
       BAR_X,
-      BAR_Y + 28,
-      "10px monospace",
+      BAR_Y + 30,
+      "12px monospace",
       "#ffcc33",
     );
   }
@@ -195,9 +233,9 @@ export default class HUD {
 
         renderer.drawText(
           label,
-          x + 2,
-          y + 9,
-          "7px monospace",
+          x + 3,
+          y + 10,
+          "8px monospace",
           "#dddddd",
         );
       }
@@ -206,7 +244,7 @@ export default class HUD {
         String(i + 1),
         x + SLOT_SIZE - 5,
         y + SLOT_SIZE - 3,
-        "7px monospace",
+        "8px monospace",
         selected ? "#ffffff" : "#555555",
       );
     }
