@@ -12,13 +12,13 @@
         <a href="frontend/HTML/game.html" id="navPlay">PLAY</a>
         <a href="#" id="navCards">CARDS</a>
         <a href="#" id="navTutorial">TUTORIAL</a>
-        <a href="#" id="navStats">STATS</a>
+        <a href="frontend/HTML/stats.html" id="navStats">STATS</a>
       </nav>
       <div id="signupUser" class="signup_user">
         <a href="frontend/HTML/login.html" class="loginBtn">SIGN UP</a>
       </div>
-      <div id="user" class="user" style="display: none;">
-        <p>Hi! <span id="usernameDisplay"></span></p>
+      <div id="user" class="user" style="display: none">
+        <p>Hi <span id="usernameDisplay"></span>!</p>
       </div>
     </header>
 
@@ -32,9 +32,16 @@
         <div class="hero__overlay"></div>
 
         <div class="hero__content">
-          <h1><img src="./Assets/Website/DimensionDeck_Logo.png" alt="Dimension Deck" /></h1>
+          <h1>
+            <img
+              src="./Assets/Website/DimensionDeck_Logo.png"
+              alt="Dimension Deck"
+            />
+          </h1>
           <p>A Roguelite Card Battler Across Dimensions</p>
-          <a href="frontend/HTML/game.html" class="btn-play" id="heroPlay">PLAY NOW</a>
+          <a href="frontend/HTML/game.html" class="btn-play" id="heroPlay"
+            >PLAY NOW</a
+          >
         </div>
       </section>
 
@@ -66,25 +73,37 @@
         </article>
       </section>
 
+      <!-- DIMENSIONS -->
       <section class="dimensions__container">
         <h2>Dimensions</h2>
-        <p>Two distinct worlds, each with their own enemies, bosses and visual identity</p>
+        <p>
+          Two distinct worlds, each with their own enemies, bosses and visual
+          identity
+        </p>
         <figure class="dimension">
           <img src="#" alt="Old West dimension room" />
-          <figcaption>OLD WEST</figcaption>
+          <div class="dimension__info">
+            <h3>OLD WEST</h3>
+          </div>
         </figure>
         <figure class="dimension">
           <img src="#" alt="Dark Ages dimension room" />
-          <figcaption>DARK AGES</figcaption>
+          <div class="dimension__info">
+            <h3>DARK AGES</h3>
+          </div>
         </figure>
       </section>
 
+      <!-- CARDS -->
       <section class="cards__container">
         <h2>Cards</h2>
         <ul class="cards__grid">
           <li>
             <article class="card">
-              <img src="./Assets/Sprites/action cards/action-card.png" alt="Quick Strike card" />
+              <img
+                src="./Assets/Sprites/action cards/action-card.png"
+                alt="Quick Strike card"
+              />
               <h3>Quick Strike</h3>
               <span class="card__type">Active &mdash; Common</span>
               <p>Deal 20 damage to enemies within range in a forward cone.</p>
@@ -92,7 +111,10 @@
           </li>
           <li>
             <article class="card">
-              <img src="./Assets/Sprites/action cards/heal-card.png" alt="Heal Pulse card" />
+              <img
+                src="./Assets/Sprites/action cards/heal-card.png"
+                alt="Heal Pulse card"
+              />
               <h3>Heal Pulse</h3>
               <span class="card__type">Active &mdash; Common</span>
               <p>Restore 25 HP instantly.</p>
@@ -100,7 +122,10 @@
           </li>
           <li>
             <article class="card">
-              <img src="./Assets/Sprites/action cards/wood-shield.png" alt="Wood Shield card" />
+              <img
+                src="./Assets/Sprites/action cards/wood-shield.png"
+                alt="Wood Shield card"
+              />
               <h3>Wood Shield</h3>
               <span class="card__type">Active &mdash; Common</span>
               <p>Absorb the next 20 damage with a temporary shield.</p>
@@ -118,15 +143,28 @@
       </section>
     </main>
 
+    <!-- FOOTER -->
     <footer>
-      <nav>
-        <a href="https://github.com/JJET25/Software-Videogame">Github</a>
-      </nav>
-      <p>
-        ©<time datetime="2026">2026</time> Dimension Deck. All rights reserved
-      </p>
-    </footer>
+      <div class="footer__github">
+        <a href="https://github.com/JJET25/Software-Videogame" target="_blank">
+          <img src="Assets/Website/github_logo.png" alt="GitHub Logo" />
+          <span>GitHub</span>
+        </a>
+      </div>
 
+      <div class="footer__authors">
+        <h3>By</h3>
+        <p>Jesus Espinoza, Gonzalo Zamarrón, Vladimir Reyes</p>
+      </div>
+
+      <div class="footer__copyright">
+        <p>
+          © <time datetime="2026">2026</time><br />
+          Dimension Deck<br />
+          All Rights Reserved
+        </p>
+      </div>
+    </footer>
     <script src="frontend/JavaScript/index.js"></script>
   </body>
 </html>
