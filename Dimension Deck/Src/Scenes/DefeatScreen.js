@@ -9,7 +9,15 @@ export default class DefeatScreen extends Screen {
 
         if (context.runId) {
             const { runId, status, roomsCleared, enemiesKilled, damageTaken, creditsEarned, cardsCollected } = context;
-            endRun(runId, { status, roomsCleared, enemiesKilled, damageTaken, creditsEarned, cardsCollected })
+            // Backend expects snake_case field names
+            endRun(runId, {
+                status,
+                rooms_cleared:   roomsCleared,
+                enemies_killed:  enemiesKilled,
+                damage_taken:    damageTaken,
+                credits_earned:  creditsEarned,
+                cards_collected: cardsCollected,
+            })
                 .then(data  => { this.score = data?.score ?? 0; })
                 .catch(()   => { this.score = 0; });
         } else {

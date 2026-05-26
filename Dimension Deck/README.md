@@ -10,7 +10,7 @@ Cards come in two types. Active cards are manually triggered on click and have a
 
 Cards also come in four rarities: common, rare, epic, and legendary. Rarer cards have stronger effects but longer cooldowns.
 
-Your starting deck is Quick Strike, Heal Pulse, and Wood Shield.
+The starting deck is Quick Strike, Heal Pulse, and Wood Shield.
 
 ## Project Structure
 Dimension Deck/

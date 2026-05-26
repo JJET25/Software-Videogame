@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS cards (
     card_name        VARCHAR(100) UNIQUE NOT NULL,
     card_type        ENUM('active','automatic') NOT NULL,
     subtype          VARCHAR(50),
-    rarity           ENUM('common','uncommon','rare') NOT NULL,
+    rarity           ENUM('common','uncommon','rare','epic','legendary') NOT NULL,
     base_damage      INT   DEFAULT 0,
     base_heal        INT   DEFAULT 0,
     cooldown_seconds FLOAT DEFAULT 0,
@@ -47,30 +47,31 @@ CREATE TABLE IF NOT EXISTS run_cards (
     FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
 );
 
--- Seed: 12 active + 6 automatic cards
+-- Seed: 12 active + 6 automatic cards (matches CardCatalog.js)
 INSERT IGNORE INTO cards (card_name, card_type, subtype, rarity, base_damage, base_heal, cooldown_seconds, effect_json, shop_cost, description) VALUES
 -- Active – Melee
-('Quick Strike',    'active', 'melee',   'common',   200,  0,  3, '{"range":120}',                           0,  'Deal 200 damage to enemies within 120px.'),
-('Dual Strike',     'active', 'melee',   'common',   120,  0,  4, '{"range":100,"hits":2}',                 30,  'Hit twice for 120 damage each within 100px.'),
-('Heavy Blow',      'active', 'melee',   'uncommon', 350,  0,  6, '{"range":80}',                           50,  'Deal 350 damage in a short range.'),
-('Whirlwind Slash', 'active', 'melee',   'uncommon', 200,  0,  8, '{"range":160,"aoe":true}',               60,  'Slash all enemies within 160px.'),
+('Quick Strike',     'active', 'melee',   'common',    1000, 0,  3, '{"range":120,"spread":0.628}',                            0, 'Deal damage to enemies within 120px.'),
+('Iron Fist',        'active', 'melee',   'rare',        55, 0,  5, '{"range":90,"spread":1.099}',                            50, 'A powerful close-range blow dealing 55 damage within 90px.'),
+('Nova Burst',       'active', 'melee',   'epic',       110, 0,  9, '{"range":200,"spread":3.142}',                           80, 'Unleash an explosion dealing 110 damage to all enemies within 200px.'),
+('Shadow Blade',     'active', 'melee',   'legendary',  180, 0, 15, '{"range":160,"spread":2.356}',                          130, 'A devastating strike dealing 180 damage to enemies within 160px.'),
 -- Active – Heal
-('Heal Pulse',      'active', 'heal',    'common',     0, 25, 10, '{}',                                      0,  'Restore 25 HP.'),
-('Mend',            'active', 'heal',    'common',     0, 40, 12, '{}',                                     35,  'Restore 40 HP.'),
-('Rejuvenation',    'active', 'heal',    'uncommon',   0, 60, 18, '{"dot":true,"ticks":3}',                 55,  'Restore 60 HP over 3 ticks.'),
-('Vital Surge',     'active', 'heal',    'rare',       0,100, 22, '{}',                                     80,  'Restore 100 HP instantly.'),
+('Heal Pulse',       'active', 'heal',    'common',       0,25, 10, '{}',                                                      0, 'Restore 25 HP.'),
+('Mending Wave',     'active', 'heal',    'epic',         0,70, 15, '{}',                                                     85, 'Release a healing wave that restores 70 HP.'),
+('Phoenix Elixir',   'active', 'heal',    'legendary',    0, 0, 30, '{"full_heal":true}',                                    150, 'Consume a legendary elixir to fully restore all HP.'),
+-- Active – Drain
+('Blood Siphon',     'active', 'drain',   'rare',        40,20, 12, '{}',                                                     65, 'Drain the nearest enemy for 40 damage and restore 20 HP.'),
 -- Active – Defense
-('Wood Shield',     'active', 'defense', 'common',     0,  0,  8, '{"shield":20}',                           0,  'Absorb the next 20 damage.'),
-('Iron Wall',       'active', 'defense', 'uncommon',   0,  0, 12, '{"shield":50}',                          60,  'Absorb the next 50 damage.'),
-('Arcane Shield',   'active', 'defense', 'uncommon',   0,  0, 10, '{"shield":35}',                          55,  'Absorb the next 35 damage.'),
-('Bone Armour',     'active', 'defense', 'rare',       0,  0, 15, '{"shield":75}',                          75,  'Absorb the next 75 damage.'),
+('Wood Shield',      'active', 'defense', 'common',       0, 0,  8, '{"shield":20}',                                           0, 'Absorb the next 20 damage.'),
+('Stone Wall',       'active', 'defense', 'rare',         0, 0, 12, '{"shield":50}',                                          60, 'Erect a wall of stone that absorbs the next 50 damage.'),
+('Mirror Guard',     'active', 'defense', 'epic',         0, 0, 14, '{"shield":35,"invincibility":1.5}',                      90, 'Gain 35 shield and 1.5s of invincibility.'),
+('Diamond Fortress', 'active', 'defense', 'legendary',    0, 0, 18, '{"shield":100}',                                        140, 'Crystallize your body, absorbing the next 100 damage.'),
 -- Automatic
-('Counter Slash',   'automatic', 'melee', 'common',   80,  0,  0, '{"trigger":"on_hit_received"}',          40,  'On hit received: deal 80 damage back.'),
-('Thorns',          'automatic', 'melee', 'common',   50,  0,  0, '{"trigger":"on_hit_received"}',          35,  'On hit received: reflect 50 damage.'),
-('Vampiric Touch',  'automatic', 'drain', 'uncommon',  0, 30,  0, '{"trigger":"on_kill"}',                  65,  'On kill: restore 30 HP.'),
-('Soul Drain',      'automatic', 'drain', 'uncommon', 60, 10,  0, '{"trigger":"on_attack"}',                70,  'On attack: deal 60 damage and heal 10 HP.'),
-('Adrenaline Rush', 'automatic', 'melee', 'rare',    150,  0,  0, '{"trigger":"on_low_health","threshold":0.3}', 90, 'When below 30% HP: burst for 150 damage.'),
-('Life Link',       'automatic', 'heal',  'rare',      0,  0,  0, '{"trigger":"on_attack","heal_pct":0.15}',85,  'On attack: heal 15% of damage dealt.');
+('Lifetap',          'automatic', 'heal',    'common',    0,20,  0, '{"trigger":"on_kill"}',                                  40, 'Restore 20 HP each time you kill an enemy.'),
+('Iron Skin',        'automatic', 'defense', 'common',    0, 0,  0, '{"trigger":"on_attack","shield":8}',                     45, 'Gain 8 shield each time you hit an enemy.'),
+('Rebound',          'automatic', 'melee',   'rare',     15, 0,  0, '{"trigger":"on_hit_received","range":150}',              65, 'When hit, deal 15 damage to enemies within 150px.'),
+('Berserker Rush',   'automatic', 'melee',   'rare',     20, 0,  0, '{"trigger":"on_dash","range":100}',                      70, 'Dashing deals 20 damage to enemies within 100px.'),
+('Last Stand',       'automatic', 'defense', 'epic',      0, 0,  0, '{"trigger":"on_hit_received","invincibility":2,"threshold":0.3}', 95, 'When hit below 30% HP, gain 2s of invincibility.'),
+('Chain Kill',       'automatic', 'melee',   'epic',     25, 0,  0, '{"trigger":"on_kill","from_enemy":true,"range":200}',   100, 'Killing an enemy deals 25 damage to all others within 200px.');
 
 -- ─────────────────────────────────────────
 -- VIEWS

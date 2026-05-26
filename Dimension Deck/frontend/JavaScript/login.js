@@ -1,4 +1,5 @@
-const loginForm = document.getElementById("loginForm");
+const API_BASE   = 'http://localhost:3001';
+const loginForm  = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
 const errorLogin = document.getElementById("errorMsgLogin");
 const errorSignup = document.getElementById("errorMsgSignup");
@@ -41,7 +42,7 @@ loginForm.addEventListener("submit", async (event) => {
   overlay.classList.add("active");
 
   try {
-    const response = await fetch("/auth/login", {
+    const response = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,7 +80,7 @@ signupForm.addEventListener("submit", async (event) => {
   overlay.classList.add("active");
 
   try {
-    const response = await fetch("/auth/register", {
+    const response = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
