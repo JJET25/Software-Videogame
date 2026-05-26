@@ -17,7 +17,7 @@ A01786772
 A01782739
 
 **Delivery Date:**  
-27 de abril
+22 of May
 
 # **Index**
 
@@ -41,17 +41,15 @@ A01782739
 
 [2.3.1 Card System	11](#2.3.1-card-system)
 
-[2.3.2 Synergy System	13](#2.3.2-synergy-system)
+[2.3.2 Card Acquisition	13](#2.3.3-card-acquisition)
 
-[2.3.3 Card Acquisition	14](#2.3.3-card-acquisition)
+[2.3.3 Card Upgrades	15](#2.3.4-card-upgrades)
 
-[2.3.4 Card Upgrades	15](#2.3.4-card-upgrades)
+[2.3.4 Combat: Card Rules	16](#2.3.5-combat:-card-rules)
 
-[2.3.5 Combat: Card Rules	16](#2.3.5-combat:-card-rules)
+[2.3.5 Type of Cards	17](#2.3.6-type-of-cards)
 
-[2.3.6 Type of Cards	17](#2.3.6-type-of-cards)
-
-[2.3.7 Card Design	19](#2.3.7-card-design)
+[2.3.6 Card Design	19](#2.3.7-card-design)
 
 [2.4 Combat	20](#2.4-combat)
 
@@ -271,7 +269,7 @@ Automatic cards are the secondary hand of the player. This one activates dependi
 | Rarity | Color | Description |
 | :---- | :---- | :---- |
 | **Common** | Bronze | Base-level cards that can be found frequently. |
-| **Rare** | Blue | Better cards with combination effects or specialized utility. |
+| **Rare** | Blue | Improved cards with higher damage, healing, or utility than common tier. |
 | **Epic** | Purple | Powerful mechanics that often serve as the cornerstone of a specific build strategy. |
 | **Legendary** | Gold | Game-changing finds that fundamentally alter how you approach every run. |
 
@@ -305,27 +303,13 @@ The same formula applies to the automatic card pool but uses a separate multipli
    
 Both resistance values stack. A player with 5 active slots and 8 automatic slots faces a total of 10% \+ 6% \= 16% damage reduction on all enemies in the current room.
 
-### **2.3.2 Synergy System** {#2.3.2-synergy-system}
-
- The synergy system rewards sequencing over raw damage. A trigger card sets a flag on an enemy. If a matching catalyst card hits that same enemy within 4 seconds, the combination fires with a damage multiplier. Miss the window the flag clears and you get nothing.
-
-**Current defined combinations:**
-
-| Trigger Card | Catalyst Card | Result | Radius | Duration | Dmg Multiplier |
-| :---- | :---- | :---- | :---- | :---- | :---- |
-| Oil (Automatic) | Fire (Active) | Area Burn | 3 tiles | 2 seconds | ×3 |
-| Freeze (Active) | Strike (Active) | Shatter | Single target | Instant | ×2.5 |
-| Poison (Automatic) | Wind (Active) | Toxic Cloud | 2 tiles | 3 seconds | ×2 |
-
-The Synergy Manager holds the trigger flag for exactly 4 seconds. A larger deck means more possible combinations, but also more moving parts to sequence correctly while dodging in real time. The skill is not memorizing the table; it's knowing when you actually have a window to land both cards.
-
-### **2.3.3 Card Acquisition** {#2.3.3-card-acquisition}
+### **2.3.2 Card Acquisition** {#2.3.3-card-acquisition}
 
 **Field Rewards (Exploration)**  
 Cards found in the environment reward thoroughness and combat prowess:
 
 * Combat: Clearing the final boss of each level grants the player a choice of 3 cards from a randomized selection to help the player keep improving their deck.  
-* Treasure Chests: Hidden throughout procedural floors, chests contain randomized cards. Players who explore every corner of each level are more likely to find synergy cards.
+* Treasure Chests: Hidden throughout procedural floors, chests contain randomized cards. Players who explore every corner of each level are more likely to find powerful cards.
 
 **The Dimension Store (Shop)**  
 The shop serves as the primary hub for managing the deck of the player:
@@ -348,7 +332,7 @@ This system ensures that no two runs are identical:
 * Route Optimization: The player’s path on the map indicates the potential card pool. A path heavy on combat nodes favors rapid acquisition, while a shop path allows for precision deck-building.  
 * Adaptive Strategy: Players must constantly change their strategy based on the cards they encounter during exploration versus those they can afford to purchase.
 
-### **2.3.4 Card Upgrades** {#2.3.4-card-upgrades}
+### **2.3.3 Card Upgrades** {#2.3.4-card-upgrades}
 
 Every card has three levels: base, upgraded and max. When a card is obtained, it will start at a base level. The moment the player acquires a second copy of the same card, these two cards will merge automatically, advancing the level of the card into upgraded. Acquiring a third copy of the same card will trigger the same automatic merge, changing the card level from upgraded to max.
 
@@ -366,7 +350,7 @@ Secondary Cards
 * Upgrade: Widens the trigger condition, making the card activate in more situations than it did at base level.  
 * Max: Increases the potency of the effect itself, whether that means a larger damage bonus, a longer buff duration, or a stronger status applied to enemies.
 
-### **2.3.5 Combat: Card Rules** {#2.3.5-combat:-card-rules}
+### **2.3.4 Combat: Card Rules** {#2.3.5-combat:-card-rules}
 
 Combat in Dimension Deck relies on constant attention to the scenario. Efficiency is measured by the ability of the player to cycle through their hand while maintaining good positioning for a real-life battle between enemies.  
 **Active Card Execution**
@@ -377,31 +361,46 @@ Combat in Dimension Deck relies on constant attention to the scenario. Efficienc
   * Low-Tier/Common: Short cooldowns (e.g., 1–3 seconds), allowing for consistent, "spam-able" basic attacks or minor shields.  
   * High-Tier/Legendary: Long cooldowns (e.g., 10–20 seconds), requiring the player to save these "Ultimate" abilities for boss phases or being overwhelmed.
 
-**Damage and Interaction Collision-Based Damage**  
-All card-based damage is physical and projectile-based. Damage is dealt only if the card's effect physically intersects with an enemy's hitbox. 
+**Damage and Collision**  
+Card damage is resolved immediately on activation. Active melee cards deal damage to all enemies whose hitbox falls within a cone-shaped arc in the direction the player is aiming. Drain cards find and damage the nearest living enemy. Defensive cards apply a flat shield value or invincibility frames instantly, with no directional requirement.
 
-* Directional Shielding: Defensive cards like the Wood Shield provide protection only in the direction the player is facing or aiming. Players must "active-block" by timing the card activation with the enemy's telegraphed strike.  
-* Scaling Impact: A card’s damage and effect duration scale based on its Level and Rarity. Higher-level cards may introduce "Burst Damage" or "Stun Frames," allowing players to interrupt enemy wind-up animations.
+* Instant Resolution: Effects land on the same frame the card is activated, with no travel time or cast delay.  
+* Scaling Impact: A card’s damage and effect values scale based on its Level and Rarity.
 
 **Hand Cycling and Rotation Strategy**  
 Since there is no mana limit, the primary skill gap is rotation management. Players must cycle through their 1–5 keys to ensure they always have an offensive or defensive option available, avoiding "all-on-cooldown" moments where they are left defenseless.
 
-### **2.3.6 Type of Cards** {#2.3.6-type-of-cards}
+### **2.3.5 Type of Cards** {#2.3.6-type-of-cards}
 
-| \# | Name | Rarity | Cost | Effect |
+**Active Cards**
+
+| \# | Name | Rarity | Cooldown | Effect |
 | :---- | :---- | :---- | :---- | :---- |
-| 1 | Quick Strike | Common | 1 | Deal 20 damage to one enemy |
-| 2 | Area Blast | Common | 2 | Deal 15 damage in a 3-tile radius |
-| 3 | Heal Pulse | Common | 2 | Restore 25 HP |
-| 4 | Oil Slick | Common | Auto | Apply Flammable to nearest enemy when HP drops below 50% |
-| 5 | Iron Skin | Rare | Auto | Reduce next damage taken by 10, resets each room |
-| 6 | Freeze Shot | Rare | 2 | Freeze one enemy for 2 seconds |
-| 7 | Toxic Spore | Rare | Auto | Apply Poison when player dodges through an enemy |
-| 8 | Chain Lightning | Epic | 3 | Hit one enemy for 25 damage; jumps to 2 nearby enemies for 12 each |
-| 9 | Void Anchor | Epic | Auto | When entering a boss room, reduce boss Card Resistance by 20% for 10 seconds |
-| 10 | Dimensional Edge | Legendary | 4 | Deal 50 damage; if used in a different dimension than where acquired, damage doubles |
+| 1 | Quick Strike | Common | 3s | Deal 20 damage to enemies within 120px in a forward cone |
+| 2 | Heal Pulse | Common | 10s | Restore 25 HP |
+| 3 | Wood Shield | Common | 8s | Absorb the next 20 damage |
+| 4 | Iron Fist | Rare | 5s | Deal 55 damage to enemies within 90px in a narrow cone |
+| 5 | Blood Siphon | Rare | 12s | Drain the nearest enemy for 40 damage and restore 20 HP |
+| 6 | Stone Wall | Rare | 12s | Absorb the next 50 damage |
+| 7 | Nova Burst | Epic | 9s | Deal 110 damage to enemies within 200px in a wide arc |
+| 8 | Mending Wave | Epic | 15s | Restore 70 HP |
+| 9 | Mirror Guard | Epic | 14s | Gain 35 shield and 1.5s of invincibility |
+| 10 | Shadow Blade | Legendary | 15s | Deal 180 damage to enemies within 160px |
+| 11 | Phoenix Elixir | Legendary | 30s | Fully restore all HP |
+| 12 | Diamond Fortress | Legendary | 18s | Absorb the next 100 damage |
 
-### **2.3.7 Card Design** {#2.3.7-card-design}
+**Automatic Cards**
+
+| \# | Name | Rarity | Trigger | Effect |
+| :---- | :---- | :---- | :---- | :---- |
+| 1 | Lifetap | Common | On Kill | Restore 20 HP each time you kill an enemy |
+| 2 | Iron Skin | Common | On Hit | Gain 8 shield each time you hit an enemy |
+| 3 | Rebound | Rare | On Damage | When hit, deal 15 damage to all enemies within 150px |
+| 4 | Berserker Rush | Rare | On Dash | Dashing deals 20 damage to all enemies within 100px |
+| 5 | Last Stand | Epic | On Damage | When hit below 30% HP, gain 2s of invincibility |
+| 6 | Chain Kill | Epic | On Kill | Killing an enemy deals 25 damage to all others within 200px |
+
+### **2.3.6 Card Design** {#2.3.7-card-design}
 
 ![][image9]
 
@@ -496,10 +495,8 @@ Using these two themes helps prevent the player from getting bored with the visu
 Each interactive object follows defined rules for how the player engages with it:
 
 * **Card Reward Chests**: Appear after a room is fully cleared. Require no key. The player presses E to open and receives a choice of 3 cards drawn from the current biome's rarity pool. If the player skips the chest, it disappears when they exit the room.  
-* **The Dimension Store**: A safe zone; no enemies spawn here. The shopkeeper offers 4 cards for sale per visit, randomly pulled from common and uncommon pools. Prices range from 20 to 80 dimensional credits depending on rarity.  
-* **Glitch Pillars**: The player touches them to interact; no button press needed. Each pillar either reveals a hidden exit or upgrades one common card in the player's current hand to uncommon. Only one pillar upgrade is allowed per run.  
-* **The Card Smith's Anvil**: Requires two copies of the same active card. After merging, the card's cooldown is cut by 40%. The original two copies are consumed.  
-* **Dimensional Altars**: Removes one automatic slot permanently for that run. In exchange, all active card damage increases by 30% for the remainder of the run. This choice cannot be reversed.  
+* **The Dimension Store**: A safe zone; no enemies spawn here. The shopkeeper offers 5 cards for sale per visit, randomly selected from the full card pool across all rarities. Prices range from 25 to 160 dimensional credits depending on rarity. Players can also sell unwanted cards from their deck and purchase slot upgrades for active or automatic cards, with each upgrade costing more than the previous one.  
+* **Glitch Pillars**: The player touches them to interact; no button press needed. Each pillar rewards the player with a random card on contact.  
 * **Dimension Shift effect on objects**: When the player crosses into a new dimension, all chests and pillars from the previous dimension are removed. Credits and deck contents carry over; room objects do not.
 
 #### **3.1.3 Challenges** {#3.1.3-challenges}
@@ -531,12 +528,10 @@ The flow of Dimension Deck focuses on moving through a series of unpredictable r
 The codebase is organized around a set of abstract base classes that define shared behavior without implementing it, keeping individual systems extensible and the overall architecture clean.
 
 * Entity: The root class for anything that exists in the game world. Holds position, velocity, health, and a basic update/render cycle. All moving, interactable objects extend this.  
-* Card: Defines the structure every card must follow: a name, a rarity, an energy cost, an effect function, and a card type flag (active or automatic). The effect function takes a reference to the current combat state and resolves the card's outcome. Cards also carry a cooldown value used by the discard pile timer system.  
+* Card: Defines the structure every card must follow: a name, a rarity, a cooldown value, an effect function, and a card type flag (active or automatic). The effect function receives a combat state object containing the player, the enemy list, and the mouse position, and resolves the card's outcome immediately on activation.  
 * Enemy: Extends Entity and adds abstract methods for movement behavior, attack patterns, a Card Resistance value that scales with the player's deck capacity, and a drop table reference. Every enemy type implements these differently.  
 * Room: Defines the container structure for a playable space: fixed dimensions of 480 x 352 pixels across a 15 x 11 tile grid, spawn points, exit conditions, and lists of enemies and objects. Room subtypes inherit from this and override spawn logic and exit triggers.  
-* Biome: Groups a set of room types, an enemy pool, a visual theme identifier, and a boss reference into a single traversable dimension. Controls which rooms can appear on the Dimension Map for that biome and manages the Card Resistance multiplier applied to all enemies within it.  
-* Relic: Defines passive items with a trigger condition and an effect callback. The base class handles registration with the combat event bus; derived classes define what triggers them and what they do.  
-* Synergy Effect: Defines the structure for combination effects between cards. Holds a trigger card reference, a catalyst card reference, a multiplier value, and a result effect function. Registered with the Synergy Manager at runtime.
+* Dimension: Groups a set of room types, an enemy pool, a visual theme identifier, and a boss reference into a single traversable dimension. Controls which rooms can appear in the dimension map and manages the Card Resistance multiplier applied to all enemies within it.
 
 ##  
 
@@ -544,16 +539,12 @@ The codebase is organized around a set of abstract base classes that define shar
 
 Derived classes implement the concrete behavior defined by each abstract parent. Below are the primary derived types used across the game's systems.
 
-* Player (extends Entity): The player character is rendered at 32 x 32 pixels and changes visual design depending on the active dimension. Adds the active card slot manager (3 slots, expandable to 5), the automatic card pool (4 to 8 slots), hand management, dimensional credit tracking, and the dodge mechanic. Handles collision with pickups and interaction prompts for objects. Listens to the input manager and translates inputs into movement vectors and card plays.  
-* StrikeCard, AreaCard, HealCard (extend Card, active type): The three foundational active card types. StrikeCard resolves direct damage against a single target. AreaCard applies damage across a radius centered on the cursor position. HealCard restores a portion of the player's missing health and enters a longer cooldown than offensive cards to prevent it from replacing resource management.  
-* ConditionCard (extends Card, active type): An active card that applies a status effect to one or more enemies and queues a synergy flag in the SynergyManager. The Oil card is an example: it applies a flammable condition that the SynergyManager monitors, ready to trigger a tripled damage multiplier when a Fire active card resolves on the same target.  
-* TriggerCard (extends Card, automatic type):Sits in the automatic pool and watches the combat event bus for its trigger condition. When met, it fires its effect function without player input. Examples include granting a combat buff when entering a boss room, or creating a defensive explosion when the player takes critical damage.  
-* BoostCard (extends Card, automatic type): A permanent stat modifier for the duration of the run. Adds its value to a stat register when added to the deck and subtracts it on removal. Has no event trigger and no cooldown it contributes passively at all times.  
-* SwarmEnemy, TankEnemy, RangedEnemy (extend Enemy): The three base enemy behavioral archetypes. Enemy sprite dimensions vary by type: small swarm enemies render at 16 x 16 pixels and use a seek-and-close movement pattern; tank enemies are larger, move slowly, resist knockback, and hit for high damage on contact; ranged enemies maintain distance, track the player, and fire projectiles on a cooldown. All three archetypes change visual design depending on the active dimension.  
-* BossEnemy (extends Enemy): Adds a phase list, a phase transition trigger, and a secondary attack pattern that activates in later phases. Also holds a unique mechanic flag that activates a special rule for the boss fight. Boss sprites scale up significantly from standard enemy sizes to communicate their threat on screen.  
-* CombatRoom, ShopRoom, ChestRoom, ShrineRoom (extend Room): Each overrides the spawn logic and exit condition appropriate to its type within the fixed 480 x 352 pixel, 15 x 11 tile grid. CombatRoom spawns enemies from the biome pool and unlocks exits on full clear. ShopRoom spawns the merchant object and allows free exit after browsing. ChestRoom spawns one chest tied to a rarity roll and exits after interaction. ShrineRoom spawns one shrine and exits after the player accepts or declines the offer.  
-* SynergyManager: Singleton class that registers all SynergyEffect instances at startup and listens to card resolution events during combat. When a trigger card resolves and sets a synergy flag on a target, the SynergyManager holds the flag for a defined window. If a matching catalyst card resolves on the same target within that window, the multiplier is applied and the flag is cleared.  
-* TelemetryLoggerPassive singleton that hooks into key game events without affecting gameplay logic. Logs run duration, biome reached on death, Game Over and Victory frequencies, card selection rates, automatic trigger activation rates, and dimensional credit spending patterns. Data is written to a local session file and can be exported for balance review.
+* Player (extends Entity): The player character is rendered at 32 x 32 pixels. Manages the active card slot system (3 slots, expandable to 5), the automatic card pool (4 to 8 slots), and dimensional credit tracking. Handles wall collision, mouse-based aim direction, and fires automatic card triggers on combat events such as dealing damage, killing an enemy, taking damage, or dashing.  
+* ActiveMeleeCard, ActiveHealCard, ActiveDefenseCard, ActiveDrainCard (extend ActiveCard): The four active card subtypes. ActiveMeleeCard deals cone-shaped area damage to all enemies within a configurable range and spread angle in the player's aim direction. ActiveHealCard restores a fixed HP amount, with null triggering a full restore. ActiveDefenseCard grants flat shield and optional invincibility frames. ActiveDrainCard finds the nearest living enemy, damages it, and returns a portion of that damage as healing.  
+* AutomaticCard (extends Card, automatic type): Sits in the automatic pool and fires its inline effect function when its trigger condition is met, without player input. Supported triggers are ON\_HIT, ON\_KILL, ON\_DAMAGE, and ON\_DASH. All automatic cards are defined as object instances in CardCatalog rather than individual subclasses, keeping the full card catalog in a single file.  
+* SwarmEnemy, TankEnemy, RangedEnemy (extend Enemy): The three base enemy archetypes used across both dimensions. Swarm enemies use a seek-and-close movement pattern and deal contact damage; tank enemies move slowly and hit hard on contact; ranged enemies maintain distance and fire projectiles at the player on a cooldown. Dimension-specific subclasses (Skeleton, DungeonRat, Slime, Bandit, CactusThug, DesertRat) extend these archetypes with their own stats and sprites.  
+* BossEnemy (extends Enemy): Adds a phase list and a phase transition trigger. Boss sprites are larger than standard enemies. Each dimension has its own boss (SkeletonKing for Dark Ages).  
+* CombatRoom, ShopRoom, ChestRoom, BossRoom (extend Room): Each overrides the spawn logic and exit condition for its type within the fixed 480 x 352 pixel, 15 x 11 tile grid. CombatRoom spawns enemies from the dimension pool and unlocks exits on full clear. ShopRoom spawns the merchant NPC, pre-clears itself, and provides the interactive store overlay. ChestRoom spawns one chest and exits after interaction. BossRoom spawns the dimension boss and fires the dimension-advance callback on defeat.
 
 # **5\. Graphics** {#5.-graphics}
 
