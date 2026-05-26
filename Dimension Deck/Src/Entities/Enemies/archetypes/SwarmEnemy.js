@@ -2,73 +2,112 @@ import Vector from "../../../Utils/Vector.js";
 import Enemy from "../../Enemy.js";
 
 export default class SwarmEnemy extends Enemy {
-  constructor(position, player, bullets, credits) {
+  constructor(position, player, credits) {
     super(position, player);
 
-    this.speed = 115;
-    this.health = 25;
-    this.maxHealth = 25;
-    this.width = 16;
-    this.height = 16;
-    this.color = "purple";
-    this.originalColor = "purple";
-    this.contactDamage = 5;
+    this.speed = 135;
 
-    // Swarm AI
+    this.health = 20;
+    this.maxHealth = 20;
+
+    this.width = 18;
+    this.height = 18;
+
+    this.color = "red";
+    this.originalColor = "red";
+
+    this.contactDamage = 10;
+
+    // Orbit behavior
     this.orbitDirection = Math.random() > 0.5 ? 1 : -1;
-    this.offsetDistance = 60 + Math.random() * 80;
-    this.retargetTimer = 0;
-    this.randomOffset = new Vector(
-      (Math.random() - 0.5) * 120,
-      (Math.random() - 0.5) * 120,
-    );
+
+    // Attack cycle
+    this.attackTimer = Math.random() * 1.2;
+
+    this.isDiving = false;
   }
 
   update(deltaTime) {
     if (this.isDead) return;
 
-    this.retargetTimer -= deltaTime;
-    if (this._flashTimer > 0) this._flashTimer -= deltaTime;
-    if (this.damageCooldown > 0) this.damageCooldown -= deltaTime;
+    if (this._flashTimer > 0) {
+      this._flashTimer -= deltaTime;
+    }
+
+    if (this.damageCooldown > 0) {
+      this.damageCooldown -= deltaTime;
+    }
 
     const direction = new Vector(
       this.player.position.x - this.position.x,
       this.player.position.y - this.position.y,
     );
-    const normalizedDirection = direction.normalize();
+
     const distance = direction.magnitude();
+    const normalizedDirection = direction.normalize();
 
-    if (this.retargetTimer <= 0) {
-      this.retargetTimer = 0.2 + Math.random() * 0.25;
+    // Attack timers
+    this.attackTimer -= deltaTime;
 
-      if (distance < this.offsetDistance) {
-        // Orbit player
-        const orbitDir = new Vector(
-          -normalizedDirection.y * this.orbitDirection,
-          normalizedDirection.x * this.orbitDirection,
-        );
-        this.velocity = orbitDir
-          .plus(normalizedDirection.times(0.15))
-          .normalize()
-          .times(this.speed);
-      } else {
-        // Chase con offset
-        const targetDir = this.player.position
-          .plus(this.randomOffset)
-          .minus(this.position)
-          .normalize();
-        this.velocity = targetDir.times(this.speed);
-      }
+    // Start dive attack
+    if (this.attackTimer <= 0 && !this.isDiving) {
+      this.isDiving = true;
+
+      // Attack duration
+      this.attackTimer = 1.2;
     }
 
-    // Damage contact
+    // End dive attack
+    if (this.isDiving && this.attackTimer <= -0.2) {
+      this.isDiving = false;
+
+      // Delay before next attack
+      this.attackTimer = 0.6 + Math.random() * 1.2;
+    }
+
+    // MOVEMENT
+    if (this.isDiving) {
+      // Aggressive attack
+      this.velocity = normalizedDirection.times(this.speed * 2.4);
+    } else {
+      // Orbit around player
+
+      const perpendicular = new Vector(
+        -normalizedDirection.y * this.orbitDirection,
+        normalizedDirection.x * this.orbitDirection,
+      );
+
+      // Maintain circular distance
+      let radialForce = 0;
+
+      if (distance > 140) {
+        radialForce = 0.45;
+      } else if (distance < 100) {
+        radialForce = -0.45;
+      }
+
+      const movement = perpendicular
+        .plus(normalizedDirection.times(radialForce))
+        .normalize();
+
+      this.velocity = movement.times(this.speed);
+    }
+
+    // Contact damage
     const dx = Math.abs(this.player.position.x - this.position.x);
     const dy = Math.abs(this.player.position.y - this.position.y);
-    if (dx < 32 && dy < 32 && this.damageCooldown <= 0) {
+
+    if (dx < 24 && dy < 24 && this.damageCooldown <= 0) {
       this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.4;
+      this.damageCooldown = 0.45;
     }
 
-    this.position = this.position.plus(this.velocity.times(deltaTime));
+    this.position = this.position.plus(
+      this.velocity.times(deltaTime),
+    );
+
+    if (this.health <= 0) {
+      this.die();
+    }
   }
 }
