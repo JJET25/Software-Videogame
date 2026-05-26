@@ -8,12 +8,15 @@ export default class RangedEnemy extends Enemy {
 
     this.bullets = bullets;
 
-    this.speed = 65;
-    this.health = 40;
-    this.maxHealth = 40;
+    // BALANCE
+    this.speed = 52;
 
-    this.width = 22;
-    this.height = 22;
+    this.health = 30;
+    this.maxHealth = 30;
+
+    // Smaller size
+    this.width = 16;
+    this.height = 16;
 
     this.color = "orange";
     this.originalColor = "orange";
@@ -22,10 +25,10 @@ export default class RangedEnemy extends Enemy {
 
     // Shooting
     this.shootCooldown = 0;
-    this.shootRate = 1.4;
+    this.shootRate = 1.5;
 
     // Preferred distance
-    this.preferredDistance = 220;
+    this.preferredDistance = 180;
   }
 
   update(deltaTime) {
@@ -50,10 +53,10 @@ export default class RangedEnemy extends Enemy {
     const distance = direction.magnitude();
 
     // KEEP DISTANCE AI
-    if (distance > this.preferredDistance + 40) {
+    if (distance > this.preferredDistance + 30) {
       // Move toward player
       this.velocity = normalizedDirection.times(this.speed);
-    } else if (distance < this.preferredDistance - 40) {
+    } else if (distance < this.preferredDistance - 30) {
       // Move away from player
       this.velocity = normalizedDirection.times(-this.speed);
     } else {
@@ -63,13 +66,13 @@ export default class RangedEnemy extends Enemy {
         normalizedDirection.x,
       );
 
-      this.velocity = strafeDirection.times(this.speed * 0.8);
+      this.velocity = strafeDirection.times(this.speed * 0.7);
     }
 
     // SHOOT
-    if (distance < 350 && this.shootCooldown <= 0) {
+    if (distance < 300 && this.shootCooldown <= 0) {
       const bulletPosition = this.position.plus(
-        normalizedDirection.times(20),
+        normalizedDirection.times(18),
       );
 
       this.bullets.push(
@@ -83,9 +86,9 @@ export default class RangedEnemy extends Enemy {
     const dx = Math.abs(this.player.position.x - this.position.x);
     const dy = Math.abs(this.player.position.y - this.position.y);
 
-    if (dx < 28 && dy < 28 && this.damageCooldown <= 0) {
+    if (dx < 22 && dy < 22 && this.damageCooldown <= 0) {
       this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.6;
+      this.damageCooldown = 0.7;
     }
 
     this.position = this.position.plus(

@@ -5,24 +5,24 @@ export default class SwarmEnemy extends Enemy {
   constructor(position, player, credits) {
     super(position, player);
 
-    this.speed = 135;
+    // BALANCE
+    this.speed = 82;
 
-    this.health = 20;
-    this.maxHealth = 20;
+    this.health = 16;
+    this.maxHealth = 16;
 
-    this.width = 18;
-    this.height = 18;
+    // Smaller size
+    this.width = 12;
+    this.height = 12;
 
     this.color = "red";
     this.originalColor = "red";
 
-    this.contactDamage = 10;
+    this.contactDamage = 6;
 
-    // Orbit behavior
     this.orbitDirection = Math.random() > 0.5 ? 1 : -1;
 
-    // Attack cycle
-    this.attackTimer = Math.random() * 1.2;
+    this.attackTimer = Math.random() * 1.5;
 
     this.isDiving = false;
   }
@@ -46,44 +46,36 @@ export default class SwarmEnemy extends Enemy {
     const distance = direction.magnitude();
     const normalizedDirection = direction.normalize();
 
-    // Attack timers
     this.attackTimer -= deltaTime;
 
-    // Start dive attack
+    // Dive attack
     if (this.attackTimer <= 0 && !this.isDiving) {
       this.isDiving = true;
-
-      // Attack duration
-      this.attackTimer = 1.2;
+      this.attackTimer = 0.55;
     }
 
-    // End dive attack
+    // End attack
     if (this.isDiving && this.attackTimer <= -0.2) {
       this.isDiving = false;
-
-      // Delay before next attack
-      this.attackTimer = 0.6 + Math.random() * 1.2;
+      this.attackTimer = 1.2 + Math.random() * 1.8;
     }
 
     // MOVEMENT
     if (this.isDiving) {
-      // Aggressive attack
-      this.velocity = normalizedDirection.times(this.speed * 2.4);
+      this.velocity = normalizedDirection.times(this.speed * 1.6);
     } else {
-      // Orbit around player
-
+      // Orbit movement
       const perpendicular = new Vector(
         -normalizedDirection.y * this.orbitDirection,
         normalizedDirection.x * this.orbitDirection,
       );
 
-      // Maintain circular distance
       let radialForce = 0;
 
-      if (distance > 140) {
-        radialForce = 0.45;
-      } else if (distance < 100) {
-        radialForce = -0.45;
+      if (distance > 120) {
+        radialForce = 0.35;
+      } else if (distance < 80) {
+        radialForce = -0.35;
       }
 
       const movement = perpendicular
@@ -97,9 +89,9 @@ export default class SwarmEnemy extends Enemy {
     const dx = Math.abs(this.player.position.x - this.position.x);
     const dy = Math.abs(this.player.position.y - this.position.y);
 
-    if (dx < 24 && dy < 24 && this.damageCooldown <= 0) {
+    if (dx < 18 && dy < 18 && this.damageCooldown <= 0) {
       this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.45;
+      this.damageCooldown = 0.7;
     }
 
     this.position = this.position.plus(
