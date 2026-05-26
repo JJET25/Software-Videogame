@@ -1,22 +1,23 @@
 import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
-const BAR_WIDTH = 60;
+const BAR_WIDTH = 52;
 const BAR_HEIGHT = 5;
+
 const BAR_X = 10;
-const BAR_Y = ROOM_HEIGHT - 26;
+const BAR_Y = ROOM_HEIGHT - 30;
+
 const FLASH_DURATION = 0.25;
 
-const SLOT_SIZE = 28;
+// Card slots
+const SLOT_SIZE = 18;
 const SLOT_GAP = 4;
-const SLOTS_Y = ROOM_HEIGHT - 34;
+
+const SLOTS_Y = ROOM_HEIGHT - 36;
 
 const RARITY_COLOR = {
   common: "#888888",
-
   rare: "#4488ff",
-
   epic: "#aa44ff",
-
   legendary: "#ffaa00",
 };
 
@@ -37,7 +38,6 @@ export default class HUD {
 
   draw(renderer, player, cardManager = null) {
     this._drawHealthBar(renderer, player);
-    this._drawShieldBar(renderer, player);
 
     this._drawDashIndicator(renderer, player);
 
@@ -51,44 +51,35 @@ export default class HUD {
   }
 
   _drawHealthBar(renderer, player) {
-    renderer.drawRect(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, "#333333");
+    renderer.drawRect(
+      BAR_X,
+      BAR_Y,
+      BAR_WIDTH,
+      BAR_HEIGHT,
+      "#333333",
+    );
 
     const ratio = player.health / player.maxHealth;
 
-    const fillWidth = Math.max(0, Math.floor(ratio * BAR_WIDTH));
+    const fillWidth = Math.max(
+      0,
+      Math.floor(ratio * BAR_WIDTH),
+    );
 
-    const fillColor = ratio > 0.4 ? "#22cc44" : "#dd2222";
-
-    renderer.drawRect(BAR_X, BAR_Y, fillWidth, BAR_HEIGHT, fillColor);
+    renderer.drawRect(
+      BAR_X,
+      BAR_Y,
+      fillWidth,
+      BAR_HEIGHT,
+      "#22cc44",
+    );
 
     renderer.drawText(
-      `HP  ${player.health} / ${player.maxHealth}`,
-
+      `HP ${player.health}/${player.maxHealth}`,
       BAR_X,
-
-      BAR_Y - 4,
-
-      "9px monospace",
-
+      BAR_Y - 6,
+      "10px monospace",
       "#cccccc",
-    );
-  }
-
-  _drawShieldBar(renderer, player) {
-    if (!player.shield || player.shield <= 0) return;
-    const shieldY = BAR_Y - 14;
-    renderer.drawRect(BAR_X, shieldY, BAR_WIDTH, BAR_HEIGHT, "#333333");
-    const fillWidth = Math.min(
-      BAR_WIDTH,
-      Math.floor((player.shield / 100) * BAR_WIDTH),
-    );
-    renderer.drawRect(BAR_X, shieldY, fillWidth, BAR_HEIGHT, "#44aaff");
-    renderer.drawText(
-      `SH  ${player.shield}`,
-      BAR_X,
-      shieldY - 4,
-      "9px monospace",
-      "#88ccff",
     );
   }
 
@@ -96,28 +87,22 @@ export default class HUD {
     const ready = player._dashCooldownTimer <= 0;
 
     renderer.drawText(
-      ready ? "DASH  READY" : `DASH  ${player._dashCooldownTimer.toFixed(1)}s`,
-
+      ready
+        ? "DASH READY"
+        : `DASH ${player._dashCooldownTimer.toFixed(1)}`,
       BAR_X,
-
-      BAR_Y + BAR_HEIGHT + 12,
-
-      "9px monospace",
-
+      BAR_Y + 14,
+      "10px monospace",
       ready ? "#88eeff" : "#556677",
     );
   }
 
   _drawCredits(renderer, player) {
     renderer.drawText(
-      `CREDITS  ${player.credits}`,
-
+      `CREDITS ${player.credits}`,
       BAR_X,
-
-      BAR_Y + 26,
-
-      "9px monospace",
-
+      BAR_Y + 28,
+      "10px monospace",
       "#ffcc33",
     );
   }
@@ -127,51 +112,101 @@ export default class HUD {
 
     const count = cardManager.activeSlotCount;
 
-    const totalW = count * SLOT_SIZE + (count - 1) * SLOT_GAP;
+    const totalW =
+      count * SLOT_SIZE +
+      (count - 1) * SLOT_GAP;
 
-    const startX = Math.floor((ROOM_WIDTH - totalW) / 2);
+    const startX = Math.floor(
+      (ROOM_WIDTH - totalW) / 2,
+    );
 
     for (let i = 0; i < count; i++) {
-      const x = startX + i * (SLOT_SIZE + SLOT_GAP);
+      const x =
+        startX + i * (SLOT_SIZE + SLOT_GAP);
 
       const y = SLOTS_Y;
 
       const card = cardManager.activeSlots[i];
 
-      const selected = cardManager.selectedIndex === i;
+      const selected =
+        cardManager.selectedIndex === i;
 
-      renderer.drawRect(x, y, SLOT_SIZE, SLOT_SIZE, "#1a1a1a");
+      renderer.drawRect(
+        x,
+        y,
+        SLOT_SIZE,
+        SLOT_SIZE,
+        "#1a1a1a",
+      );
 
-      const borderColor = selected ? "#ffffff" : "#444444";
+      const borderColor = selected
+        ? "#ffffff"
+        : "#444444";
 
-      renderer.drawRect(x - 1, y - 1, SLOT_SIZE + 2, 1, borderColor);
+      renderer.drawRect(
+        x - 1,
+        y - 1,
+        SLOT_SIZE + 2,
+        1,
+        borderColor,
+      );
 
-      renderer.drawRect(x - 1, y + SLOT_SIZE, SLOT_SIZE + 2, 1, borderColor);
+      renderer.drawRect(
+        x - 1,
+        y + SLOT_SIZE,
+        SLOT_SIZE + 2,
+        1,
+        borderColor,
+      );
 
-      renderer.drawRect(x - 1, y, 1, SLOT_SIZE, borderColor);
+      renderer.drawRect(
+        x - 1,
+        y,
+        1,
+        SLOT_SIZE,
+        borderColor,
+      );
 
-      renderer.drawRect(x + SLOT_SIZE, y, 1, SLOT_SIZE, borderColor);
+      renderer.drawRect(
+        x + SLOT_SIZE,
+        y,
+        1,
+        SLOT_SIZE,
+        borderColor,
+      );
 
       if (card) {
-        const rarityColor = RARITY_COLOR[card.rarity] ?? "#888888";
+        const rarityColor =
+          RARITY_COLOR[card.rarity] ??
+          "#888888";
 
-        renderer.drawRect(x, y + SLOT_SIZE - 3, SLOT_SIZE, 3, rarityColor);
+        renderer.drawRect(
+          x,
+          y + SLOT_SIZE - 2,
+          SLOT_SIZE,
+          2,
+          rarityColor,
+        );
 
         const label =
-          card.name.length > 5 ? card.name.slice(0, 4) + "." : card.name;
+          card.name.length > 3
+            ? card.name.slice(0, 3)
+            : card.name;
 
-        renderer.drawText(label, x + 2, y + 9, "7px monospace", "#dddddd");
+        renderer.drawText(
+          label,
+          x + 2,
+          y + 9,
+          "7px monospace",
+          "#dddddd",
+        );
       }
 
       renderer.drawText(
         String(i + 1),
-
-        x + SLOT_SIZE - 8,
-
-        y + SLOT_SIZE - 5,
-
+        x + SLOT_SIZE - 5,
+        y + SLOT_SIZE - 3,
         "7px monospace",
-
         selected ? "#ffffff" : "#555555",
       );
     }
@@ -180,8 +215,12 @@ export default class HUD {
   _drawScreenFlash(renderer) {
     if (this._screenFlashTimer <= 0) return;
 
-    const alpha = (this._screenFlashTimer / FLASH_DURATION) * 0.38;
+    const alpha =
+      (this._screenFlashTimer / FLASH_DURATION) *
+      0.38;
 
-    renderer.drawFlash(`rgba(200, 0, 0, ${alpha.toFixed(2)})`);
+    renderer.drawFlash(
+      `rgba(200, 0, 0, ${alpha.toFixed(2)})`,
+    );
   }
 }
