@@ -15,7 +15,7 @@ import Room from "./Room.js";
 
 export default class CombatRoom extends Room {
   constructor(doorDirections, player, bullets, credits, dimension, rng) {
-    super(doorDirections, player, bullets, credits);
+    super(doorDirections, player, bullets, credits, dimension);
     this.dimension = dimension;
     this.rng = rng;
 
@@ -66,7 +66,10 @@ export default class CombatRoom extends Room {
       const col = rng.int(2, ROOM_COLS - 2);
 
       if (tileGrid[row][col] === "floor") {
-        return new Vector(col * TILE_SIZE, row * TILE_SIZE);
+        return new Vector(
+          col * TILE_SIZE - TILE_SIZE / 2,
+          row * TILE_SIZE - TILE_SIZE / 2,
+        );
       }
     }
   }

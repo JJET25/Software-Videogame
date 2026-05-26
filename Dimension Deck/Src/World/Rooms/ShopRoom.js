@@ -5,8 +5,8 @@ import { ROOM_WIDTH, ROOM_HEIGHT } from '../../Utils/Constants.js';
 
 // Shop room variant — pre-cleared, contains a merchant NPC with an interactive store
 export default class ShopRoom extends Room {
-    constructor(doorDirections, player, bullets, credits) {
-        super(doorDirections, player, bullets, credits);
+    constructor(doorDirections, player, bullets, credits, dimension) {
+        super(doorDirections, player, bullets, credits, dimension);
 
         this.isShopRoom = true;
         this.isCleared  = true;

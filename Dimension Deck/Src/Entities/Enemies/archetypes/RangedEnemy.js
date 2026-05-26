@@ -10,8 +10,8 @@ export default class RangedEnemy extends Enemy {
     this.maxHealth = 150;
     this.width = 16;
     this.height = 16;
-    this.color = "blue";
-    this.originalColor = "blue";
+    this.color = "yellow";
+    this.originalColor = "yellow";
     this.contactDamage = 20;
 
     // Dash attack

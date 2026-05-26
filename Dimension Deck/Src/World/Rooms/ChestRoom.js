@@ -4,8 +4,8 @@ import Vector from "../../Utils/Vector.js";
 import Room from "./Room.js";
 
 export default class ChestRoom extends Room {
-  constructor(doorDirections, player, bullets, credits) {
-    super(doorDirections, player, bullets, credits);
+  constructor(doorDirections, player, bullets, credits, dimension) {
+    super(doorDirections, player, bullets, credits, dimension);
     
     this.populate();
   }

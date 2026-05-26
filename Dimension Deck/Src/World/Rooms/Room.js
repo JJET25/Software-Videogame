@@ -9,14 +9,21 @@ import Wall from "../../World/Objects/Wall.js";
 import Vector from "../../Utils/Vector.js";
 import Collision from "../../Physics/Collision.js";
 import Credit from "../../Entities/pickups/Credit.js";
+import { ROOM_BG } from "../../../Assets/TileSetsID.js";
 
 export default class Room {
-  constructor(doorDirections = [], player, bullets = [], credits = []) {
+  constructor(
+    doorDirections = [],
+    player,
+    bullets = [],
+    credits = [],
+    dimension = null,
+  ) {
     this.doorDirections = doorDirections;
     this.player = player;
     this.bullets = bullets;
     this.credits = credits;
-
+    this.dimension = dimension;
     this.tileGrid = null;
     this.variantGrid = null;
     this.walls = [];
@@ -24,6 +31,8 @@ export default class Room {
     this.objects = [];
     this.isCleared = false;
     this.spawnDelay = 0;
+
+    Room.#loadImage(this.dimension?.tileSetId);
 
     this.buildGrid();
     this.buildWalls();
@@ -71,6 +80,20 @@ export default class Room {
   }
 
   draw(renderer) {
+    const img = Room.#imageCache[this.dimension?.tileSetId];
+
+    if (img?.complete && img.naturalWidth > 0) {
+      renderer.drawImage(
+        img,
+        -TILE_SIZE,
+        -TILE_SIZE,
+        ROOM_WIDTH + TILE_SIZE * 2,
+        ROOM_HEIGHT + TILE_SIZE * 2,
+      );
+    } else {
+      renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "#1a1a1a");
+    }
+
     this.walls.forEach((wall) => wall.draw(renderer));
 
     for (const obj of this.objects) {
@@ -91,7 +114,10 @@ export default class Room {
       variants[i] = [];
 
       for (let j = 0; j < ROOM_COLS; j++) {
-        if (i === 0 || i === ROOM_ROWS - 1 || j === 0 || j === ROOM_COLS - 1) {
+        const isWall =
+          i < 2 || i >= ROOM_ROWS - 2 || j < 2 || j >= ROOM_COLS - 2;
+
+        if (isWall) {
           grid[i][j] = this.#isDoorGap(i, j) ? "door" : "wall";
           variants[i][j] = 0;
         } else {
@@ -156,34 +182,43 @@ export default class Room {
   }
 
   #isDoorGap(row, col) {
-    if (
-      this.doorDirections.includes("north") &&
-      row === 0 &&
-      col === Math.floor(ROOM_COLS / 2)
-    )
-      return true;
+    const midCol = Math.floor(ROOM_COLS / 2); // 9
+    const midRow = Math.floor(ROOM_ROWS / 2); // 6
 
+    // Puerta ocupa 2 tiles centrados
+    const inDoorCol = col === midCol || col === midCol - 1 || col === midCol + 1;
+    const inDoorRow = row === midRow || row === midRow - 1 || row === midRow + 1;
+
+    if (this.doorDirections.includes("north") && row < 2 && inDoorCol)
+      return true;
     if (
       this.doorDirections.includes("south") &&
-      row === ROOM_ROWS - 1 &&
-      col === Math.floor(ROOM_COLS / 2)
+      row >= ROOM_ROWS - 2 &&
+      inDoorCol
     )
       return true;
-
     if (
       this.doorDirections.includes("east") &&
-      row === Math.floor(ROOM_ROWS / 2) &&
-      col === ROOM_COLS - 1
+      col >= ROOM_COLS - 2 &&
+      inDoorRow
     )
       return true;
-
-    if (
-      this.doorDirections.includes("west") &&
-      row === Math.floor(ROOM_ROWS / 2) &&
-      col === 0
-    )
+    if (this.doorDirections.includes("west") && col < 2 && inDoorRow)
       return true;
 
     return false;
+  }
+
+  static #imageCache = {};
+
+  static #loadImage(tileSetId) {
+    if (!tileSetId || !ROOM_BG[tileSetId]) return null;
+
+    if (!Room.#imageCache[tileSetId]) {
+      const img = new Image();
+      img.src = ROOM_BG[tileSetId];
+      Room.#imageCache[tileSetId] = img;
+    }
+    return Room.#imageCache[tileSetId];
   }
 }
