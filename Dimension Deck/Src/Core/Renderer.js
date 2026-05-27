@@ -15,6 +15,9 @@ export default class Renderer {
 
     this.canvas.width = this.scale * this.GAME_WIDTH;
     this.canvas.height = this.scale * this.GAME_HEIGHT;
+
+    this.context.imageSmoothingEnabled = false;
+    this.canvas.style.imageRendering = "pixelated";
   }
 
   // Adjusts canvas CSS size to fill the window at the current scale
@@ -70,6 +73,7 @@ export default class Renderer {
   }
 
   drawImage(image, x, y, width, height) {
+    this.context.imageSmoothingEnabled = false;
     this.context.drawImage(
       image,
       this.scale * x,

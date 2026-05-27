@@ -4,24 +4,29 @@ import Vector from "../Utils/Vector.js";
 import Room from "../World/Rooms/Room.js";
 import Credit from "../Entities/pickups/Credit.js";
 import RoomFactory from "../World/Rooms/RoomFactory.js";
-import { OPPOSITE, ROOM_HEIGHT, ROOM_WIDTH, TILE_SIZE } from "../Utils/Constants.js";
+import {
+  OPPOSITE,
+  ROOM_HEIGHT,
+  ROOM_WIDTH,
+  TILE_SIZE,
+} from "../Utils/Constants.js";
 
 // Manages the active room, door transitions, bullet simulation, and credit pickup
 export default class RoomManager {
   constructor(graph, player, dimension, rng, callbacks = {}) {
-    this.graph          = graph;
-    this.player         = player;
-    this.dimension      = dimension;
-    this.rng            = rng;
-    this.callbacks      = callbacks;
-    this.currentNodeId  = null;
+    this.graph = graph;
+    this.player = player;
+    this.dimension = dimension;
+    this.rng = rng;
+    this.callbacks = callbacks;
+    this.currentNodeId = null;
     this.previousNodeId = null;
-    this.currentRoom    = null;
+    this.currentRoom = null;
     this.trasitionCooldown = 0;
-    this.doors          = [];
-    this.bullets        = [];
-    this.credits        = [];
-    this.roomCache      = new Map();
+    this.doors = [];
+    this.bullets = [];
+    this.credits = [];
+    this.roomCache = new Map();
   }
 
   enterStartRoom() {
@@ -30,12 +35,12 @@ export default class RoomManager {
 
   // Loads or retrieves the room for nodeId, builds its doors, and places the player at the entry point
   enterRoom(nodeId, fromNodeId = null) {
-    const node      = this.graph.getNode(nodeId);
+    const node = this.graph.getNode(nodeId);
     const neighbors = this.graph.getNeighbors(nodeId);
 
-    this.currentNodeId  = nodeId;
+    this.currentNodeId = nodeId;
     this.previousNodeId = fromNodeId;
-    node.isVisited      = true;
+    node.isVisited = true;
 
     const doorDirections = neighbors.map((neighbor) =>
       this.#getDirectionBetweem(node, neighbor),
@@ -43,14 +48,19 @@ export default class RoomManager {
 
     if (!this.roomCache.has(nodeId)) {
       const newRoom = RoomFactory.create(
-        node, doorDirections, this.player,
-        this.bullets, this.credits, this.dimension, this.rng,
+        node,
+        doorDirections,
+        this.player,
+        this.bullets,
+        this.credits,
+        this.dimension,
+        this.rng,
       );
       this.roomCache.set(nodeId, newRoom);
     }
 
     this.currentRoom = this.roomCache.get(nodeId);
-    this.doors       = this.#buildDoors(node);
+    this.doors = this.#buildDoors(node);
 
     this.#placePlayer(fromNodeId);
 
@@ -71,7 +81,9 @@ export default class RoomManager {
 
     for (let enemy of this.currentRoom.enemies) {
       if (enemy.isDead && !enemy.droppedCredits) {
-        this.credits.push(new Credit(new Vector(enemy.position.x, enemy.position.y)));
+        this.credits.push(
+          new Credit(new Vector(enemy.position.x, enemy.position.y)),
+        );
         enemy.droppedCredits = true;
       }
     }
@@ -125,8 +137,11 @@ export default class RoomManager {
     const arrDoor = [];
     for (const neighbor of this.graph.getNeighbors(node.id)) {
       const direction = this.#getDirectionBetweem(node, neighbor);
-      const position  = this.currentRoom.getDoorPosition(direction);
-      arrDoor.push(new Door(position, neighbor.id));
+      const positions = this.currentRoom.getDoorTilePositions(direction);
+
+      for (const position of positions) {
+        arrDoor.push(new Door(position, neighbor.id));
+      }
     }
     return arrDoor;
   }
@@ -137,16 +152,24 @@ export default class RoomManager {
       this.player.position = new Vector(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
     } else {
       const currentNode = this.graph.getNode(this.currentNodeId);
-      const fromNode    = this.graph.getNode(fromNodeId);
-      const direction   = this.#getDirectionBetweem(fromNode, currentNode);
+      const fromNode = this.graph.getNode(fromNodeId);
+      const direction = this.#getDirectionBetweem(fromNode, currentNode);
       const oppositeDir = OPPOSITE[direction];
-      const doorPos     = this.currentRoom.getDoorPosition(oppositeDir);
+      const doorPos = this.currentRoom.getDoorPosition(oppositeDir);
 
       switch (oppositeDir) {
-        case "north": this.player.position = doorPos.plus(new Vector(0, TILE_SIZE));   break;
-        case "south": this.player.position = doorPos.minus(new Vector(0, TILE_SIZE));  break;
-        case "east":  this.player.position = doorPos.minus(new Vector(TILE_SIZE, 0));  break;
-        case "west":  this.player.position = doorPos.plus(new Vector(TILE_SIZE, 0));   break;
+        case "north":
+          this.player.position = doorPos.plus(new Vector(0, TILE_SIZE));
+          break;
+        case "south":
+          this.player.position = doorPos.minus(new Vector(0, TILE_SIZE));
+          break;
+        case "east":
+          this.player.position = doorPos.minus(new Vector(TILE_SIZE, 0));
+          break;
+        case "west":
+          this.player.position = doorPos.plus(new Vector(TILE_SIZE, 0));
+          break;
       }
     }
   }
@@ -158,8 +181,8 @@ export default class RoomManager {
       this.currentRoom.isCleared = true;
       this.doors.forEach((door) => door.unlock());
       const type = this.graph.getNode(this.currentNodeId).type;
-      if (type === "miniBoss")   this.callbacks.onMiniBossDefeated?.();
-      if (type === "finalBoss")  this.callbacks.onFinalBossDefeated?.();
+      if (type === "miniBoss") this.callbacks.onMiniBossDefeated?.();
+      if (type === "finalBoss") this.callbacks.onFinalBossDefeated?.();
     }
   }
 
