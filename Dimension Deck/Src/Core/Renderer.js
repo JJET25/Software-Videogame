@@ -85,6 +85,6 @@ export default class Renderer {
   // Fills the entire canvas with a semi-transparent color overlay
   drawFlash(color) {
     this.context.fillStyle = color;
-    this.context.fillRect(0, 0, this.GAME_WIDTH, this.GAME_HEIGHT);
+    this.context.fillRect(0, 0, this.scale * this.GAME_WIDTH, this.scale * this.GAME_HEIGHT);
   }
 }
