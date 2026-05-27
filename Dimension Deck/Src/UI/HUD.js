@@ -3,6 +3,7 @@ import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 const BAR_WIDTH = 58;
 const BAR_HEIGHT = 6;
 
+
 // TOP LEFT POSITION
 const BAR_X = 10;
 const BAR_Y = 26;
@@ -50,6 +51,7 @@ export default class HUD {
       this._drawCardSlots(renderer, cardManager);
     }
 
+    this._drawTestModeIndicator(renderer);
     this._drawScreenFlash(renderer);
   }
 
@@ -241,6 +243,17 @@ export default class HUD {
         selected ? "#ffffff" : "#555555",
       );
     }
+  }
+
+  _drawTestModeIndicator(renderer) {
+    if (!window.testingMode) return;
+    renderer.drawText(
+      "★ TEST MODE",
+      ROOM_WIDTH - 62,
+      14,
+      "8px monospace",
+      "#ff6600",
+    );
   }
 
   _drawScreenFlash(renderer) {

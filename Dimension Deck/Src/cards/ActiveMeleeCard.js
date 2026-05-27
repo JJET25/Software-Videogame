@@ -30,7 +30,8 @@ export default class ActiveMeleeCard extends ActiveCard {
             // Normalize angle difference to [-π, π] then check cone
             let diff = Math.atan2(dy, dx) - aimAngle;
             diff = ((diff + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
-            if (Math.abs(diff) <= halfSpread) enemy.takeDamage(this.damage);
+            const dmg = window.testingMode ? this.damage * 10 : this.damage;
+            if (Math.abs(diff) <= halfSpread) enemy.takeDamage(dmg);
         }
     }
 }
