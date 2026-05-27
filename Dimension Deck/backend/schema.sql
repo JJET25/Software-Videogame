@@ -1,388 +1,208 @@
--- =============================================================
--- Dimension Deck - MySQL Schema
--- Inferred from GDD v1 (2026-04).
--- MySQL 8.0 compatible
--- =============================================================
-
-CREATE DATABASE IF NOT EXISTS dimension_deck CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE dimension_deck;
 
--- ---------------------------------------------
--- CORE CATALOG TABLES  (static / seed data)
--- ---------------------------------------------
+SET foreign_key_checks = 0;
+DROP TABLE IF EXISTS run_cards;
+DROP TABLE IF EXISTS card_effect_params;
+DROP TABLE IF EXISTS runs;
+DROP TABLE IF EXISTS cards;
+DROP TABLE IF EXISTS card_subtypes;
+DROP TABLE IF EXISTS rarities;
+DROP TABLE IF EXISTS users;
+SET foreign_key_checks = 1;
 
-CREATE TABLE IF NOT EXISTS dimension (
-  dimension_id   INT          NOT NULL AUTO_INCREMENT,
-  name           VARCHAR(64)  NOT NULL,
-  order_in_run   TINYINT      NOT NULL DEFAULT 1,
-  PRIMARY KEY (dimension_id)
+CREATE TABLE rarities (
+    id            INT         AUTO_INCREMENT PRIMARY KEY,
+    name          VARCHAR(20) UNIQUE NOT NULL,
+    display_order INT         NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS card (
-  card_id          INT          NOT NULL AUTO_INCREMENT,
-  name             VARCHAR(128) NOT NULL,
-  card_type        ENUM('active','automatic') NOT NULL,
-  rarity           ENUM('common','rare','epic','legendary') NOT NULL,
-  energy_cost      TINYINT      NOT NULL DEFAULT 0,
-  base_damage      INT          NOT NULL DEFAULT 0,
-  base_heal        INT          NOT NULL DEFAULT 0,
-  cooldown_seconds FLOAT        NOT NULL DEFAULT 1.0,
-  effect_json      JSON         NULL,
-  PRIMARY KEY (card_id)
+CREATE TABLE card_subtypes (
+    id        INT AUTO_INCREMENT PRIMARY KEY,
+    card_type ENUM('active', 'automatic') NOT NULL,
+    subtype   VARCHAR(50) NOT NULL,
+    UNIQUE KEY uq_type_sub (card_type, subtype)
 );
 
-
-CREATE TABLE IF NOT EXISTS enemy_type (
-  enemy_type_id INT          NOT NULL AUTO_INCREMENT,
-  name          VARCHAR(128) NOT NULL,
-  archetype     ENUM('swarm','tank','ranged','boss') NOT NULL,
-  dimension_id  INT          NOT NULL,
-  base_hp       INT          NOT NULL,
-  base_damage   INT          NOT NULL,
-  sprite_size   TINYINT      NOT NULL DEFAULT 16,
-  is_boss       TINYINT(1)   NOT NULL DEFAULT 0,
-  PRIMARY KEY (enemy_type_id),
-  CONSTRAINT fk_enemy_dim FOREIGN KEY (dimension_id) REFERENCES dimension(dimension_id)
+CREATE TABLE users (
+    id            INT          AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(50)  UNIQUE NOT NULL,
+    email         VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS hub_upgrade (
-  upgrade_id    INT          NOT NULL AUTO_INCREMENT,
-  name          VARCHAR(128) NOT NULL,
-  description   TEXT,
-  credit_cost   INT          NOT NULL,
-  upgrade_type  ENUM('stat_boost','slot_expansion','capacity') NOT NULL,
-  value         INT          NOT NULL DEFAULT 0,
-  PRIMARY KEY (upgrade_id)
+CREATE TABLE cards (
+    id               INT          AUTO_INCREMENT PRIMARY KEY,
+    card_name        VARCHAR(100) UNIQUE NOT NULL,
+    subtype_id       INT NOT NULL,
+    rarity_id        INT NOT NULL,
+    base_damage      INT   DEFAULT 0,
+    base_heal        INT   DEFAULT 0,
+    cooldown_seconds FLOAT DEFAULT 0,
+    shop_cost        INT   DEFAULT 0,
+    description      TEXT,
+    FOREIGN KEY (subtype_id) REFERENCES card_subtypes (id),
+    FOREIGN KEY (rarity_id)  REFERENCES rarities (id)
 );
 
--- ---------------------------------------------
--- PLAYER & ACCOUNT
--- ---------------------------------------------
-
-CREATE TABLE IF NOT EXISTS player (
-  player_id           INT          NOT NULL AUTO_INCREMENT,
-  username            VARCHAR(64)  NOT NULL UNIQUE,
-  email               VARCHAR(256) NOT NULL UNIQUE,
-  password_hash       VARCHAR(256) NOT NULL,
-  hub_credits         INT          NOT NULL DEFAULT 0,
-  total_runs          INT          NOT NULL DEFAULT 0,
-  total_victories     INT          NOT NULL DEFAULT 0,
-  tutorial_completed  TINYINT(1)   NOT NULL DEFAULT 0,
-  created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (player_id)
+CREATE TABLE card_effect_params (
+    card_id       INT         PRIMARY KEY,
+    effect_range  INT         DEFAULT NULL,
+    spread        FLOAT       DEFAULT NULL,
+    shield        INT         DEFAULT NULL,
+    invincibility FLOAT       DEFAULT NULL,
+    trigger_event VARCHAR(50) DEFAULT NULL,
+    threshold     FLOAT       DEFAULT NULL,
+    heal_pct      FLOAT       DEFAULT NULL,
+    full_heal     TINYINT(1)  DEFAULT 0,
+    from_enemy    TINYINT(1)  DEFAULT 0,
+    FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE CASCADE
 );
 
--- Settings persisted per player (populated by the Settings screen)
-CREATE TABLE IF NOT EXISTS player_settings (
-  player_id       INT          NOT NULL,
-  music_volume    TINYINT      NOT NULL DEFAULT 80,   -- 0-100
-  sfx_volume      TINYINT      NOT NULL DEFAULT 80,
-  fullscreen      TINYINT(1)   NOT NULL DEFAULT 0,
-  language        VARCHAR(8)   NOT NULL DEFAULT 'en',
-  updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (player_id),
-  CONSTRAINT fk_ps_player FOREIGN KEY (player_id) REFERENCES player(player_id)
+CREATE TABLE runs (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT NOT NULL,
+    started_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ended_at        TIMESTAMP NULL,
+    status          ENUM('active', 'victory', 'defeat') DEFAULT 'active',
+    rooms_cleared   INT DEFAULT 0,
+    enemies_killed  INT DEFAULT 0,
+    damage_dealt    INT DEFAULT 0,
+    damage_taken    INT DEFAULT 0,
+    credits_earned  INT DEFAULT 0,
+    cards_collected INT DEFAULT 0,
+    score           INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS player_hub_upgrade (
-  id           INT      NOT NULL AUTO_INCREMENT,
-  player_id    INT      NOT NULL,
-  upgrade_id   INT      NOT NULL,
-  purchased_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_player_upgrade (player_id, upgrade_id),
-  CONSTRAINT fk_phu_player  FOREIGN KEY (player_id)  REFERENCES player(player_id),
-  CONSTRAINT fk_phu_upgrade FOREIGN KEY (upgrade_id) REFERENCES hub_upgrade(upgrade_id)
+CREATE TABLE run_cards (
+    id      INT AUTO_INCREMENT PRIMARY KEY,
+    run_id  INT NOT NULL,
+    card_id INT NOT NULL,
+    FOREIGN KEY (run_id)  REFERENCES runs  (id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE CASCADE
 );
 
--- ---------------------------------------------
--- RUN  (one roguelite attempt)
--- ---------------------------------------------
+INSERT INTO rarities (name, display_order) VALUES
+('common',    1),
+('uncommon',  2),
+('rare',      3),
+('epic',      4),
+('legendary', 5);
 
-CREATE TABLE IF NOT EXISTS run (
-  run_id                INT      NOT NULL AUTO_INCREMENT,
-  player_id             INT      NOT NULL,
-  outcome               ENUM('in_progress','victory','defeat') NOT NULL DEFAULT 'in_progress',
-  starting_dimension_id INT      NOT NULL,
-  current_dimension_id  INT      NOT NULL,
-  current_room_number   INT      NOT NULL DEFAULT 1,
-  death_room_number     INT               DEFAULT NULL,
-  total_credits_earned  INT      NOT NULL DEFAULT 0,
-  seed                  VARCHAR(64)       DEFAULT NULL,
-  active_card_slots     TINYINT  NOT NULL DEFAULT 3,
-  auto_card_slots       TINYINT  NOT NULL DEFAULT 4,
-  started_at            DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  ended_at              DATETIME          DEFAULT NULL,
-  PRIMARY KEY (run_id),
-  CONSTRAINT fk_run_player    FOREIGN KEY (player_id)              REFERENCES player(player_id),
-  CONSTRAINT fk_run_start_dim FOREIGN KEY (starting_dimension_id) REFERENCES dimension(dimension_id),
-  CONSTRAINT fk_run_cur_dim   FOREIGN KEY (current_dimension_id)   REFERENCES dimension(dimension_id)
-);
+INSERT INTO card_subtypes (card_type, subtype) VALUES
+('active',    'melee'),
+('active',    'heal'),
+('active',    'defense'),
+('active',    'drain'),
+('automatic', 'melee'),
+('automatic', 'heal'),
+('automatic', 'defense');
 
--- ---------------------------------------------
--- ROOMS
--- ---------------------------------------------
+INSERT INTO cards (card_name, subtype_id, rarity_id, base_damage, base_heal, cooldown_seconds, shop_cost, description) VALUES
+('Quick Strike',     1, 1,   20,  0,  3,   0, 'Deal damage to enemies within 120px.'),
+('Iron Fist',        1, 3,   55,  0,  5,  50, 'A powerful close-range blow dealing 55 damage within 90px.'),
+('Nova Burst',       1, 4,  110,  0,  9,  80, 'Unleash an explosion dealing 110 damage to all enemies within 200px.'),
+('Shadow Blade',     1, 5,  180,  0, 15, 130, 'A devastating strike dealing 180 damage to enemies within 160px.'),
+('Heal Pulse',       2, 1,    0, 25, 10,   0, 'Restore 25 HP.'),
+('Mending Wave',     2, 4,    0, 70, 15,  85, 'Release a healing wave that restores 70 HP.'),
+('Phoenix Elixir',   2, 5,    0,  0, 30, 150, 'Consume a legendary elixir to fully restore all HP.'),
+('Blood Siphon',     4, 3,   40, 20, 12,  65, 'Drain the nearest enemy for 40 damage and restore 20 HP.'),
+('Wood Shield',      3, 1,    0,  0,  8,   0, 'Absorb the next 20 damage.'),
+('Stone Wall',       3, 3,    0,  0, 12,  60, 'Erect a wall of stone that absorbs the next 50 damage.'),
+('Mirror Guard',     3, 4,    0,  0, 14,  90, 'Gain 35 shield and 1.5s of invincibility.'),
+('Diamond Fortress', 3, 5,    0,  0, 18, 140, 'Crystallize your body, absorbing the next 100 damage.'),
+('Lifetap',          6, 1,    0, 20,  0,  40, 'Restore 20 HP each time you kill an enemy.'),
+('Iron Skin',        7, 1,    0,  0,  0,  45, 'Gain 8 shield each time you hit an enemy.'),
+('Rebound',          5, 3,   15,  0,  0,  65, 'When hit, deal 15 damage to enemies within 150px.'),
+('Berserker Rush',   5, 3,   20,  0,  0,  70, 'Dashing deals 20 damage to enemies within 100px.'),
+('Last Stand',       7, 4,    0,  0,  0,  95, 'When hit below 30% HP, gain 2s of invincibility.'),
+('Chain Kill',       5, 4,   25,  0,  0, 100, 'Killing an enemy deals 25 damage to all others within 200px.');
 
-CREATE TABLE IF NOT EXISTS run_room (
-  run_room_id    INT      NOT NULL AUTO_INCREMENT,
-  run_id         INT      NOT NULL,
-  dimension_id   INT      NOT NULL,
-  room_number    INT      NOT NULL,
-  room_type      ENUM('combat','chest','shop','shrine','glitch','boss') NOT NULL,
-  cleared        TINYINT(1) NOT NULL DEFAULT 0,
-  time_spent_sec INT               DEFAULT NULL,
-  entered_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  cleared_at     DATETIME          DEFAULT NULL,
-  PRIMARY KEY (run_room_id),
-  CONSTRAINT fk_rr_run FOREIGN KEY (run_id)       REFERENCES run(run_id),
-  CONSTRAINT fk_rr_dim FOREIGN KEY (dimension_id) REFERENCES dimension(dimension_id)
-);
+INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibility, trigger_event, threshold, heal_pct, full_heal, from_enemy) VALUES
+(1,    32, 0.628, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(2,    28, 1.099, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(3,    72, 3.142, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(4,    48, 2.356, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(7,  NULL,  NULL, NULL, NULL, NULL,              NULL, NULL, 1, 0),
+(9,  NULL,  NULL,   20, NULL, NULL,              NULL, NULL, 0, 0),
+(10, NULL,  NULL,   50, NULL, NULL,              NULL, NULL, 0, 0),
+(11, NULL,  NULL,   35,  1.5, NULL,              NULL, NULL, 0, 0),
+(12, NULL,  NULL,  100, NULL, NULL,              NULL, NULL, 0, 0),
+(13, NULL,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 0),
+(14, NULL,  NULL,    8, NULL, 'on_attack',       NULL, NULL, 0, 0),
+(15,   48,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),
+(16,   32,  NULL, NULL, NULL, 'on_dash',         NULL, NULL, 0, 0),
+(17, NULL,  NULL, NULL,    2, 'on_hit_received',  0.3, NULL, 0, 0),
+(18,   64,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 1);
 
--- ---------------------------------------------
--- DECK
--- ---------------------------------------------
-
-CREATE TABLE IF NOT EXISTS run_deck_card (
-  run_deck_card_id      INT      NOT NULL AUTO_INCREMENT,
-  run_id                INT      NOT NULL,
-  card_id               INT      NOT NULL,
-  card_level            ENUM('base','upgraded','max') NOT NULL DEFAULT 'base',
-  acquired_from         ENUM('starter','chest','shop','boss_reward','glitch_pillar') NOT NULL,
-  room_number_acquired  INT      NOT NULL DEFAULT 0,
-  discarded             TINYINT(1) NOT NULL DEFAULT 0,
-  room_number_discarded INT               DEFAULT NULL,
-  PRIMARY KEY (run_deck_card_id),
-  CONSTRAINT fk_rdc_run  FOREIGN KEY (run_id)  REFERENCES run(run_id),
-  CONSTRAINT fk_rdc_card FOREIGN KEY (card_id) REFERENCES card(card_id)
-);
-
--- ---------------------------------------------
--- SHOP
--- ---------------------------------------------
-
-CREATE TABLE IF NOT EXISTS shop_inventory (
-  shop_inventory_id INT        NOT NULL AUTO_INCREMENT,
-  run_room_id       INT        NOT NULL,
-  card_id           INT        NOT NULL,
-  price             INT        NOT NULL,
-  sold              TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (shop_inventory_id),
-  CONSTRAINT fk_si_room FOREIGN KEY (run_room_id) REFERENCES run_room(run_room_id),
-  CONSTRAINT fk_si_card FOREIGN KEY (card_id)     REFERENCES card(card_id)
-);
-
--- ---------------------------------------------
--- TELEMETRY
--- ---------------------------------------------
-
-CREATE TABLE IF NOT EXISTS card_usage_event (
-  event_id            INT      NOT NULL AUTO_INCREMENT,
-  run_id              INT      NOT NULL,
-  run_room_id         INT      NOT NULL,
-  card_id             INT      NOT NULL,
-  used_at             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (event_id),
-  CONSTRAINT fk_cue_run  FOREIGN KEY (run_id)      REFERENCES run(run_id),
-  CONSTRAINT fk_cue_room FOREIGN KEY (run_room_id) REFERENCES run_room(run_room_id),
-  CONSTRAINT fk_cue_card FOREIGN KEY (card_id)     REFERENCES card(card_id)
-);
-
-
--- ---------------------------------------------
--- VIEWS
--- ---------------------------------------------
-
-CREATE OR REPLACE VIEW v_card_catalog AS
+CREATE OR REPLACE VIEW v_leaderboard AS
 SELECT
-  c.card_id,
-  c.name            AS card_name,
-  c.card_type,
-  c.rarity,
-  c.energy_cost,
-  c.base_damage,
-  c.base_heal,
-  c.cooldown_seconds,
-  c.effect_json
-FROM card c;
+    u.id                      AS user_id,
+    u.username,
+    MAX(r.score)              AS best_score,
+    COUNT(r.id)               AS total_runs,
+    SUM(r.status = 'victory') AS victories
+FROM runs r
+JOIN users u ON u.id = r.user_id
+WHERE r.status != 'active'
+GROUP BY u.id, u.username;
 
-CREATE OR REPLACE VIEW v_active_deck AS
+CREATE OR REPLACE VIEW v_user_run_summary AS
 SELECT
-  rdc.run_deck_card_id,
-  rdc.run_id,
-  rdc.card_level,
-  rdc.acquired_from,
-  rdc.room_number_acquired,
-  c.card_id,
-  c.name           AS card_name,
-  c.card_type,
-  c.rarity,
-  c.energy_cost,
-  c.base_damage,
-  c.base_heal,
-  c.cooldown_seconds,
-  c.effect_json
-FROM run_deck_card rdc
-JOIN card c ON c.card_id = rdc.card_id
-WHERE rdc.discarded = 0;
+    user_id,
+    COUNT(*)                                AS total_runs,
+    SUM(status = 'victory')                 AS victories,
+    SUM(status = 'defeat')                  AS defeats,
+    ROUND(AVG(status = 'victory') * 100, 1) AS win_rate_pct,
+    MAX(score)                              AS best_score,
+    ROUND(AVG(score), 0)                    AS avg_score,
+    SUM(enemies_killed)                     AS total_enemies_killed,
+    ROUND(AVG(enemies_killed), 1)           AS avg_enemies_per_run,
+    SUM(rooms_cleared)                      AS total_rooms_cleared,
+    ROUND(AVG(rooms_cleared), 1)            AS avg_rooms_per_run,
+    SUM(damage_dealt)                       AS total_damage_dealt,
+    SUM(damage_taken)                       AS total_damage_taken
+FROM runs
+WHERE status != 'active'
+GROUP BY user_id;
 
-CREATE OR REPLACE VIEW v_run_overview AS
+CREATE OR REPLACE VIEW v_card_usage AS
 SELECT
-  r.run_id,
-  r.player_id,
-  p.username,
-  r.outcome,
-  r.active_card_slots,
-  r.auto_card_slots,
-  r.total_credits_earned,
-  r.current_room_number,
-  r.death_room_number,
-  d_start.name  AS starting_dimension,
-  d_cur.name    AS current_dimension,
-  r.started_at,
-  r.ended_at,
-  TIMESTAMPDIFF(SECOND, r.started_at, COALESCE(r.ended_at, NOW())) AS run_duration_seconds,
-  COUNT(DISTINCT rdc.run_deck_card_id) AS total_cards_in_deck
-FROM run r
-JOIN player        p       ON p.player_id          = r.player_id
-JOIN dimension     d_start ON d_start.dimension_id = r.starting_dimension_id
-JOIN dimension     d_cur   ON d_cur.dimension_id   = r.current_dimension_id
-LEFT JOIN run_deck_card rdc ON rdc.run_id = r.run_id AND rdc.discarded = 0
-GROUP BY
-  r.run_id, r.player_id, p.username, r.outcome,
-  r.active_card_slots, r.auto_card_slots, r.total_credits_earned,
-  r.current_room_number, r.death_room_number,
-  d_start.name, d_cur.name, r.started_at, r.ended_at;
+    ru.user_id,
+    c.id        AS card_id,
+    c.card_name,
+    ra.name     AS rarity,
+    cs.card_type,
+    cs.subtype,
+    COUNT(*)    AS times_collected
+FROM run_cards rc
+JOIN cards         c  ON c.id  = rc.card_id
+JOIN card_subtypes cs ON cs.id = c.subtype_id
+JOIN rarities      ra ON ra.id = c.rarity_id
+JOIN runs          ru ON ru.id = rc.run_id
+GROUP BY ru.user_id, c.id, c.card_name, ra.name, cs.card_type, cs.subtype;
 
-CREATE OR REPLACE VIEW v_room_state AS
+CREATE OR REPLACE VIEW v_top_cards AS
 SELECT
-  rr.run_room_id,
-  rr.run_id,
-  rr.room_number,
-  rr.room_type,
-  rr.cleared,
-  rr.entered_at,
-  rr.cleared_at,
-  rr.time_spent_sec,
-  d.name         AS dimension_name,
-  d.dimension_id
-FROM run_room rr
-JOIN dimension d ON d.dimension_id = rr.dimension_id;
+    c.card_name,
+    ra.name     AS rarity,
+    cs.card_type,
+    cs.subtype,
+    COUNT(*)    AS times_collected
+FROM run_cards rc
+JOIN cards         c  ON c.id  = rc.card_id
+JOIN card_subtypes cs ON cs.id = c.subtype_id
+JOIN rarities      ra ON ra.id = c.rarity_id
+GROUP BY c.id, c.card_name, ra.name, cs.card_type, cs.subtype;
 
-CREATE OR REPLACE VIEW v_shop_inventory AS
+CREATE OR REPLACE VIEW v_global_stats AS
 SELECT
-  si.shop_inventory_id,
-  si.run_room_id,
-  si.price,
-  si.sold,
-  c.card_id,
-  c.name         AS card_name,
-  c.card_type,
-  c.rarity,
-  c.energy_cost,
-  c.base_damage,
-  c.base_heal,
-  c.cooldown_seconds,
-  c.effect_json
-FROM shop_inventory si
-JOIN card c ON c.card_id = si.card_id;
-
-CREATE OR REPLACE VIEW v_run_card_telemetry AS
-SELECT
-  cue.run_id,
-  c.card_id,
-  c.name        AS card_name,
-  c.card_type,
-  c.rarity,
-  COUNT(*)      AS times_used
-FROM card_usage_event cue
-JOIN card c ON c.card_id = cue.card_id
-GROUP BY cue.run_id, c.card_id, c.name, c.card_type, c.rarity;
-
-CREATE OR REPLACE VIEW v_hub_upgrade_status AS
-SELECT
-  hu.upgrade_id,
-  hu.name        AS upgrade_name,
-  hu.description,
-  hu.credit_cost,
-  hu.upgrade_type,
-  hu.value,
-  phu.player_id,
-  CASE WHEN phu.id IS NOT NULL THEN 1 ELSE 0 END AS purchased,
-  phu.purchased_at
-FROM hub_upgrade hu
-LEFT JOIN player_hub_upgrade phu ON phu.upgrade_id = hu.upgrade_id;
-
-CREATE OR REPLACE VIEW v_player_profile AS
-SELECT
-  p.player_id,
-  p.username,
-  p.hub_credits,
-  p.total_runs,
-  p.total_victories,
-  p.created_at,
-  ROUND(100.0 * p.total_victories / NULLIF(p.total_runs, 0), 1) AS win_rate_pct,
-  SUM(CASE WHEN hu.upgrade_type = 'slot_expansion' THEN hu.value ELSE 0 END) AS total_slot_upgrades
-FROM player p
-LEFT JOIN player_hub_upgrade phu ON phu.player_id = p.player_id
-LEFT JOIN hub_upgrade hu         ON hu.upgrade_id  = phu.upgrade_id
-GROUP BY p.player_id, p.username, p.hub_credits, p.total_runs, p.total_victories, p.created_at;
-
--- V9: Full statistics for the Statistics screen
-CREATE OR REPLACE VIEW v_player_statistics AS
-SELECT
-  p.player_id,
-  p.username,
-  p.total_runs,
-  p.total_victories,
-  ROUND(100.0 * p.total_victories / NULLIF(p.total_runs, 0), 1)  AS win_rate_pct,
-  -- Best run: most rooms cleared before dying or winning
-  (SELECT MAX(current_room_number) FROM run r2 WHERE r2.player_id = p.player_id)
-    AS best_run_rooms,
-  -- Longest run in minutes
-  (SELECT ROUND(MAX(TIMESTAMPDIFF(SECOND, r2.started_at, COALESCE(r2.ended_at, NOW()))) / 60, 1)
-   FROM run r2 WHERE r2.player_id = p.player_id AND r2.outcome != 'in_progress')
-    AS longest_run_minutes,
-  -- Most used card across all runs
-  (SELECT c.name FROM card_usage_event cue
-   JOIN run r2 ON r2.run_id = cue.run_id
-   JOIN card c ON c.card_id = cue.card_id
-   WHERE r2.player_id = p.player_id
-   GROUP BY cue.card_id ORDER BY COUNT(*) DESC LIMIT 1)
-    AS most_used_card,
-  -- Most used card type (active vs automatic)
-  (SELECT c.card_type FROM card_usage_event cue
-   JOIN run r2 ON r2.run_id = cue.run_id
-   JOIN card c ON c.card_id = cue.card_id
-   WHERE r2.player_id = p.player_id
-   GROUP BY c.card_type ORDER BY COUNT(*) DESC LIMIT 1)
-    AS preferred_card_type,
-  -- Total credits earned across all runs
-  (SELECT COALESCE(SUM(r2.total_credits_earned), 0) FROM run r2 WHERE r2.player_id = p.player_id)
-    AS total_credits_earned,
-  -- Room where the player dies most often
-  (SELECT death_room_number FROM run r2
-   WHERE r2.player_id = p.player_id AND r2.outcome = 'defeat' AND r2.death_room_number IS NOT NULL
-   GROUP BY death_room_number ORDER BY COUNT(*) DESC LIMIT 1)
-    AS most_common_death_room,
-  p.created_at AS player_since
-FROM player p;
-
--- ---------------------------------------------
--- SEED DATA
--- ---------------------------------------------
-
-INSERT IGNORE INTO dimension (name, order_in_run) VALUES
-  ('Old West',  1),
-  ('Dark Ages', 2);
-
-INSERT IGNORE INTO card (name, card_type, rarity, energy_cost, base_damage, base_heal, cooldown_seconds, effect_json) VALUES
-  -- Starter deck (implemented in game engine)
-  ('Quick Strike', 'active', 'common', 1, 200,  0,  3.0, '{"range":120}'),
-  ('Heal Pulse',   'active', 'common', 2,   0, 25, 10.0, NULL),
-  ('Wood Shield',  'active', 'common', 2,   0,  0,  8.0, '{"shield":20}');
-
-INSERT IGNORE INTO hub_upgrade (name, description, credit_cost, upgrade_type, value) VALUES
-  ('Extra Active Slot',    'Increase max active card slots by 1 (up to 5)',       100, 'slot_expansion', 1),
-  ('Extra Auto Slot',      'Increase max automatic card slots by 2',              150, 'slot_expansion', 2),
-  ('Starting Credits +20', 'Begin each run with 20 bonus dimensional credits',    75,  'stat_boost',    20),
-  ('Max HP +25',           'Permanently increase player max HP by 25',            80,  'stat_boost',    25);
+    COUNT(DISTINCT user_id)                 AS total_players,
+    COUNT(*)                                AS total_runs,
+    SUM(status = 'victory')                 AS total_victories,
+    ROUND(AVG(status = 'victory') * 100, 1) AS global_win_rate_pct,
+    ROUND(AVG(score), 0)                    AS avg_score,
+    MAX(score)                              AS record_score
+FROM runs
+WHERE status != 'active';

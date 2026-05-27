@@ -1,74 +1,101 @@
 import Vector from "../../../Utils/Vector.js";
+import EnemyBullet from "../../EnemyBullet.js";
 import Enemy from "../../Enemy.js";
 
 export default class RangedEnemy extends Enemy {
   constructor(position, player, bullets, credits) {
     super(position, player);
 
-    this.speed = 28;
-    this.health = 150;
-    this.maxHealth = 150;
+    this.bullets = bullets;
+
+    // BALANCE
+    this.speed = 52;
+
+    this.health = 30;
+    this.maxHealth = 30;
+
+    // Smaller size
     this.width = 16;
     this.height = 16;
-    this.color = "yellow";
-    this.originalColor = "yellow";
-    this.contactDamage = 20;
+    this.color = "orange";
+    this.originalColor = "orange";
 
-    // Dash attack
-    this.dashSpeed = 340;
-    this.dashCooldown = 0;
-    this.isDashing = false;
-    this.dashTimer = 0;
-    this.dashDirection = new Vector(0, 0);
+    this.contactDamage = 8;
 
-    // Rage mode
-    this.isEnraged = false;
+    // Shooting
+    this.shootCooldown = 0;
+    this.shootRate = 1.5;
+
+    // Preferred distance
+    this.preferredDistance = 180;
   }
 
   update(deltaTime) {
     if (this.isDead) return;
 
-    this.dashCooldown -= deltaTime;
-    this.dashTimer -= deltaTime;
-    if (this._flashTimer > 0) this._flashTimer -= deltaTime;
-    if (this.damageCooldown > 0) this.damageCooldown -= deltaTime;
-
-    // Rage a 40% HP
-    if (!this.isEnraged && this.health <= this.maxHealth * 0.4) {
-      this.isEnraged = true;
-      this.speed = 42;
-      this.dashSpeed = 500;
-      this.color = "#4444ff";
+    if (this._flashTimer > 0) {
+      this._flashTimer -= deltaTime;
     }
+
+    if (this.damageCooldown > 0) {
+      this.damageCooldown -= deltaTime;
+    }
+
+    this.shootCooldown -= deltaTime;
 
     const direction = new Vector(
       this.player.position.x - this.position.x,
       this.player.position.y - this.position.y,
     );
-    const normDir = direction.normalize();
+
+    const normalizedDirection = direction.normalize();
     const distance = direction.magnitude();
 
-    if (this.isDashing) {
-      this.velocity = this.dashDirection.times(this.dashSpeed);
-      if (this.dashTimer <= 0) this.isDashing = false;
+    // KEEP DISTANCE AI
+    if (distance > this.preferredDistance + 30) {
+      // Move toward player
+      this.velocity = normalizedDirection.times(this.speed);
+    } else if (distance < this.preferredDistance - 30) {
+      // Move away from player
+      this.velocity = normalizedDirection.times(-this.speed);
     } else {
-      this.velocity = normDir.times(this.speed);
-      if (distance < 280 && this.dashCooldown <= 0) {
-        this.isDashing = true;
-        this.dashTimer = 0.55;
-        this.dashCooldown = this.isEnraged ? 1.5 : 3.5;
-        this.dashDirection = normDir;
-      }
+      // Strafe around player
+      const strafeDirection = new Vector(
+        -normalizedDirection.y,
+        normalizedDirection.x,
+      );
+
+      this.velocity = strafeDirection.times(this.speed * 0.7);
     }
 
+    // SHOOT
+    if (distance < 300 && this.shootCooldown <= 0) {
+      const bulletPosition = this.position.plus(
+        normalizedDirection.times(18),
+      );
+
+      this.bullets.push(
+        new EnemyBullet(bulletPosition, normalizedDirection),
+      );
+
+      this.shootCooldown = this.shootRate;
+    }
+
+    // Contact damage
     const dx = Math.abs(this.player.position.x - this.position.x);
     const dy = Math.abs(this.player.position.y - this.position.y);
-    if (dx < 40 && dy < 40 && this.damageCooldown <= 0) {
+
+    if (dx < 22 && dy < 22 && this.damageCooldown <= 0) {
       this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.6;
+      this.damageCooldown = 0.7;
     }
 
-    this.position = this.position.plus(this.velocity.times(deltaTime));
-    if (this.health <= 0) this.die();
+    this.position = this.position.plus(
+      this.velocity.times(deltaTime),
+    );
+
+    if (this.health <= 0) {
+      this.die();
+    }
   }
 }

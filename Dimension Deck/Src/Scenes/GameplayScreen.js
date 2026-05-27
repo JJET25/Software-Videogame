@@ -6,6 +6,7 @@ import Vector from '../Utils/Vector.js';
 
 import CardManager from '../cards/CardManager.js';
 import { STARTER_DECK } from '../cards/CardCatalog.js';
+import { createCard } from '../cards/CardFactory.js';
 
 import HUD from '../UI/HUD.js';
 import DeckScreen from '../UI/DeckScreen.js';
@@ -14,6 +15,8 @@ import MiniMap from '../UI/Minimap.js';
 import DimensionManager from '../Systems/DimensionManager.js';
 import InteractionManager from '../Systems/InteractionManager.js';
 import SeededRandom from '../Utils/SeededRandom.js';
+
+import { createRun, endRun, fetchStarterCards } from '../Utils/Api.js';
 
 // Main gameplay screen — initializes all game systems and delegates update and draw each frame
 export default class GameplayScreen extends Screen {
@@ -28,46 +31,88 @@ export default class GameplayScreen extends Screen {
         this.player.getEnemies  = () =>
             this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
 
-        for (const create of STARTER_DECK) {
-            this.cardManager.addCard(create());
-        }
-
         const rng       = new SeededRandom();
         this.dimManager = new DimensionManager(rng, this.player, () => this.onVictory());
         this.dimManager.startRun();
 
         this.minimap = new MiniMap(this.dimManager);
+
+        // Run and stat tracking
+        this.runId        = null;
+        this._runEnded    = false;
+        this.stats        = { roomsCleared: 0, enemiesKilled: 0, damageTaken: 0 };
+        this._prevRoom    = null;
+        this._deadEnemies = new Set();
+        this._roomCounted = false;
+
+        // Load starter cards from DB (stats come from DB); fall back to hardcoded if API is down
+        this._loadStarterCards();
+    }
+
+    async _loadStarterCards() {
+        try {
+            const [runData, dbCards] = await Promise.all([createRun(), fetchStarterCards()]);
+            this.runId = runData?.runId ?? null;
+            for (const data of dbCards ?? []) {
+                const card = createCard(data);
+                if (card) this.cardManager.addCard(card);
+            }
+            if (!dbCards?.length) this._addFallbackCards();
+        } catch {
+            this._addFallbackCards();
+        }
+    }
+
+    _addFallbackCards() {
+        for (const create of STARTER_DECK) this.cardManager.addCard(create());
     }
 
     exit() {}
 
     update(deltaTime) {
-        if (this.player.isDead) {
-            this.screenManager.changeTo(new DefeatScreen());
+        if (this.player.isDead && !this._runEnded) {
+            this._finishRun('defeat');
             return;
         }
 
         const rm       = this.dimManager.getRoomManager();
         const room     = rm.currentRoom;
-        const shopOpen = room?.isShopRoom && room.storeUI.isOpen;
+        const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
 
-        // Freeze player movement and card use while the shop overlay is visible
         const prevHealth = this.player.health;
         if (!shopOpen) this.player.update(deltaTime);
 
         this.cardManager.update(deltaTime);
         rm.update(deltaTime);
 
-        if (this.player.health < prevHealth) this.hud.triggerDamageFlash();
+        // Stat: damage taken
+        const dmgTaken = Math.max(0, prevHealth - this.player.health);
+        this.stats.damageTaken += dmgTaken;
+        if (dmgTaken > 0) this.hud.triggerDamageFlash();
+
+        // Stat: track per-room enemies and clear count; reset when entering a new room
+        if (room !== this._prevRoom) {
+            this._prevRoom    = room;
+            this._deadEnemies = new Set();
+            this._roomCounted = false;
+        }
+        for (const enemy of room?.enemies ?? []) {
+            if (enemy.isDead && !this._deadEnemies.has(enemy)) {
+                this._deadEnemies.add(enemy);
+                this.stats.enemiesKilled++;
+            }
+        }
+        if (room?.isCleared && !this._roomCounted && this._deadEnemies.size > 0) {
+            this._roomCounted = true;
+            this.stats.roomsCleared++;
+        }
 
         this.hud.update(deltaTime);
-
         if (!shopOpen) this.deckScreen.update(this.input);
 
-        // Merchant interaction and store input handled only in shop rooms
         if (room?.isShopRoom) {
             if (!shopOpen) this.interaction.update(this.player, [room.merchant]);
-            room.storeUI.update(this.input, this.player, this.cardManager);
+            room.storeUI?.update(this.input, this.player, this.cardManager);
         }
     }
 
@@ -79,14 +124,25 @@ export default class GameplayScreen extends Screen {
         this.hud.draw(renderer, this.player, this.cardManager);
         this.deckScreen.draw(renderer, this.cardManager);
 
-        // Draw the store overlay on top of everything else when in a shop room
         const room = this.dimManager.getRoomManager().currentRoom;
-        if (room?.isShopRoom && room.storeUI.isOpen) {
+        if (room?.isShopRoom && room.storeUI?.isOpen) {
             room.storeUI.draw(renderer, this.player, this.cardManager);
         }
     }
 
+    _finishRun(status) {
+        this._runEnded = true;
+        const finalStats = {
+            status,
+            ...this.stats,
+            creditsEarned:  this.player.credits,
+            cardsCollected: [...this.cardManager.activeSlots, ...this.cardManager.autoSlots]
+                                .filter(Boolean).length,
+        };
+        this.screenManager.changeTo(new DefeatScreen(), { runId: this.runId, ...finalStats });
+    }
+
     onVictory() {
-        console.log('Victory!');
+        if (!this._runEnded) this._finishRun('victory');
     }
 }
