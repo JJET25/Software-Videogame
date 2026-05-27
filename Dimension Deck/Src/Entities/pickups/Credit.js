@@ -4,7 +4,8 @@ export default class Credit extends Entity {
 
     constructor(position) {
 
-        super(position, 14, 14, "gold");
+        // Smaller coins
+        super(position, 8, 8, "gold");
 
         this.value = 10;
     }
