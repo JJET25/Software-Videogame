@@ -42,6 +42,7 @@ export default class Card {
 
     // Scales the cooldwon base on the level of the card, level 1 = 100%, level 2 = 70%, level 3 = 49
     get cooldown() {
+        if (window.testingMode) return 0;
         const scale = this.level >= 2 ? (this.level === 3 ? 0.49 : 0.7) : 1;
         return this.baseCooldown * scale;
     }

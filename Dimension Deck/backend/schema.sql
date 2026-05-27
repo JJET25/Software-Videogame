@@ -1,6 +1,9 @@
 USE dimension_deck;
 
 SET foreign_key_checks = 0;
+DROP TABLE IF EXISTS run_log;
+DROP TABLE IF EXISTS shop_offerings;
+DROP TABLE IF EXISTS run_player_state;
 DROP TABLE IF EXISTS run_cards;
 DROP TABLE IF EXISTS card_effect_params;
 DROP TABLE IF EXISTS runs;
@@ -8,6 +11,7 @@ DROP TABLE IF EXISTS cards;
 DROP TABLE IF EXISTS card_subtypes;
 DROP TABLE IF EXISTS rarities;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS enemies;
 SET foreign_key_checks = 1;
 
 CREATE TABLE rarities (
@@ -83,6 +87,57 @@ CREATE TABLE run_cards (
     FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE CASCADE
 );
 
+-- Tracks the player loadout state for a specific run (slots unlocked, current credits)
+CREATE TABLE run_player_state (
+    run_id       INT NOT NULL PRIMARY KEY,
+    active_slots INT NOT NULL DEFAULT 3 CHECK (active_slots BETWEEN 3 AND 5),
+    auto_slots   INT NOT NULL DEFAULT 4 CHECK (auto_slots   BETWEEN 4 AND 8),
+    credits      INT NOT NULL DEFAULT 0 CHECK (credits >= 0),
+    FOREIGN KEY (run_id) REFERENCES runs (id) ON DELETE CASCADE
+);
+
+-- Persistent shop offerings per run so they don't re-roll on every request
+CREATE TABLE shop_offerings (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    run_id      INT NOT NULL,
+    card_id     INT NOT NULL,
+    price       INT NOT NULL CHECK (price > 0),
+    sold        TINYINT(1)  NOT NULL DEFAULT 0,
+    offered_at  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_run_card (run_id, card_id),
+    FOREIGN KEY (run_id)  REFERENCES runs  (id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE CASCADE
+);
+
+-- Granular event log per run for replays and analytics
+CREATE TABLE run_log (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    run_id     INT         NOT NULL,
+    event_type ENUM('room_cleared','enemy_killed','card_acquired',
+                    'slot_upgraded','shop_purchase','damage_dealt',
+                    'damage_taken','heal') NOT NULL,
+    value      INT         NOT NULL DEFAULT 0,
+    card_id    INT         DEFAULT NULL,
+    logged_at  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (run_id)  REFERENCES runs  (id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE SET NULL
+);
+
+-- Enemy catalog — stats extracted from JS archetypes/concrete classes
+CREATE TABLE enemies (
+    id                 INT         AUTO_INCREMENT PRIMARY KEY,
+    name               VARCHAR(50) UNIQUE NOT NULL,
+    archetype          ENUM('swarm','tank','ranged','boss') NOT NULL,
+    dimension          ENUM('dark_ages','old_west') NOT NULL,
+    hp                 INT         NOT NULL CHECK (hp > 0),
+    speed              FLOAT       NOT NULL CHECK (speed > 0),
+    contact_dmg        INT         NOT NULL DEFAULT 0,
+    width_px           INT         NOT NULL DEFAULT 16,
+    height_px          INT         NOT NULL DEFAULT 16,
+    shoot_rate         FLOAT       DEFAULT NULL,
+    preferred_distance INT         DEFAULT NULL
+);
+
 INSERT INTO rarities (name, display_order) VALUES
 ('common',    1),
 ('uncommon',  2),
@@ -119,8 +174,17 @@ INSERT INTO cards (card_name, subtype_id, rarity_id, base_damage, base_heal, coo
 ('Last Stand',       7, 4,    0,  0,  0,  95, 'When hit below 30% HP, gain 2s of invincibility.'),
 ('Chain Kill',       5, 4,   25,  0,  0, 100, 'Killing an enemy deals 25 damage to all others within 200px.');
 
+INSERT INTO enemies (name, archetype, dimension, hp, speed, contact_dmg, width_px, height_px, shoot_rate, preferred_distance) VALUES
+('Skeleton',     'tank',   'dark_ages',  90,  38, 18, 28, 28, NULL, NULL),
+('Slime',        'swarm',  'dark_ages',  16,  82,  6, 12, 12, NULL, NULL),
+('DungeonRat',   'swarm',  'dark_ages',  16,  82,  6, 12, 12, NULL, NULL),
+('SkeletonKing', 'boss',   'dark_ages', 900,  32, 35, 80, 80,  1.5, NULL),
+('Bandit',       'ranged', 'old_west',   30,  52,  8, 16, 16,  1.5,  180),
+('CactusThug',   'tank',   'old_west',   90,  38, 18, 28, 28, NULL, NULL),
+('DesertRat',    'swarm',  'old_west',   16,  82,  6, 12, 12, NULL, NULL);
+
 INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibility, trigger_event, threshold, heal_pct, full_heal, from_enemy) VALUES
-(1,    32, 0.628, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(1,    80, 1.200, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 (2,    28, 1.099, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 (3,    72, 3.142, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 (4,    48, 2.356, NULL, NULL, NULL,              NULL, NULL, 0, 0),

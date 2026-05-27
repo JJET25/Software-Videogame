@@ -45,6 +45,8 @@ export default class GameplayScreen extends Screen {
         this._deadEnemies = new Set();
         this._roomCounted = false;
 
+        window.testingMode = false;
+
         // Load starter cards from DB (stats come from DB); fall back to hardcoded if API is down
         this._loadStarterCards();
     }
@@ -78,6 +80,10 @@ export default class GameplayScreen extends Screen {
         const rm       = this.dimManager.getRoomManager();
         const room     = rm.currentRoom;
         const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
+
+        if (this.input.isKeyDown("SHIFT") && this.input.wasKeyPressed("T")) {
+            window.testingMode = !window.testingMode;
+        }
 
         const prevHealth = this.player.health;
         if (!shopOpen) this.player.update(deltaTime);

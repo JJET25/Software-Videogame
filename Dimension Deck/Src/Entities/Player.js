@@ -42,6 +42,7 @@ export default class Player extends Entity {
 
     // Fires damage trigger only when health actually decreases
     takeDamage(amount) {
+        if (window.testingMode) return;
         const healthBefore = this.health;
         super.takeDamage(amount);
         if (this.cardManager && this.health < healthBefore) {

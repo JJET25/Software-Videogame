@@ -7,10 +7,11 @@ import ActiveDefenseCard from './ActiveDefenseCard.js';
 // Stats are intentionally minimal — the real values live in the DB.
 const quickStrike = () => new ActiveMeleeCard({
     name:        'Quick Strike',
-    description: 'Deal damage to enemies within 32px.',
+    description: 'Deal damage to enemies within 80px.',
     rarity:      Rarity.COMMON,
     damage:      20,
-    range:       32,
+    range:       80,
+    spread:      1.2,
     cooldown:    3,
 });
 
