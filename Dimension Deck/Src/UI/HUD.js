@@ -250,6 +250,7 @@ export default class HUD {
       (this._screenFlashTimer / FLASH_DURATION) *
       0.38;
 
+      
     renderer.drawFlash(
       `rgba(200, 0, 0, ${alpha.toFixed(2)})`,
     );
