@@ -9,7 +9,7 @@ export default class Player extends Entity {
         super(position, 16, 32, "#4488ff", {
             hitboxHeight: 16,
             hitboxWidth:  16,
-            hitboxOffset: new Vector(0, 16)
+            hitboxOffset: new Vector(0, 8)
         });
 
         this.input  = input;
