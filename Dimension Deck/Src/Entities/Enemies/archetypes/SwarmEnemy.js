@@ -34,10 +34,6 @@ export default class SwarmEnemy extends Enemy {
       this._flashTimer -= deltaTime;
     }
 
-    if (this.damageCooldown > 0) {
-      this.damageCooldown -= deltaTime;
-    }
-
     const direction = new Vector(
       this.player.position.x - this.position.x,
       this.player.position.y - this.position.y,
@@ -86,17 +82,9 @@ export default class SwarmEnemy extends Enemy {
     }
 
     // Contact damage
-    const dx = Math.abs(this.player.position.x - this.position.x);
-    const dy = Math.abs(this.player.position.y - this.position.y);
+    this._applyContactDamage(deltaTime);
 
-    if (dx < 18 && dy < 18 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.7;
-    }
-
-    this.position = this.position.plus(
-      this.velocity.times(deltaTime),
-    );
+    this.position = this.position.plus(this.velocity.times(deltaTime));
 
     if (this.health <= 0) {
       this.die();

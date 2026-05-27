@@ -32,10 +32,6 @@ export default class TankEnemy extends Enemy {
       this._flashTimer -= deltaTime;
     }
 
-    if (this.damageCooldown > 0) {
-      this.damageCooldown -= deltaTime;
-    }
-
     const direction = new Vector(
       this.player.position.x - this.position.x,
       this.player.position.y - this.position.y,
@@ -61,18 +57,8 @@ export default class TankEnemy extends Enemy {
       this.velocity = normalizedDirection.times(this.speed);
     }
 
-    // Contact damage
-    const dx = Math.abs(this.player.position.x - this.position.x);
-    const dy = Math.abs(this.player.position.y - this.position.y);
-
-    if (dx < 32 && dy < 32 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 1;
-    }
-
-    this.position = this.position.plus(
-      this.velocity.times(deltaTime),
-    );
+    this._applyContactDamage(deltaTime);
+    this.position = this.position.plus(this.velocity.times(deltaTime));
 
     if (this.health <= 0) {
       this.die();

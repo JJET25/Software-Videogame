@@ -107,12 +107,18 @@ export default class RoomManager {
 
     for (let bullet of this.bullets) {
       bullet.update(deltaTime);
-    }
 
-    for (let bullet of this.bullets) {
-      const distanceX = Math.abs(this.player.position.x - bullet.position.x);
-      const distanceY = Math.abs(this.player.position.y - bullet.position.y);
-      if (distanceX < 24 && distanceY < 24) {
+      for (const wall of this.currentRoom.walls) {
+        if (Collision.rectCollision(bullet.getBounds(), wall.getBounds())) {
+          bullet.isDead = true;
+          break;
+        }
+      }
+
+      if (
+        !bullet.isDead &&
+        Collision.rectCollision(bullet.getBounds(), this.player.getBounds())
+      ) {
         this.player.takeDamage(bullet.damage);
         bullet.isDead = true;
       }

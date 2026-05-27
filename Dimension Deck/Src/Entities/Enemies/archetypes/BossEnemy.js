@@ -10,47 +10,35 @@ export default class BossEnemy extends Enemy {
     super(position, player);
 
     this.bullets = bullets;
-
     this.credits = credits;
 
     // Boss size
     this.width = 80;
-
     this.height = 80;
 
     // Stats
     this.health = 2500;
-
     this.maxHealth = 2500;
-
     this.speed = 32;
-
     this.contactDamage = 35;
 
     // Phases
     this.phase = 1;
-
     this.isEnraged = false;
 
     // Dash
     this.dashSpeed = 380;
-
     this.dashCooldown = 0;
-
     this.isDashing = false;
-
     this.dashTimer = 0;
-
     this.dashDirection = new Vector(0, 0);
 
     // Attacks
     this.attackCooldown = 0;
-
     this.radialCooldown = 0;
 
     // Summons
     this.summonCooldown = 6;
-
     this.enemyList = null;
   }
 
@@ -59,91 +47,72 @@ export default class BossEnemy extends Enemy {
 
     // Timers
     this.dashCooldown -= deltaTime;
-
     this.dashTimer -= deltaTime;
-
     this.attackCooldown -= deltaTime;
-
     this.radialCooldown -= deltaTime;
-
     this.summonCooldown -= deltaTime;
 
+    // Reduce hit flash effect
     if (this._flashTimer > 0) {
       this._flashTimer -= deltaTime;
-    }
-
-    if (this.damageCooldown > 0) {
-      this.damageCooldown -= deltaTime;
     }
 
     // Phase transitions
     this.updatePhase();
 
-    // Direction
+    // Direction to player
     const dir = new Vector(
       this.player.position.x - this.position.x,
-
       this.player.position.y - this.position.y,
     );
 
     const normDir = dir.normalize();
-
     const distance = dir.magnitude();
 
     // Dash behavior
     if (this.isDashing) {
       this.velocity = this.dashDirection.times(this.dashSpeed);
 
+      // Stop dash after timer ends
       if (this.dashTimer <= 0) {
         this.isDashing = false;
       }
     } else {
+      // Normal movement toward player
       this.velocity = normDir.times(this.speed);
 
-      // Dash trigger
+      // Start dash when player is close
       if (distance < 320 && this.dashCooldown <= 0) {
         this.startDash(normDir);
       }
     }
 
-    // Shoot attacks
+    // Main shooting attack
     if (this.attackCooldown <= 0) {
       this.shootBurst(normDir);
-
       this.attackCooldown = this.phase === 3 ? 0.8 : 1.5;
     }
 
-    // Radial attack
+    // Circular bullet attack
     if (this.phase >= 2 && this.radialCooldown <= 0) {
       this.radialAttack();
-
       this.radialCooldown = this.phase === 3 ? 2 : 4;
     }
 
-    // Summons
+    // Spawn extra enemies
     if (this.summonCooldown <= 0) {
       this.summonEnemies();
     }
 
-    // Contact damage
-    const dx = Math.abs(this.player.position.x - this.position.x);
+    // Damage player on collision
+    this._applyContactDamage(deltaTime);
 
-    const dy = Math.abs(this.player.position.y - this.position.y);
-
-    if (dx < 60 && dy < 60 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-
-      this.damageCooldown = 0.5;
-    }
-
-    // Move
+    // Move boss
     this.position = this.position.plus(this.velocity.times(deltaTime));
 
-    // Death
-    if (this.health <= 0) {
-      this.die();
-    }
-  }
+    // Kill boss when health reaces 0
+    if (this.health <= 0) this.die();
+}
 
   updatePhase() {
     // Phase 2
