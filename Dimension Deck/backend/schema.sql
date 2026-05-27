@@ -100,7 +100,7 @@ INSERT INTO card_subtypes (card_type, subtype) VALUES
 ('automatic', 'defense');
 
 INSERT INTO cards (card_name, subtype_id, rarity_id, base_damage, base_heal, cooldown_seconds, shop_cost, description) VALUES
-('Quick Strike',     1, 1, 1000,  0,  3,   0, 'Deal damage to enemies within 120px.'),
+('Quick Strike',     1, 1,   20,  0,  3,   0, 'Deal damage to enemies within 120px.'),
 ('Iron Fist',        1, 3,   55,  0,  5,  50, 'A powerful close-range blow dealing 55 damage within 90px.'),
 ('Nova Burst',       1, 4,  110,  0,  9,  80, 'Unleash an explosion dealing 110 damage to all enemies within 200px.'),
 ('Shadow Blade',     1, 5,  180,  0, 15, 130, 'A devastating strike dealing 180 damage to enemies within 160px.'),
@@ -120,10 +120,10 @@ INSERT INTO cards (card_name, subtype_id, rarity_id, base_damage, base_heal, coo
 ('Chain Kill',       5, 4,   25,  0,  0, 100, 'Killing an enemy deals 25 damage to all others within 200px.');
 
 INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibility, trigger_event, threshold, heal_pct, full_heal, from_enemy) VALUES
-(1,   120, 0.628, NULL, NULL, NULL,              NULL, NULL, 0, 0),
-(2,    90, 1.099, NULL, NULL, NULL,              NULL, NULL, 0, 0),
-(3,   200, 3.142, NULL, NULL, NULL,              NULL, NULL, 0, 0),
-(4,   160, 2.356, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(1,    32, 0.628, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(2,    28, 1.099, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(3,    72, 3.142, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(4,    48, 2.356, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 (7,  NULL,  NULL, NULL, NULL, NULL,              NULL, NULL, 1, 0),
 (9,  NULL,  NULL,   20, NULL, NULL,              NULL, NULL, 0, 0),
 (10, NULL,  NULL,   50, NULL, NULL,              NULL, NULL, 0, 0),
@@ -131,10 +131,10 @@ INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibi
 (12, NULL,  NULL,  100, NULL, NULL,              NULL, NULL, 0, 0),
 (13, NULL,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 0),
 (14, NULL,  NULL,    8, NULL, 'on_attack',       NULL, NULL, 0, 0),
-(15,  150,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),
-(16,  100,  NULL, NULL, NULL, 'on_dash',         NULL, NULL, 0, 0),
+(15,   48,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),
+(16,   32,  NULL, NULL, NULL, 'on_dash',         NULL, NULL, 0, 0),
 (17, NULL,  NULL, NULL,    2, 'on_hit_received',  0.3, NULL, 0, 0),
-(18,  200,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 1);
+(18,   64,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 1);
 
 CREATE OR REPLACE VIEW v_leaderboard AS
 SELECT

@@ -9,7 +9,7 @@ export default class ActiveMeleeCard extends ActiveCard {
         this.spread = spread;
     }
 
-    // Sets the visual arc state on the player and applies damage to all enemies within range
+    // Sets the visual arc state on the player and applies damage to enemies within the cone
     effect({ player, enemies }) {
         player._strikeTimer  = 0.18 + (this.range / 1000);
         player._strikeDir    = player.aimDirection;
@@ -18,13 +18,19 @@ export default class ActiveMeleeCard extends ActiveCard {
 
         if (!enemies?.length) return;
 
+        const aimAngle  = Math.atan2(player.aimDirection.y, player.aimDirection.x);
+        const halfSpread = this.spread / 2;
+
         for (const enemy of enemies) {
             if (enemy.isDead) continue;
             const dx = enemy.position.x - player.position.x;
             const dy = enemy.position.y - player.position.y;
-            if (dx * dx + dy * dy <= this.range * this.range) {
-                enemy.takeDamage(this.damage);
-            }
+            if (dx * dx + dy * dy > this.range * this.range) continue;
+
+            // Normalize angle difference to [-π, π] then check cone
+            let diff = Math.atan2(dy, dx) - aimAngle;
+            diff = ((diff + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+            if (Math.abs(diff) <= halfSpread) enemy.takeDamage(this.damage);
         }
     }
 }
