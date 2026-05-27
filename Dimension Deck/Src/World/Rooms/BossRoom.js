@@ -12,7 +12,7 @@ export default class BossRoom extends Room {
     rng,
     nodeType,
   ) {
-    super(doorDirections, player, bullets, credits);
+    super(doorDirections, player, bullets, credits, dimension);
     this.dimension = dimension;
     this.rng = rng;
     this.nodeType = nodeType; // "miniBoss" or "finalBoss"

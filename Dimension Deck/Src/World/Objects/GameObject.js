@@ -1,7 +1,7 @@
 import Vector from "../../Utils/Vector.js";
 
 export default class GameObject {
-    constructor(position, width, height, color, type) {
+    constructor(position, width, height, color = null, type) {
         this.position = position;
         this.velocity = new Vector(0, 0);
 

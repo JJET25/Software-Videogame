@@ -17,7 +17,6 @@ export default class RangedEnemy extends Enemy {
     // Smaller size
     this.width = 16;
     this.height = 16;
-
     this.color = "orange";
     this.originalColor = "orange";
 

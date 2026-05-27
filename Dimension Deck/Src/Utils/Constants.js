@@ -1,6 +1,6 @@
 // Room Game Size
 export const TILE_SIZE = 16; // Size of one tile in pixels
-export const ROOM_COLS = 15; // Total columns in a room
+export const ROOM_COLS = 17; // Total columns in a room
 export const ROOM_ROWS = 11; // Total rows in a room
 export const ROOM_WIDTH = TILE_SIZE * ROOM_COLS; // Total room width in pixeles
 export const ROOM_HEIGHT = TILE_SIZE * ROOM_ROWS; // Total room height in pixels

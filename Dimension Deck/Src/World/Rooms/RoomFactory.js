@@ -26,11 +26,11 @@ export default class RoomFactory {
     }
 
     if (node.type === "shop") {
-      return new ShopRoom(doorDirections, player, bullets, credits);
+      return new ShopRoom(doorDirections, player, bullets, credits, dimension);
     }
 
     if (node.type === "chest") {
-      return new ChestRoom(doorDirections, player, bullets, credits);
+      return new ChestRoom(doorDirections, player, bullets, credits, dimension);
     }
 
     if (node.type === "miniBoss" || node.type === "finalBoss") {
@@ -45,6 +45,6 @@ export default class RoomFactory {
       );
     }
 
-    return new Room(doorDirections, player, bullets, credits);
+    return new Room(doorDirections, player, bullets, credits, dimension);
   }
 }
