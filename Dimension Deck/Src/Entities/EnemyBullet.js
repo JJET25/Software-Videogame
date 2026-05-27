@@ -3,12 +3,18 @@ import Entity from "./Entity.js";
 export default class EnemyBullet extends Entity {
 
     constructor(position, direction) {
-        super(position, 12, 12, "yellow");
-        this.speed = 250;
+
+        //  bullets
+        super(position, 4, 4, "yellow");
+
+        this.speed = 220;
+
         this.velocity = direction.times(
             this.speed
         );
+
         this.damage = 15;
+
         this.isDead = false;
     }
 
