@@ -6,22 +6,25 @@ import TankEnemy from "./TankEnemy.js";
 import Vector from "../../../Utils/Vector.js";
 
 export default class FinalBossEnemy extends Enemy {
+
   constructor(position, player, bullets, credits) {
+
     super(position, player);
 
     this.bullets = bullets;
 
     this.credits = credits;
 
-    // BIGGER
-    this.width = 110;
-    this.height = 110;
+    //  final boss
+    this.width = 46;
+    this.height = 46;
 
-    // MUCH STRONGER
+    // Stats
     this.health = 5000;
     this.maxHealth = 5000;
 
-    this.speed = 48;
+    // Slower movement
+    this.speed = 28;
 
     this.contactDamage = 50;
 
@@ -31,7 +34,7 @@ export default class FinalBossEnemy extends Enemy {
     this.isEnraged = false;
 
     // Dash
-    this.dashSpeed = 650;
+    this.dashSpeed = 320;
 
     this.dashCooldown = 0;
 
@@ -55,6 +58,7 @@ export default class FinalBossEnemy extends Enemy {
   }
 
   update(deltaTime) {
+
     if (this.isDead) return;
 
     // Timers
@@ -92,21 +96,30 @@ export default class FinalBossEnemy extends Enemy {
 
     // DASH
     if (this.isDashing) {
-      this.velocity = this.dashDirection.times(this.dashSpeed);
+
+      this.velocity = this.dashDirection.times(
+        this.dashSpeed
+      );
 
       if (this.dashTimer <= 0) {
         this.isDashing = false;
       }
+
     } else {
+
       this.velocity = normDir.times(this.speed);
 
-      if (distance < 420 && this.dashCooldown <= 0) {
+      if (
+        distance < 420 &&
+        this.dashCooldown <= 0
+      ) {
         this.startDash(normDir);
       }
     }
 
     // MAIN SHOOT
     if (this.attackCooldown <= 0) {
+
       this.shootBurst(normDir);
 
       this.attackCooldown =
@@ -115,14 +128,19 @@ export default class FinalBossEnemy extends Enemy {
 
     // RADIAL
     if (this.radialCooldown <= 0) {
+
       this.radialAttack();
 
       this.radialCooldown =
         this.phase === 3 ? 1.2 : 2.5;
     }
 
-    // LASER SPAM
-    if (this.phase >= 2 && this.laserCooldown <= 0) {
+    // LASER
+    if (
+      this.phase >= 2 &&
+      this.laserCooldown <= 0
+    ) {
+
       this.laserAttack(normDir);
 
       this.laserCooldown =
@@ -143,8 +161,15 @@ export default class FinalBossEnemy extends Enemy {
       this.player.position.y - this.position.y,
     );
 
-    if (dx < 80 && dy < 80 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
+    if (
+      dx < 80 &&
+      dy < 80 &&
+      this.damageCooldown <= 0
+    ) {
+
+      this.player.takeDamage(
+        this.contactDamage
+      );
 
       this.damageCooldown = 0.35;
     }
@@ -161,16 +186,18 @@ export default class FinalBossEnemy extends Enemy {
   }
 
   updatePhase() {
+
     // PHASE 2
     if (
       this.health <= this.maxHealth * 0.7 &&
       this.phase === 1
     ) {
+
       this.phase = 2;
 
-      this.speed = 65;
+      this.speed = 40;
 
-      this.dashSpeed = 850;
+      this.dashSpeed = 500;
     }
 
     // PHASE 3
@@ -178,17 +205,19 @@ export default class FinalBossEnemy extends Enemy {
       this.health <= this.maxHealth * 0.3 &&
       this.phase === 2
     ) {
+
       this.phase = 3;
 
-      this.speed = 90;
+      this.speed = 52;
 
-      this.dashSpeed = 1200;
+      this.dashSpeed = 700;
 
       this.isEnraged = true;
     }
   }
 
   startDash(direction) {
+
     this.isDashing = true;
 
     this.dashTimer = 0.5;
@@ -200,13 +229,16 @@ export default class FinalBossEnemy extends Enemy {
   }
 
   shootBurst(direction) {
+
     const spread =
       this.phase === 3
         ? [-0.5, -0.25, 0, 0.25, 0.5]
         : [-0.25, 0, 0.25];
 
     for (let angle of spread) {
+
       const rotated = new Vector(
+
         direction.x * Math.cos(angle) -
           direction.y * Math.sin(angle),
 
@@ -215,11 +247,14 @@ export default class FinalBossEnemy extends Enemy {
       );
 
       this.bullets.push(
+
         new EnemyBullet(
+
           new Vector(
             this.position.x,
             this.position.y,
           ),
+
           rotated.normalize(),
         ),
       );
@@ -227,10 +262,12 @@ export default class FinalBossEnemy extends Enemy {
   }
 
   radialAttack() {
+
     const bulletCount =
       this.phase === 3 ? 30 : 18;
 
     for (let i = 0; i < bulletCount; i++) {
+
       const angle =
         ((Math.PI * 2) / bulletCount) * i;
 
@@ -240,11 +277,14 @@ export default class FinalBossEnemy extends Enemy {
       );
 
       this.bullets.push(
+
         new EnemyBullet(
+
           new Vector(
             this.position.x,
             this.position.y,
           ),
+
           dir,
         ),
       );
@@ -252,13 +292,18 @@ export default class FinalBossEnemy extends Enemy {
   }
 
   laserAttack(direction) {
+
     for (let i = 0; i < 8; i++) {
+
       this.bullets.push(
+
         new EnemyBullet(
+
           new Vector(
             this.position.x,
             this.position.y,
           ),
+
           direction,
         ),
       );
@@ -266,12 +311,24 @@ export default class FinalBossEnemy extends Enemy {
   }
 
   summonEnemies() {
+
     if (!this.enemyList) return;
+
+    // Prevent overflow
+    if (this.enemyList.length > 10) {
+
+      this.summonCooldown = 5;
+
+      return;
+    }
 
     // PHASE 1
     if (this.phase === 1) {
-      for (let i = 0; i < 5; i++) {
+
+      for (let i = 0; i < 2; i++) {
+
         this.enemyList.push(
+
           new SwarmEnemy(
             this.randomSpawn(),
             this.player,
@@ -279,13 +336,16 @@ export default class FinalBossEnemy extends Enemy {
         );
       }
 
-      this.summonCooldown = 6;
+      this.summonCooldown = 8;
     }
 
     // PHASE 2
     else if (this.phase === 2) {
-      for (let i = 0; i < 6; i++) {
+
+      for (let i = 0; i < 2; i++) {
+
         this.enemyList.push(
+
           new SwarmEnemy(
             this.randomSpawn(),
             this.player,
@@ -293,23 +353,25 @@ export default class FinalBossEnemy extends Enemy {
         );
       }
 
-      for (let i = 0; i < 2; i++) {
-        this.enemyList.push(
-          new RangedEnemy(
-            this.randomSpawn(),
-            this.player,
-            this.bullets,
-          ),
-        );
-      }
+      this.enemyList.push(
 
-      this.summonCooldown = 4;
+        new RangedEnemy(
+          this.randomSpawn(),
+          this.player,
+          this.bullets,
+        ),
+      );
+
+      this.summonCooldown = 6;
     }
 
     // PHASE 3
     else {
-      for (let i = 0; i < 8; i++) {
+
+      for (let i = 0; i < 3; i++) {
+
         this.enemyList.push(
+
           new SwarmEnemy(
             this.randomSpawn(),
             this.player,
@@ -317,34 +379,28 @@ export default class FinalBossEnemy extends Enemy {
         );
       }
 
-      for (let i = 0; i < 2; i++) {
-        this.enemyList.push(
-          new TankEnemy(
-            this.randomSpawn(),
-            this.player,
-            this.enemyList,
-          ),
-        );
-      }
+      this.enemyList.push(
 
-      for (let i = 0; i < 3; i++) {
-        this.enemyList.push(
-          new RangedEnemy(
-            this.randomSpawn(),
-            this.player,
-            this.bullets,
-          ),
-        );
-      }
+        new TankEnemy(
+          this.randomSpawn(),
+          this.player,
+          this.enemyList,
+        ),
+      );
 
-      this.summonCooldown = 3;
+      this.summonCooldown = 5;
     }
   }
 
   randomSpawn() {
+
     return new Vector(
-      this.position.x + (Math.random() - 0.5) * 340,
-      this.position.y + (Math.random() - 0.5) * 340,
+
+      this.position.x +
+        (Math.random() - 0.5) * 340,
+
+      this.position.y +
+        (Math.random() - 0.5) * 340,
     );
   }
 }
