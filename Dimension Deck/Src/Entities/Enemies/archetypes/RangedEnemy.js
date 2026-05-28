@@ -3,10 +3,8 @@ import EnemyBullet from "../../EnemyBullet.js";
 import Enemy from "../../Enemy.js";
 
 export default class RangedEnemy extends Enemy {
-  constructor(position, player, bullets, credits) {
-    super(position, player);
-
-    this.bullets = bullets;
+  constructor(position, deps) {
+    super(position, deps);
 
     // BALANCE
     this.speed = 52;
@@ -30,17 +28,7 @@ export default class RangedEnemy extends Enemy {
     this.preferredDistance = 180;
   }
 
-  update(deltaTime) {
-    if (this.isDead) return;
-
-    if (this._flashTimer > 0) {
-      this._flashTimer -= deltaTime;
-    }
-
-    if (this.damageCooldown > 0) {
-      this.damageCooldown -= deltaTime;
-    }
-
+  onUpdate(deltaTime) {
     this.shootCooldown -= deltaTime;
 
     const direction = new Vector(
@@ -70,32 +58,9 @@ export default class RangedEnemy extends Enemy {
 
     // SHOOT
     if (distance < 300 && this.shootCooldown <= 0) {
-      const bulletPosition = this.position.plus(
-        normalizedDirection.times(18),
-      );
-
-      this.bullets.push(
-        new EnemyBullet(bulletPosition, normalizedDirection),
-      );
-
+      const bulletPosition = this.position.plus(normalizedDirection.times(18));
+      this.bullets.push(new EnemyBullet(bulletPosition, normalizedDirection));
       this.shootCooldown = this.shootRate;
-    }
-
-    // Contact damage
-    const dx = Math.abs(this.player.position.x - this.position.x);
-    const dy = Math.abs(this.player.position.y - this.position.y);
-
-    if (dx < 22 && dy < 22 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.7;
-    }
-
-    this.position = this.position.plus(
-      this.velocity.times(deltaTime),
-    );
-
-    if (this.health <= 0) {
-      this.die();
     }
   }
 }

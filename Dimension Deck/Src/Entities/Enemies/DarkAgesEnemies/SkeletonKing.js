@@ -3,8 +3,8 @@ import DungeonRat from "./DungeonRat.js";
 
 export default class SkeletonKing extends BossEnemy {
 
-    constructor(position, player, bullets, credits) {
-        super(position, player, bullets, credits);
+    constructor(position, deps) {
+        super(position, deps);
 
         this.health = 900;
         this.maxHealth = 900;

@@ -9,12 +9,10 @@ export default class BossRoom extends Room {
     bullets,
     credits,
     dimension,
-    rng,
     nodeType,
   ) {
     super(doorDirections, player, bullets, credits, dimension);
     this.dimension = dimension;
-    this.rng = rng;
     this.nodeType = nodeType; // "miniBoss" or "finalBoss"
     this.onBossDefeated = null;
 
@@ -42,12 +40,8 @@ export default class BossRoom extends Room {
     const centerY = Math.floor(ROOM_ROWS / 2) * TILE_SIZE;
 
     // Create the boss in the center of the room
-    const boss = new BossClass(
-      new Vector(centerX, centerY),
-      this.player,
-      this.bullets,
-      this.credits,
-    );
+    const deps = { player: this.player, bullets: this.bullets };
+    const boss = new BossClass(new Vector(centerX, centerY), deps);
 
     boss.enemyList = this.enemies;
     this.enemies.push(boss);

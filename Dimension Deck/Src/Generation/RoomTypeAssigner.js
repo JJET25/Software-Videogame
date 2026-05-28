@@ -1,8 +1,6 @@
-export default class RoomTypeAssigner {
-  constructor(rng) {
-    this.rng = rng; // Random Number Generator
-  }
+import { randInt } from "../Utils/Random.js";
 
+export default class RoomTypeAssigner {
   // Sets types for all rooms in the graph
   assign(graph, weights, bossType = "boss") {
     graph.getStartNode().type = "start";
@@ -21,7 +19,6 @@ export default class RoomTypeAssigner {
         } else if (type === "shop") {
           shopAssigned = true;
         }
-
         node.type = type;
       }
     }
@@ -30,7 +27,7 @@ export default class RoomTypeAssigner {
   // Pick a random type using probability weights
   #weightedRoll(weights) {
     const arrWeights = this.#buildCumalativeTable(weights);
-    const randomWeight = this.rng.int(0, 100);
+    const randomWeight = randInt(0, 100);
 
     // Find where random number fits in the limits
     for (const weight of arrWeights) {

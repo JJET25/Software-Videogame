@@ -1,9 +1,13 @@
 import Vector from "../../../Utils/Vector.js";
 import Enemy from "../../Enemy.js";
 
+const DASH_COOLDOWN = 2.5; // seconds between dashes
+const DASH_DURATION = 0.3; // 300ms in seconds
+const DASH_SPEED_MULT = 3;
+
 export default class TankEnemy extends Enemy {
-  constructor(position, player, credits) {
-    super(position, player);
+  constructor(position, deps) {
+    super(position, deps);
 
     // BALANCE
     this.speed = 38;
@@ -21,21 +25,12 @@ export default class TankEnemy extends Enemy {
     this.contactDamage = 18;
 
     // Dash system
-    this.dashCooldown = 2.5;
+    this.dashCooldownTimer = DASH_COOLDOWN;
+    this.dashTimer = 0;
     this.isDashing = false;
   }
 
-  update(deltaTime) {
-    if (this.isDead) return;
-
-    if (this._flashTimer > 0) {
-      this._flashTimer -= deltaTime;
-    }
-
-    if (this.damageCooldown > 0) {
-      this.damageCooldown -= deltaTime;
-    }
-
+  onUpdate(deltaTime) {
     const direction = new Vector(
       this.player.position.x - this.position.x,
       this.player.position.y - this.position.y,
@@ -43,39 +38,19 @@ export default class TankEnemy extends Enemy {
 
     const normalizedDirection = direction.normalize();
 
-    this.dashCooldown -= deltaTime;
-
-    // DASH
-    if (this.dashCooldown <= 0) {
-      this.isDashing = true;
-      this.dashCooldown = 2.5;
-    }
+    // Dash
+    this.dashCooldownTimer -= deltaTime;
 
     if (this.isDashing) {
-      this.velocity = normalizedDirection.times(this.speed * 3);
-
-      setTimeout(() => {
-        this.isDashing = false;
-      }, 300);
-    } else {
-      this.velocity = normalizedDirection.times(this.speed);
+      this.dashTimer -= deltaTime;
+      if (this.dashTimer <= 0) this.isDashing = false; // Dash ends
+    } else if (this.dashCooldownTimer <= 0) {
+      this.isDashing = true; // Dash starts
+      this.dashTimer = DASH_DURATION;
+      this.dashCooldownTimer = DASH_COOLDOWN; // Dash resets
     }
 
-    // Contact damage
-    const dx = Math.abs(this.player.position.x - this.position.x);
-    const dy = Math.abs(this.player.position.y - this.position.y);
-
-    if (dx < 32 && dy < 32 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 1;
-    }
-
-    this.position = this.position.plus(
-      this.velocity.times(deltaTime),
-    );
-
-    if (this.health <= 0) {
-      this.die();
-    }
+    const speed = this.isDashing ? this.speed * DASH_SPEED_MULT : this.speed;
+    this.velocity = normalizedDirection.times(speed);
   }
 }

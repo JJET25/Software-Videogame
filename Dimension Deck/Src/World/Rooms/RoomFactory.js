@@ -5,15 +5,7 @@ import ShopRoom from "./ShopRoom.js";
 import Room from "./Room.js";
 
 export default class RoomFactory {
-  static create(
-    node,
-    doorDirections,
-    player,
-    bullets,
-    credits,
-    dimension,
-    rng,
-  ) {
+  static create(node, doorDirections, player, bullets, credits, dimension) {
     if (node.type === "combat") {
       return new CombatRoom(
         doorDirections,
@@ -21,7 +13,6 @@ export default class RoomFactory {
         bullets,
         credits,
         dimension,
-        rng,
       );
     }
 
@@ -40,7 +31,6 @@ export default class RoomFactory {
         bullets,
         credits,
         dimension,
-        rng,
         node.type,
       );
     }

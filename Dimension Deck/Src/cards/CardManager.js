@@ -16,6 +16,7 @@ export default class CardManager {
   constructor() {
     this.activeSlots = new Array(MAX_ACTIVE_SLOTS).fill(null);
     this.autoSlots   = new Array(MAX_AUTO_SLOTS).fill(null);
+    this.storage     = [];  // cards collected but not assigned to any active/auto slot
 
     this.activeSlotCount = 3;
     this.autoSlotCount   = 4;
@@ -49,7 +50,7 @@ export default class CardManager {
     }
   }
 
-  // Adds a card to the first empty slot and if the card is at max level it is awarded with credits
+  // Adds a card to the first empty slot; overflows to storage when all slots are full
   addCard(card) {
     const isActive = card.type === CardType.ACTIVE;
     const slots    = isActive ? this.activeSlots : this.autoSlots;
@@ -68,21 +69,71 @@ export default class CardManager {
       }
     }
 
-    return { added: false, creditsAwarded: 0 };
+    // Active/auto slots full — send to storage instead of discarding
+    this.storage.push(card);
+    return { added: true, creditsAwarded: 0 };
+  }
+
+  // Moves `card` to the target slot (type: 'active'|'auto'|'storage', index: slot index).
+  // If the target slot is occupied the two cards swap; displaced card goes back to card's old location.
+  // No-op when card type doesn't match the target slot type.
+  assignToSlot(card, type, index) {
+    const isActive = card.type === CardType.ACTIVE;
+    if (type === 'active' && !isActive) return;
+    if (type === 'auto'   &&  isActive) return;
+
+    if (type === 'storage') {
+      this._removeFromAnywhere(card);
+      this.storage.push(card);
+      return;
+    }
+
+    const slots     = type === 'active' ? this.activeSlots : this.autoSlots;
+    const displaced = slots[index];
+    const srcInfo   = this._findCard(card);
+
+    this._removeFromAnywhere(card);
+
+    if (displaced) {
+      this._removeFromAnywhere(displaced);
+      if (srcInfo && srcInfo.type !== 'storage') {
+        // True swap: displaced card goes back to card's original slot
+        const srcSlots = srcInfo.type === 'active' ? this.activeSlots : this.autoSlots;
+        srcSlots[srcInfo.index] = displaced;
+      } else {
+        this.storage.push(displaced);
+      }
+    }
+
+    slots[index] = card;
   }
 
   removeCard(card) {
-    const isActive = card.type === CardType.ACTIVE;
-    const slots    = isActive ? this.activeSlots : this.autoSlots;
-    const limit    = isActive ? this.activeSlotCount : this.autoSlotCount;
+    this._removeFromAnywhere(card);
+    return true;
+  }
 
-    for (let i = 0; i < limit; i++) {
-      if (slots[i] === card) {
-        slots[i] = null;
-        return true;
-      }
+  _findCard(card) {
+    for (let i = 0; i < this.activeSlots.length; i++) {
+      if (this.activeSlots[i] === card) return { type: 'active', index: i };
     }
-    return false;
+    for (let i = 0; i < this.autoSlots.length; i++) {
+      if (this.autoSlots[i] === card) return { type: 'auto', index: i };
+    }
+    const si = this.storage.indexOf(card);
+    if (si !== -1) return { type: 'storage', index: si };
+    return null;
+  }
+
+  _removeFromAnywhere(card) {
+    for (let i = 0; i < this.activeSlots.length; i++) {
+      if (this.activeSlots[i] === card) { this.activeSlots[i] = null; return; }
+    }
+    for (let i = 0; i < this.autoSlots.length; i++) {
+      if (this.autoSlots[i] === card) { this.autoSlots[i] = null; return; }
+    }
+    const si = this.storage.indexOf(card);
+    if (si !== -1) this.storage.splice(si, 1);
   }
 
   update(deltaTime) {

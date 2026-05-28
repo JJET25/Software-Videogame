@@ -2,8 +2,8 @@ import Vector from "../../../Utils/Vector.js";
 import Enemy from "../../Enemy.js";
 
 export default class SwarmEnemy extends Enemy {
-  constructor(position, player, credits) {
-    super(position, player);
+  constructor(position, deps) {
+    super(position, deps);
 
     // BALANCE
     this.speed = 82;
@@ -27,23 +27,13 @@ export default class SwarmEnemy extends Enemy {
     this.isDiving = false;
   }
 
-  update(deltaTime) {
-    if (this.isDead) return;
-
-    if (this._flashTimer > 0) {
-      this._flashTimer -= deltaTime;
-    }
-
-    if (this.damageCooldown > 0) {
-      this.damageCooldown -= deltaTime;
-    }
-
+  onUpdate(deltaTime) {
     const direction = new Vector(
       this.player.position.x - this.position.x,
       this.player.position.y - this.position.y,
     );
 
-    const distance = direction.magnitude();
+    const distance = direction.magnitude(); 
     const normalizedDirection = direction.normalize();
 
     this.attackTimer -= deltaTime;
@@ -60,46 +50,24 @@ export default class SwarmEnemy extends Enemy {
       this.attackTimer = 1.2 + Math.random() * 1.8;
     }
 
-    // MOVEMENT
+    // Movement
     if (this.isDiving) {
       this.velocity = normalizedDirection.times(this.speed * 1.6);
     } else {
-      // Orbit movement
       const perpendicular = new Vector(
         -normalizedDirection.y * this.orbitDirection,
         normalizedDirection.x * this.orbitDirection,
       );
 
       let radialForce = 0;
-
-      if (distance > 120) {
-        radialForce = 0.35;
-      } else if (distance < 80) {
-        radialForce = -0.35;
-      }
+      if (distance > 120) radialForce = 0.35;
+      else if (distance < 80) radialForce = -0.35;
 
       const movement = perpendicular
         .plus(normalizedDirection.times(radialForce))
         .normalize();
 
       this.velocity = movement.times(this.speed);
-    }
-
-    // Contact damage
-    const dx = Math.abs(this.player.position.x - this.position.x);
-    const dy = Math.abs(this.player.position.y - this.position.y);
-
-    if (dx < 18 && dy < 18 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-      this.damageCooldown = 0.7;
-    }
-
-    this.position = this.position.plus(
-      this.velocity.times(deltaTime),
-    );
-
-    if (this.health <= 0) {
-      this.die();
     }
   }
 }

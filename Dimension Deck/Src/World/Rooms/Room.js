@@ -59,16 +59,8 @@ export default class Room {
     // Update enemies
     for (let enemy of this.enemies) {
       enemy.update(deltaTime);
-      // Keep enemies inside room
-      enemy.position.x = Math.max(
-        32,
-        Math.min(enemy.position.x, ROOM_WIDTH - 32),
-      );
-
-      enemy.position.y = Math.max(
-        32,
-        Math.min(enemy.position.y, ROOM_HEIGHT - 32),
-      );
+      this.walls.forEach((wall) => Collision.resolve(enemy, wall));
+      Collision.resolveEntityBounds(enemy, ROOM_WIDTH, ROOM_HEIGHT);
     }
 
     // Remove enemies after death
@@ -264,7 +256,7 @@ export default class Room {
     const inDoorRow =
       row === midRow || row === midRow - 1 || row === midRow + 1;
 
-    // Open gaps only where door exist 
+    // Open gaps only where door exist
     if (this.doorDirections.includes("north") && row < 2 && inDoorCol)
       return true;
     if (

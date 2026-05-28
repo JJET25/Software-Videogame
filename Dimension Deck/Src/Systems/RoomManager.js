@@ -13,11 +13,10 @@ import {
 
 // Manages the active room, door transitions, bullet simulation, and credit pickup
 export default class RoomManager {
-  constructor(graph, player, dimension, rng, callbacks = {}) {
+  constructor(graph, player, dimension, callbacks = {}) {
     this.graph = graph;
     this.player = player;
     this.dimension = dimension;
-    this.rng = rng;
     this.callbacks = callbacks;
     this.currentNodeId = null;
     this.previousNodeId = null;
@@ -38,6 +37,7 @@ export default class RoomManager {
     const node = this.graph.getNode(nodeId);
     const neighbors = this.graph.getNeighbors(nodeId);
 
+    this.credits.length = 0;
     this.currentNodeId = nodeId;
     this.previousNodeId = fromNodeId;
     node.isVisited = true;
@@ -54,7 +54,6 @@ export default class RoomManager {
         this.bullets,
         this.credits,
         this.dimension,
-        this.rng,
       );
       this.roomCache.set(nodeId, newRoom);
     }
@@ -79,15 +78,6 @@ export default class RoomManager {
 
     this.currentRoom.update(deltaTime, this.player);
 
-    for (let enemy of this.currentRoom.enemies) {
-      if (enemy.isDead && !enemy.droppedCredits) {
-        this.credits.push(
-          new Credit(new Vector(enemy.position.x, enemy.position.y)),
-        );
-        enemy.droppedCredits = true;
-      }
-    }
-
     for (let credit of this.credits) {
       const distanceX = Math.abs(this.player.position.x - credit.position.x);
       const distanceY = Math.abs(this.player.position.y - credit.position.y);
@@ -107,12 +97,18 @@ export default class RoomManager {
 
     for (let bullet of this.bullets) {
       bullet.update(deltaTime);
-    }
 
-    for (let bullet of this.bullets) {
-      const distanceX = Math.abs(this.player.position.x - bullet.position.x);
-      const distanceY = Math.abs(this.player.position.y - bullet.position.y);
-      if (distanceX < 24 && distanceY < 24) {
+      for (const wall of this.currentRoom.walls) {
+        if (Collision.rectCollision(bullet.getBounds(), wall.getBounds())) {
+          bullet.isDead = true;
+          break;
+        }
+      }
+
+      if (
+        !bullet.isDead &&
+        Collision.rectCollision(bullet.getBounds(), this.player.getBounds())
+      ) {
         this.player.takeDamage(bullet.damage);
         bullet.isDead = true;
       }

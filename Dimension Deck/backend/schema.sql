@@ -184,7 +184,7 @@ INSERT INTO enemies (name, archetype, dimension, hp, speed, contact_dmg, width_p
 ('DesertRat',    'swarm',  'old_west',   16,  82,  6, 12, 12, NULL, NULL);
 
 INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibility, trigger_event, threshold, heal_pct, full_heal, from_enemy) VALUES
-(1,    32, 0.628, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(1,    80, 1.200, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 (2,    28, 1.099, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 (3,    72, 3.142, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 (4,    48, 2.356, NULL, NULL, NULL,              NULL, NULL, 0, 0),

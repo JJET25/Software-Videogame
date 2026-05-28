@@ -6,43 +6,44 @@ import Rock from "../Objects/Rock.js";
 import { ROOM_COLS, ROOM_ROWS, TILE_SIZE } from "../../Utils/Constants.js";
 import Vector from "../../Utils/Vector.js";
 import Room from "./Room.js";
+import { randInt } from "../../Utils/Random.js";
 
 export default class CombatRoom extends Room {
-  constructor(doorDirections, player, bullets, credits, dimension, rng) {
+  constructor(doorDirections, player, bullets, credits, dimension) {
     super(doorDirections, player, bullets, credits, dimension);
     this.dimension = dimension;
-    this.rng = rng;
     this.spawnDelay = 1;
 
     this.populate();
   }
 
   populate() {
-    // Pick a random encounter templete
-    const templetedSelected =
-      ENCOUNTER_TEMPLATES[this.rng.int(0, ENCOUNTER_TEMPLATES.length - 1)];
+    const deps = { player: this.player, bullets: this.bullets };
+    const pool = this.dimension.enemyPool;
+    const templete =
+      ENCOUNTER_TEMPLATES[randInt(0, ENCOUNTER_TEMPLATES.length - 1)];
 
     // Spawn swarm enemies
-    for (let i = 0; i < templetedSelected.swarm; i++) {
-      const enemyPos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
+    for (let i = 0; i < templete.swarm; i++) {
+      const EnemyClass = pool.swarm[randInt(0, pool.swarm.length - 1)];
       this.enemies.push(
-        new SwarmEnemy(enemyPos, this.player, this.bullets, this.credits),
+        new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps),
       );
     }
 
     // Spawn tank enemies
-    for (let i = 0; i < templetedSelected.tank; i++) {
-      const enemyPos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
+    for (let i = 0; i < templete.tank; i++) {
+      const EnemyClass = pool.tank[randInt(0, pool.tank.length - 1)];
       this.enemies.push(
-        new TankEnemy(enemyPos, this.player, this.bullets, this.credits),
+        new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps),
       );
     }
 
     // Spawn ranged enemies
-    for (let i = 0; i < templetedSelected.ranged; i++) {
-      const enemyPos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
+    for (let i = 0; i < templete.ranged; i++) {
+      const EnemyClass = pool.ranged[randInt(0, pool.ranged.length - 1)];
       this.enemies.push(
-        new RangedEnemy(enemyPos, this.player, this.bullets, this.credits),
+        new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps),
       );
     }
 
@@ -50,20 +51,11 @@ export default class CombatRoom extends Room {
     this.#populateObjects();
   }
 
-  #getRandomEnemyType(pool, rng) {
-    const categories = ["swarm", "tank", "ranged"];
-    const chosenCategory = categories[rng.int(0, categories.length - 1)];
-    const options = pool[chosenCategory];
-
-    // Return a random enemy from that category
-    return options[rng.int(0, options.length - 1)];
-  }
-
-  #getSafeSpawnPosition(tileGrid, rng) {
+  #getSafeSpawnPosition(tileGrid) {
     // Keep searching until a valid floor tile is found
     while (true) {
-      const row = rng.int(3, ROOM_ROWS - 3);
-      const col = rng.int(3, ROOM_COLS - 3);
+      const row = randInt(3, ROOM_ROWS - 3);
+      const col = randInt(3, ROOM_COLS - 1);
 
       // Only spawn on walkable tiles
       if (tileGrid[row][col] === "floor") {
@@ -77,7 +69,7 @@ export default class CombatRoom extends Room {
 
   #populateObjects() {
     // Rocks
-    const rockCount = this.rng.int(0, 4);
+    const rockCount = randInt(0, 4);
 
     for (let i = 0; i < rockCount; i++) {
       const pos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);

@@ -1,4 +1,5 @@
 import { DIRECTIONS, GENERATION } from "../Utils/Constants.js";
+import { randFloat, randInt } from "../Utils/Random.js";
 import RoomGraph from "../World/Graph/RoomGraph.js";
 import RoomNode from "../World/Graph/RoomNode.js";
 
@@ -6,8 +7,7 @@ export default class GraphBuilder {
   #counter;
   #occupiedGrid;
 
-  constructor(rng) {
-    this.rng = rng;
+  constructor() {
     this.#counter = 0;
     this.#occupiedGrid = new Map();
   }
@@ -35,8 +35,7 @@ export default class GraphBuilder {
     const frontier = [graph.getStartNode()];
 
     while (frontier.length > 0 && graph.size() < roomCount) {
-      const randomIndex = this.rng.int(0, frontier.length - 1);
-
+      const randomIndex = randInt(0, frontier.length - 1);
       const currentNode = frontier[randomIndex];
 
       const availableDirection = this.#getAvailableDirections(
@@ -68,9 +67,7 @@ export default class GraphBuilder {
   #getAvailableDirections(pos) {
     return DIRECTIONS.filter((dir) => {
       const nextX = pos.x + dir.dx;
-
       const nextY = pos.y + dir.dy;
-
       const posXY = this.#posKey(nextX, nextY);
 
       return !this.#occupiedGrid.has(posXY);
@@ -80,14 +77,11 @@ export default class GraphBuilder {
   #connectToExistingNeighbors(graph, node) {
     for (const dir of DIRECTIONS) {
       const newX = node.gridPos.x + dir.dx;
-
       const newY = node.gridPos.y + dir.dy;
-
       const key = this.#posKey(newX, newY);
 
       if (this.#occupiedGrid.has(key)) {
-        if (this.rng.float() > GENERATION.CONNECTION_CHANCE) continue;
-
+        if (randFloat() > GENERATION.CONNECTION_CHANCE) continue;
         const neighbor = this.#occupiedGrid.get(key);
 
         graph.addEdge(node.id, neighbor.id);
@@ -148,7 +142,6 @@ export default class GraphBuilder {
     const newNode = new RoomNode(this.#counter, 0);
 
     newNode.gridPos.x = x;
-
     newNode.gridPos.y = y;
 
     this.#occupiedGrid.set(this.#posKey(x, y), newNode);
