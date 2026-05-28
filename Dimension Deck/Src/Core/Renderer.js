@@ -30,6 +30,7 @@ export default class Renderer {
   setupResizeListener() {
     if (this._resizeListenerAttached) return;
     this._resizeListenerAttached = true;
+
     window.addEventListener("resize", () => {
       this.resize();
     });
@@ -38,6 +39,7 @@ export default class Renderer {
   // Clears the canvas with black to begin a new frame
   clear() {
     this.context.fillStyle = "#000000";
+
     this.context.fillRect(
       0,
       0,
@@ -48,6 +50,7 @@ export default class Renderer {
 
   drawRect(x, y, width, height, color) {
     this.context.fillStyle = color;
+
     this.context.fillRect(
       this.scale * x,
       this.scale * y,
@@ -56,17 +59,45 @@ export default class Renderer {
     );
   }
 
-  // Draws text at (x, y) where y is the baseline
+  // Draws text at (x, y)
   drawText(text, x, y, font = "10px monospace", color = "#ffffff") {
+
+    // Sharper text rendering
+    this.context.textBaseline = "top";
+    this.context.imageSmoothingEnabled = false;
+
     this.context.font = font;
     this.context.fillStyle = color;
-    this.context.fillText(text, this.scale * x, this.scale * y);
+
+    // Small shadow for readability
+    this.context.shadowColor = "rgba(0,0,0,0.45)";
+    this.context.shadowBlur = 0;
+    this.context.shadowOffsetX = 1;
+    this.context.shadowOffsetY = 1;
+
+    this.context.fillText(
+      text,
+      this.scale * x,
+      this.scale * y,
+    );
+
+    // Reset shadow
+    this.context.shadowColor = "transparent";
   }
 
   drawLine(x1, y1, x2, y2, color, width = 1) {
     this.context.beginPath();
-    this.context.moveTo(this.scale * x1, this.scale * y1);
-    this.context.lineTo(this.scale * x2, this.scale * y2);
+
+    this.context.moveTo(
+      this.scale * x1,
+      this.scale * y1,
+    );
+
+    this.context.lineTo(
+      this.scale * x2,
+      this.scale * y2,
+    );
+
     this.context.lineWidth = width;
     this.context.strokeStyle = color;
     this.context.stroke();
@@ -74,6 +105,7 @@ export default class Renderer {
 
   drawImage(image, x, y, width, height) {
     this.context.imageSmoothingEnabled = false;
+
     this.context.drawImage(
       image,
       this.scale * x,
@@ -82,9 +114,16 @@ export default class Renderer {
       this.scale * height,
     );
   }
+
   // Fills the entire canvas with a semi-transparent color overlay
   drawFlash(color) {
     this.context.fillStyle = color;
-    this.context.fillRect(0, 0, this.GAME_WIDTH, this.GAME_HEIGHT);
+
+    this.context.fillRect(
+      0,
+      0,
+      this.GAME_WIDTH,
+      this.GAME_HEIGHT,
+    );
   }
 }
