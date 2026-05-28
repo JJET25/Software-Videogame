@@ -233,6 +233,22 @@ export default class HUD {
           "8px monospace",
           "#dddddd",
         );
+
+        const onCooldown = !cardManager.cooldown.isReady(card.name);
+        if (onCooldown) {
+          const progress = cardManager.cooldown.getProgress(card.name);
+          const overlayH = Math.ceil((1 - progress) * SLOT_SIZE);
+          renderer.drawRect(x, y, SLOT_SIZE, overlayH, "rgba(0,0,0,0.65)");
+
+          const remaining = cardManager.cooldown.getRemaining(card.name);
+          renderer.drawText(
+            remaining.toFixed(1),
+            x + 2,
+            y + SLOT_SIZE - 5,
+            "7px monospace",
+            "#aaaaaa",
+          );
+        }
       }
 
       renderer.drawText(
