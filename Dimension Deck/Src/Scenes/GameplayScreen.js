@@ -85,8 +85,11 @@ export default class GameplayScreen extends Screen {
             window.testingMode = !window.testingMode;
         }
 
+        // DeckScreen runs first so it can consume clicks before the player does
+        if (!shopOpen) this.deckScreen.update(this.input, this.mouse, this.cardManager);
+
         const prevHealth = this.player.health;
-        if (!shopOpen) this.player.update(deltaTime);
+        if (!shopOpen && !this.deckScreen.isOpen) this.player.update(deltaTime);
 
         this.cardManager.update(deltaTime);
         rm.update(deltaTime);
@@ -114,7 +117,6 @@ export default class GameplayScreen extends Screen {
         }
 
         this.hud.update(deltaTime);
-        if (!shopOpen) this.deckScreen.update(this.input);
 
         if (room?.isShopRoom) {
             if (!shopOpen) this.interaction.update(this.player, [room.merchant]);
@@ -142,7 +144,7 @@ export default class GameplayScreen extends Screen {
             status,
             ...this.stats,
             creditsEarned:  this.player.credits,
-            cardsCollected: [...this.cardManager.activeSlots, ...this.cardManager.autoSlots]
+            cardsCollected: [...this.cardManager.activeSlots, ...this.cardManager.autoSlots, ...this.cardManager.storage]
                                 .filter(Boolean).length,
         };
         this.screenManager.changeTo(new DefeatScreen(), { runId: this.runId, ...finalStats });
