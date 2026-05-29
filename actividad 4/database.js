@@ -17,3 +17,12 @@ export async function getCats() {
 
     return rows;
 }
+
+export async function getMenu(day) {
+    const [rows] = await pool.query(
+        "SELECT * FROM menu_items WHERE day = ?",
+        [day]
+    );
+
+    return rows;
+}
