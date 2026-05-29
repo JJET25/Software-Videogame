@@ -15,7 +15,12 @@ import MiniMap from "../UI/Minimap.js";
 import DimensionManager from "../Systems/DimensionManager.js";
 import InteractionManager from "../Systems/InteractionManager.js";
 
-import { createRun, endRun, fetchStarterCards } from "../Utils/Api.js";
+import {
+  createRun,
+  endRun,
+  fetchStarterCards,
+  fetchAllCards,
+} from "../Utils/Api.js";
 
 // Main gameplay screen — initializes all game systems and delegates update and draw each frame
 export default class GameplayScreen extends Screen {
@@ -29,6 +34,8 @@ export default class GameplayScreen extends Screen {
     this.player.cardManager = this.cardManager;
     this.player.getEnemies = () =>
       this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
+    this.player.getObjects = () =>
+      this.dimManager?.getRoomManager()?.currentRoom?.objects ?? [];
 
     this.dimManager = new DimensionManager(this.player, () => this.onVictory());
     this.dimManager.startRun();
@@ -42,6 +49,7 @@ export default class GameplayScreen extends Screen {
     this._prevRoom = null;
     this._deadEnemies = new Set();
     this._roomCounted = false;
+    this.cardCatalog = [];
 
     window.testingMode = false;
 
@@ -51,10 +59,13 @@ export default class GameplayScreen extends Screen {
 
   async _loadStarterCards() {
     try {
-      const [runData, dbCards] = await Promise.all([
+      const [runData, dbCards, allCards] = await Promise.all([
         createRun(),
         fetchStarterCards(),
+        fetchAllCards(),
       ]);
+      this.cardCatalog = allCards ?? [];
+
       this.runId = runData?.runId ?? null;
       for (const data of dbCards ?? []) {
         const card = createCard(data);
@@ -87,7 +98,8 @@ export default class GameplayScreen extends Screen {
     }
 
     // DeckScreen runs first so it can consume clicks before the player does
-    if (!shopOpen) this.deckScreen.update(this.input, this.mouse, this.cardManager);
+    if (!shopOpen)
+      this.deckScreen.update(this.input, this.mouse, this.cardManager);
 
     const prevHealth = this.player.health;
     if (!shopOpen && !this.deckScreen.isOpen) this.player.update(deltaTime);
@@ -119,8 +131,15 @@ export default class GameplayScreen extends Screen {
 
     this.hud.update(deltaTime);
 
+    const interactables = room?.getInteractables?.() ?? [];
+    if (interactables.length > 0 && !shopOpen) {
+      this.interaction.update(this.player, interactables, {
+        cardManager: this.cardManager,
+        cardCatalog: this.cardCatalog,
+      });
+    }
+
     if (room?.isShopRoom) {
-      if (!shopOpen) this.interaction.update(this.player, [room.merchant]);
       room.storeUI?.update(this.input, this.player, this.cardManager);
     }
   }

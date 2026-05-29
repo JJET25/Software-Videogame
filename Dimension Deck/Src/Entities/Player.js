@@ -15,7 +15,10 @@ export default class Player extends Entity {
     this.input = input;
     this.mouse = mouse;
     this.speed = 150;
+    this._baseSpeed = 150;
+    this._slowTimer = 0;
     this.state = "idle";
+    this.getObjects = null;
 
     this.cardManager = null;
     this.credits = 0;
@@ -60,6 +63,14 @@ export default class Player extends Entity {
 
   update(deltaTime) {
     if (this.isDead) return;
+
+    // Slow timer: decreses each frame, when ends the velocity restart
+    if (this._slowTimer > 0) {
+      this._slowTimer -= deltaTime;
+      this.speed = this._baseSpeed * 0.4; // 40% velocity
+    } else {
+      this.speed = this._baseSpeed; // normal velocity
+    }
 
     const raw = new Vector(0, 0);
 
@@ -166,6 +177,7 @@ export default class Player extends Entity {
     if (!this.cardManager) return;
 
     const enemies = this.getEnemies?.() ?? [];
+    const objects = this.getObjects?.() ?? [];
     const snapshots = enemies.map((e) => ({
       enemy: e,
       health: e.health,
@@ -175,6 +187,7 @@ export default class Player extends Entity {
     this.cardManager.playCard(index, {
       player: this,
       enemies,
+      objects,
       mouse: this.mouse,
     });
 
