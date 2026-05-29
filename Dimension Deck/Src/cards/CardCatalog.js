@@ -9,18 +9,18 @@ const quickStrike = () => new ActiveMeleeCard({
     name:        'Quick Strike',
     description: 'Deal damage to enemies within 80px.',
     rarity:      Rarity.COMMON,
-    damage:      20,
+    damage:      40,
     range:       80,
     spread:      1.2,
-    cooldown:    3,
+    cooldown:    2,
 });
 
 const healPulse = () => new ActiveHealCard({
     name:        'Heal Pulse',
-    description: 'Restore 25 HP.',
+    description: 'Restore 45 HP.',
     rarity:      Rarity.COMMON,
-    healAmount:  25,
-    cooldown:    10,
+    healAmount:  45,
+    cooldown:    5,
 });
 
 const woodShield = () => new ActiveDefenseCard({
@@ -28,7 +28,7 @@ const woodShield = () => new ActiveDefenseCard({
     description:  'Absorb the next 20 damage.',
     rarity:       Rarity.COMMON,
     shieldAmount: 20,
-    cooldown:     8,
+    cooldown:     4,
 });
 
 export const STARTER_DECK = [quickStrike, healPulse, woodShield];

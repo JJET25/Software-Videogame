@@ -10,11 +10,15 @@ const BAR_Y = 26;
 
 const FLASH_DURATION = 0.25;
 
-// Card slots
+// Active card slots
 const SLOT_SIZE = 20;
-const SLOT_GAP = 4;
+const SLOT_GAP  = 4;
+const SLOTS_Y   = ROOM_HEIGHT - 40;
 
-const SLOTS_Y = ROOM_HEIGHT - 40;
+// Auto card slots (smaller row below active)
+const AUTO_SLOT_SIZE = 12;
+const AUTO_SLOT_GAP  = 3;
+const AUTO_SLOTS_Y   = SLOTS_Y + SLOT_SIZE + 4;
 
 const RARITY_COLOR = {
   common: "#888888",
@@ -49,6 +53,7 @@ export default class HUD {
 
     if (cardManager) {
       this._drawCardSlots(renderer, cardManager);
+      this._drawAutoSlots(renderer, cardManager);
     }
 
     this._drawTestModeIndicator(renderer);
@@ -257,6 +262,42 @@ export default class HUD {
         y + SLOT_SIZE - 3,
         "8px monospace",
         selected ? "#ffffff" : "#555555",
+      );
+    }
+  }
+
+  _drawAutoSlots(renderer, cardManager) {
+    const occupied = cardManager.autoSlots
+      .slice(0, cardManager.autoSlotCount)
+      .filter(Boolean);
+
+    if (occupied.length === 0) return;
+
+    const count  = occupied.length;
+    const totalW = count * AUTO_SLOT_SIZE + (count - 1) * AUTO_SLOT_GAP;
+    const startX = Math.floor((ROOM_WIDTH - totalW) / 2);
+    const y      = AUTO_SLOTS_Y;
+
+    renderer.drawText("AUTO", startX, y - 3, "6px monospace", "#7755bb");
+
+    for (let i = 0; i < count; i++) {
+      const x    = startX + i * (AUTO_SLOT_SIZE + AUTO_SLOT_GAP);
+      const card = occupied[i];
+
+      renderer.drawRect(x, y, AUTO_SLOT_SIZE, AUTO_SLOT_SIZE, "#111122");
+
+      renderer.drawRect(x - 1, y - 1, AUTO_SLOT_SIZE + 2, 1, "#7755bb");
+      renderer.drawRect(x - 1, y + AUTO_SLOT_SIZE, AUTO_SLOT_SIZE + 2, 1, "#7755bb");
+      renderer.drawRect(x - 1, y, 1, AUTO_SLOT_SIZE, "#7755bb");
+      renderer.drawRect(x + AUTO_SLOT_SIZE, y, 1, AUTO_SLOT_SIZE, "#7755bb");
+
+      const rarityColor = RARITY_COLOR[card.rarity] ?? "#888888";
+      renderer.drawRect(x, y + AUTO_SLOT_SIZE - 2, AUTO_SLOT_SIZE, 2, rarityColor);
+
+      renderer.drawText(
+        card.name.slice(0, 3),
+        x + 1, y + 8,
+        "7px monospace", "#aaaacc",
       );
     }
   }

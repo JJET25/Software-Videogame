@@ -118,9 +118,7 @@ export default class Player extends Entity {
     if (this.cardManager) {
       for (let i = 0; i < 5; i++) {
         if (this.input.wasKeyPressed(String(i + 1))) {
-          if (this.cardManager.selectedIndex === i) {
-            this._playCardAtSlot(i);
-          } else this.cardManager.selectSlot(i);
+          this.cardManager.selectSlot(i);
         }
       }
 
