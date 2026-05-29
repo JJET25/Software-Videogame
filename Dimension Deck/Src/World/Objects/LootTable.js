@@ -1,6 +1,7 @@
 import { Rarity } from "../../cards/Card.js";
 import { randInt } from "../../Utils/Random.js";
 
+// Loot chances table
 const TABLE = [
   {
     weight: 60,
@@ -10,6 +11,7 @@ const TABLE = [
   { weight: 10, roll: () => ({ type: "card", rarity: Rarity.EPIC }) },
   { weight: 5, roll: () => ({ type: "card", rarity: Rarity.LEGENDARY }) },
 ];
+
 
 export default class LootTable {
   static roll() {

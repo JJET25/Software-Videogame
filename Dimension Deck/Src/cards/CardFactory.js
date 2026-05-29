@@ -142,7 +142,7 @@ export function createCard(dbData) {
 
 export const STARTER_CARDS = ["Quick Strike", "Heal Pulse", "Wood Shield"];
 
-// Select a random card of rarity asked from loaded pool at run start
+// Returns a random card with the selected rarity
 export function getRandomCardByRarity(catalog, rarity) {
   if (!catalog?.length) return null;
 

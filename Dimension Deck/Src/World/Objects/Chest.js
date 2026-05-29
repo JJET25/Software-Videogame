@@ -7,28 +7,36 @@ export default class Chest extends GameObject {
   constructor(position) {
     super(position, 16, 16, "#f1c536", "chest");
     this.isOpen = false;
-    this.showPrompt = false;
+    this.showPrompt = true; // Shows interaction text
   }
 
-  // Call when player press E
+  // Call when the player presses E
   interact(player, context = {}) {
-    if (this.isOpen) return;
+    if (this.isOpen) return; // Prevent opening twice
     this.isOpen = true;
 
+    // Generate random loot
     const loot = LootTable.roll();
 
+    // Credit reward
     if (loot.type === "credits") {
       player.addCredits(loot.amount);
+      //console.log(`[Chest] Monedas: ${loot.amount}`);
       return;
     }
 
+    // Try to get a random card
     const card = getRandomCardByRarity(context.cardCatalog, loot.rarity);
     if (card && context.cardManager) {
-      const result = context.cardManager.addCard(card);
+      const result = context.cardManager.addCard(card); // Add card to player collection
+      //console.log(`[Chest] Carta: ${card.name} (${card.rarity})`);
+
       if (!result.added && result.creditsAwarded > 0) {
-        player.addCredits(result.creditsAwarded);
+        // Give coins if card cannot be added
+        player.addCredits(result.creditsAwarded); 
       }
     } else {
+      // Fallback reward if card generation fails
       player.addCredits(randInt(1, 10) * 20);
     }
   }
@@ -47,8 +55,8 @@ export default class Chest extends GameObject {
         "[E] Open Chest",
         this.position.x,
         this.position.y - 16,
-        "7px monospace",
-        "#ffcc33",
+        "12px monospace",
+        "#000000",
         { align: "center" },
       );
     }
