@@ -7,6 +7,8 @@ import { ROOM_COLS, ROOM_ROWS, TILE_SIZE } from "../../Utils/Constants.js";
 import Vector from "../../Utils/Vector.js";
 import Room from "./Room.js";
 import { randInt } from "../../Utils/Random.js";
+import Box from "../Objects/Box.js";
+import Spike from "../Objects/Spike.js";
 
 export default class CombatRoom extends Room {
   constructor(doorDirections, player, bullets, credits, dimension) {
@@ -54,8 +56,8 @@ export default class CombatRoom extends Room {
   #getSafeSpawnPosition(tileGrid) {
     // Keep searching until a valid floor tile is found
     while (true) {
-      const row = randInt(3, ROOM_ROWS - 3);
-      const col = randInt(3, ROOM_COLS - 1);
+      const row = randInt(4, ROOM_ROWS - 4);
+      const col = randInt(4, ROOM_COLS - 4);
 
       // Only spawn on walkable tiles
       if (tileGrid[row][col] === "floor") {
@@ -70,10 +72,21 @@ export default class CombatRoom extends Room {
   #populateObjects() {
     // Rocks
     const rockCount = randInt(0, 4);
-
     for (let i = 0; i < rockCount; i++) {
       const pos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
       this.objects.push(new Rock(pos));
+    }
+
+    // Boxes
+    const boxCount = randInt(0, 3);
+    for (let i = 0; i < boxCount; i++) {
+      this.objects.push(new Box(this.#getSafeSpawnPosition(this.tileGrid)));
+    }
+
+    // Spikes
+    const spikeCount = randInt(0, 4);
+    for (let i = 0; i < spikeCount; i++) {
+      this.objects.push(new Spike(this.#getSafeSpawnPosition(this.tileGrid)));
     }
   }
 }

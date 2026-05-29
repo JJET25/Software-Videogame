@@ -34,6 +34,8 @@ export default class GameplayScreen extends Screen {
     this.player.cardManager = this.cardManager;
     this.player.getEnemies = () =>
       this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
+    this.player.getObjects = () =>
+      this.dimManager?.getRoomManager()?.currentRoom?.objects ?? [];
 
     this.dimManager = new DimensionManager(this.player, () => this.onVictory());
     this.dimManager.startRun();

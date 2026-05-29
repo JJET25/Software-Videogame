@@ -46,9 +46,24 @@ export default class Room {
   update(deltaTime, player) {
     // Prevent player from crossing walls
     this.walls.forEach((wall) => Collision.resolve(player, wall));
-
-    // Keep player inside room bounds
     Collision.resolveEntityBounds(player, ROOM_WIDTH, ROOM_HEIGHT);
+
+    // Solid objetc collisions
+    for (const obj of this.objects) {
+      if (!obj.isSolid || obj.isDead) continue;
+      Collision.resolve(player, obj);
+
+      for (const enemy of this.enemies) Collision.resolve(enemy, obj);
+    }
+
+    // Spikes: damage player when pass on it
+    for (const obj of this.objects) {
+      if (obj.type === "spike" && typeof obj.onPlayerContact === "function") {
+        if (Collision.rectCollision(obj.getBounds(), player.getBounds())) {
+          obj.onPlayerContact(player, deltaTime);
+        }
+      }
+    }
 
     // Wait before enemies act
     if (this.spawnDelay > 0) {
@@ -74,6 +89,16 @@ export default class Room {
         );
 
         this.enemies.splice(i, 1);
+      }
+    }
+
+    // Remove death objects
+    for (let i = this.objects.length - 1; i >= 0; i--) {
+      const obj = this.objects[i];
+
+      if (obj.isDead) {
+        obj.dropLoot?.(this.credits); // Only boxes used it
+        this.objects.splice(i, 1);
       }
     }
   }

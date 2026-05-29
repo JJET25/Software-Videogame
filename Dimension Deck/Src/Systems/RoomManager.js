@@ -97,9 +97,23 @@ export default class RoomManager {
 
     for (let bullet of this.bullets) {
       bullet.update(deltaTime);
-
+      // Bullets vs Walls
       for (const wall of this.currentRoom.walls) {
         if (Collision.rectCollision(bullet.getBounds(), wall.getBounds())) {
+          bullet.isDead = true;
+          break;
+        }
+      }
+
+      // Bullets vs Solid Objects
+      for (const obj of this.currentRoom.objects) {
+        if (!obj.isSolid || obj.isDead) continue;
+
+        // Rocks blocks bullets
+        // Boxes get damage
+        if (Collision.rectCollision(bullet.getBounds(), obj.getBounds())) {
+          if (typeof obj.takeDamage === "function")
+            obj.takeDamage(bullet.damage);
           bullet.isDead = true;
           break;
         }
