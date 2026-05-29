@@ -60,6 +60,8 @@ export default class StoreUI {
 
         this._scrollTop = 0;
 
+        this._justOpened = true;
+
         if (this.offerings.length === 0) {
             this._generateOfferings();
         }
@@ -296,6 +298,11 @@ export default class StoreUI {
     update(input, player, cardManager) {
 
         if (!this.isOpen) return;
+
+        if (this._justOpened) {
+            this._justOpened = false;
+            return;
+        }
 
         if (input.wasKeyPressed('Q')) {
 

@@ -18,7 +18,13 @@
         <a href="frontend/HTML/login.html" class="loginBtn">SIGN UP</a>
       </div>
       <div id="user" class="user" style="display: none">
-        <p>Hi <span id="usernameDisplay"></span>!</p>
+        <div class="user-avatar" id="userAvatar">
+          <span id="usernameInitial"></span>
+          <div class="user-dropdown" id="userDropdown">
+            <p>Hi, <span id="usernameDisplay"></span>!</p>
+            <button id="logoutBtn">LOG OUT</button>
+          </div>
+        </div>
       </div>
     </header>
 

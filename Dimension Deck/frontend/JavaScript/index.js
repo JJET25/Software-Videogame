@@ -1,9 +1,13 @@
 const usernameDisplay = document.getElementById("usernameDisplay");
+const usernameInitial = document.getElementById("usernameInitial");
+const userAvatar = document.getElementById("userAvatar");
+const userDropdown = document.getElementById("userDropdown");
 const signupUser = document.getElementById("signupUser");
 const user = document.getElementById("user");
 const heroPlay = document.getElementById("heroPlay");
 const navPlay = document.getElementById("navPlay");
 const navStats = document.getElementById("navStats");
+const logoutBtn = document.getElementById("logoutBtn");
 
 // Temporal para probar UI — comenta el fetch y pon esto:
 //document.getElementById('usernameDisplay').textContent = 'UserTest';
@@ -28,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (token) {
     try {
       // Get token of user data
-      const response = await fetch("http://localhost:3001/auth/me", {
+      const response = await fetch("http://localhost:3001/users/me", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -36,9 +40,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Check if data is valid
       if (response.ok) {
         const userData = await response.json();
-        usernameDisplay.textContent = userData.username;
-        signupUser.style.display = "none";
-        user.style.display = "flex";
+        if (usernameDisplay) usernameDisplay.textContent = userData.username;
+        if (usernameInitial) usernameInitial.textContent = userData.username.charAt(0).toUpperCase();
+        if (signupUser) signupUser.style.display = "none";
+        if (user) user.style.display = "flex";
       } else {
         localStorage.removeItem("token");
       }
@@ -48,17 +53,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-heroPlay.addEventListener("click", (event) => {
+userAvatar?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  userDropdown?.classList.toggle("open");
+});
+
+document.addEventListener("click", () => {
+  userDropdown?.classList.remove("open");
+});
+
+logoutBtn?.addEventListener("click", () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  if (user) user.style.display = "none";
+  if (signupUser) signupUser.style.display = "flex";
+});
+
+heroPlay?.addEventListener("click", (event) => {
   event.preventDefault();
   navigateToGame();
 });
 
-navPlay.addEventListener("click", (event) => {
+navPlay?.addEventListener("click", (event) => {
   event.preventDefault();
   navigateToGame();
 });
 
-navStats.addEventListener("click", (event) => {
+navStats?.addEventListener("click", (event) => {
     event.preventDefault();
     navigateToStats();
 })
@@ -86,6 +107,7 @@ function navigateToStats() {
 // Header scroll
 window.addEventListener("scroll", () => {
   const header = document.querySelector("header");
+  if (!header) return;
 
   if (window.scrollY > 60) {
     header.classList.add("scrolled");

@@ -158,6 +158,11 @@ export default class DeckScreen {
             const abbr = card.name.length > 4 ? card.name.slice(0, 4) : card.name;
             renderer.drawText(abbr, x + 5, y + 12, "6px monospace", "#cccccc");
 
+            // Auto card indicator (~) in top-right corner
+            if (card.type === CardType.AUTOMATIC) {
+                renderer.drawText("~", x + w - 7, y + 7, "6px monospace", "#9977cc");
+            }
+
             // Level pips at bottom
             for (let lv = 0; lv < 3; lv++) {
                 renderer.drawRect(x + 5 + lv * 7, y + h - 6, 5, 3, lv < card.level ? col : "#2a2a2a");
