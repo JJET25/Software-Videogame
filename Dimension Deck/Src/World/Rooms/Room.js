@@ -291,4 +291,8 @@ export default class Room {
     }
     return Room.#imageCache[tileSetId];
   }
+
+  getInteractables() {
+    return [];
+  }
 }

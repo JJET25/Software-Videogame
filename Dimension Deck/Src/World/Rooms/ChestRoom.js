@@ -6,16 +6,21 @@ import Room from "./Room.js";
 export default class ChestRoom extends Room {
   constructor(doorDirections, player, bullets, credits, dimension) {
     super(doorDirections, player, bullets, credits, dimension);
-    
+
     this.populate();
   }
-  
+
   populate() {
     const centerPos = new Vector(
       (TILE_SIZE * ROOM_COLS) / 2,
       (TILE_SIZE * ROOM_ROWS) / 2,
     );
 
-    this.objects.push(new Chest(centerPos));
+    this.chest = new Chest(centerPos);  
+    this.objects.push(this.chest);
+  }
+
+  getInteractables() {
+    return this.chest ? [this.chest] : [];
   }
 }
