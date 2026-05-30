@@ -38,21 +38,44 @@ export default class ActiveMeleeCard extends ActiveCard {
     for (const enemy of enemies) {
       if (enemy.isDead) continue;
 
-      // Real center enemy hitbox
-      const eb = enemy.getBounds();
-      const ecx = (eb.left + eb.right) / 2;
+      // We get 5 point reference of enemy
+      // left, right, top, botto, and center
+      const eb = enemy.getBounds(); // left, right, top, botton
+      const ecx = (eb.left + eb.right) / 2; // enemy center
       const ecy = (eb.top + eb.bottom) / 2;
 
-      const dx = ecx - pcx;
-      const dy = ecy - pcy;
-      if (dx * dx + dy * dy > this.range * this.range) continue;
+      const enemyPoint = [
+        { x: eb.left, y: eb.top },
+        { x: eb.right, y: eb.top },
+        { x: eb.left, y: eb.bottom },
+        { x: eb.right, y: eb.bottom },
+        { x: ecx, y: ecy },
+      ];
 
-      // Normalize angle difference to [-π, π] then check cone
-      let diff = Math.atan2(dy, dx) - aimAngle;
-      diff =
-        ((((diff + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) -
-        Math.PI;
-      if (Math.abs(diff) <= halfSpread) enemy.takeDamage(this.damage);
+      let hit = false;
+
+      // Check if any enemy point collides with card range
+      for (const point of enemyPoint) {
+        const dx = point.x - pcx;
+        const dy = point.y - pcy;
+        
+        // Distance between a circle to square
+        if (dx * dx + dy * dy > this.range * this.range) continue
+
+        // Normalize angle difference to [-π, π] then check
+        let diff = Math.atan2(dy, dx) - aimAngle;
+
+        diff =
+          ((((diff + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) -
+          Math.PI;
+
+        if (Math.abs(diff) <= halfSpread) {
+          hit = true;
+          break;
+        }
+      }
+
+      if (hit) enemy.takeDamage(this.damage);
     }
 
     // Hits solid objects in the cone
