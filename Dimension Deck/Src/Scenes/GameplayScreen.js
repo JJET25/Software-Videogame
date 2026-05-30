@@ -11,6 +11,7 @@ import { createCard } from "../cards/CardFactory.js";
 import HUD from "../UI/HUD.js";
 import DeckScreen from "../UI/DeckScreen.js";
 import MiniMap from "../UI/Minimap.js";
+import PauseMenu from "../UI/PauseMenu.js";
 
 import DimensionManager from "../Systems/DimensionManager.js";
 import InteractionManager from "../Systems/InteractionManager.js";
@@ -50,6 +51,8 @@ export default class GameplayScreen extends Screen {
     this._deadEnemies = new Set();
     this._roomCounted = false;
     this.cardCatalog = [];
+    this._paused   = false;
+    this.pauseMenu = new PauseMenu();
 
     window.testingMode = false;
 
@@ -92,6 +95,19 @@ export default class GameplayScreen extends Screen {
     const rm = this.dimManager.getRoomManager();
     const room = rm.currentRoom;
     const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
+
+    // ESC toggles pause (only when shop and deck screen are closed)
+    if (this.input.wasKeyPressed("ESCAPE") && !shopOpen && !this.deckScreen.isOpen) {
+      this._paused = !this._paused;
+    }
+
+    if (this._paused) {
+      const result = this.pauseMenu.update(this.mouse);
+      if (result === "resume")  this._paused = false;
+      if (result === "restart") this.screenManager.changeTo(new this.constructor());
+      if (result === "menu")    window.location.href = "../../index.html";
+      return;
+    }
 
     if (this.input.isKeyDown("SHIFT") && this.input.wasKeyPressed("T")) {
       window.testingMode = !window.testingMode;
@@ -155,6 +171,17 @@ export default class GameplayScreen extends Screen {
     const room = this.dimManager.getRoomManager().currentRoom;
     if (room?.isShopRoom && room.storeUI?.isOpen) {
       room.storeUI.draw(renderer, this.player, this.cardManager);
+    }
+
+    // Brightness overlay (drawn before pause so it dims the game world behind the menu)
+    const brightness = window.gameBrightness ?? 1.0;
+    if (brightness < 1.0) {
+      const alpha = ((1.0 - brightness) * 0.85).toFixed(2);
+      renderer.drawRect(0, 0, renderer.GAME_WIDTH, renderer.GAME_HEIGHT, `rgba(0,0,0,${alpha})`);
+    }
+
+    if (this._paused) {
+      this.pauseMenu.draw(renderer, this.mouse);
     }
   }
 

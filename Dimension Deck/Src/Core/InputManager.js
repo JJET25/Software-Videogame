@@ -12,8 +12,8 @@ export default class InputManager {
             // Prevents the same call of the key if already held
             if (!event.repeat) this._pressedThisFrame.add(k);
             this.keys[k] = true;
-            // Prevents that tabs moves the player to switching the focus of the browser
-            if (k === "TAB") event.preventDefault();
+            // Prevents browser default behavior for game keys
+            if (k === "TAB" || k === "ESCAPE") event.preventDefault();
         });
 
         window.addEventListener("keyup", (event) => {
