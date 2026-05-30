@@ -17,8 +17,11 @@ export default class RangedEnemy extends Enemy {
     this.height = 16;
     this.color = "orange";
     this.originalColor = "orange";
-
     this.contactDamage = 8;
+
+    // Hitbox
+    this.hitboxWidth = this.width;
+    this.hitboxHeight = this.height;
 
     // Shooting
     this.shootCooldown = 0;

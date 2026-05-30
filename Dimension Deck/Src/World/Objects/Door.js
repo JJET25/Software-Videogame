@@ -1,12 +1,14 @@
 import Collision from "../../Physics/Collision.js";
+import { TILE_SIZE } from "../../Utils/Constants.js";
 import GameObject from "./GameObject.js";
 
 export default class Door extends GameObject {
-  constructor(position, targetNodeId) {
-    super(position, 16, 16, "#00AA44", "door");
+  constructor(position, targetNodeId, direction) {
+    super(position, TILE_SIZE, TILE_SIZE, "#00AA44", "door");
     this.position = position;
     this.targetNodeId = targetNodeId;
     this.isLocked = false;
+    this.direction = direction;
   }
 
   lock() {

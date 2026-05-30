@@ -13,7 +13,7 @@ export default class Entity {
     this.hitboxOffset = options.hitboxOffset ?? new Vector(0, 0);
 
     this.color = color;
-    this.health = 100;
+    this.health = 100;  
     this.maxHealth = 100;
     this.shield = 0;
     this.isDead = false;

@@ -35,42 +35,57 @@ export default class ActiveMeleeCard extends ActiveCard {
     const pcx = (pb.left + pb.right) / 2;
     const pcy = (pb.top + pb.bottom) / 2;
 
+    // Hits enemiys in the cone
     for (const enemy of enemies) {
       if (enemy.isDead) continue;
 
-      // Real center enemy hitbox
-      const eb = enemy.getBounds();
-      const ecx = (eb.left + eb.right) / 2;
-      const ecy = (eb.top + eb.bottom) / 2;
-
-      const dx = ecx - pcx;
-      const dy = ecy - pcy;
-      if (dx * dx + dy * dy > this.range * this.range) continue;
-
-      // Normalize angle difference to [-π, π] then check cone
-      let diff = Math.atan2(dy, dx) - aimAngle;
-      diff =
-        ((((diff + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) -
-        Math.PI;
-      if (Math.abs(diff) <= halfSpread) enemy.takeDamage(this.damage);
+      if (this._isTargetInsideCone(enemy, pcx, pcy, aimAngle, halfSpread)) {
+        enemy.takeDamage(this.damage);
+      }
     }
 
     // Hits solid objects in the cone
     for (const obj of objects) {
-      if (!obj.takeDamge || obj.isDead) continue;
+      if (!obj.takeDamage || obj.isDead) continue;
 
-      const eb = obj.getBounds();
-      const ocx = (eb.left + eb.right) / 2;
-      const ocy = (eb.left + eb.right) / 2;
+      if (this._isTargetInsideCone(obj, pcx, pcy, aimAngle, halfSpread)) {
+        obj.takeDamage(this.damage);
+      }
+    }
+  }
 
-      const dx = ocx - pcx;
-      const dy = ocx - pcy;
-      if (dx * dx + dy * dy > this.range * this.range) continue;
+  _isTargetInsideCone(target, pcx, pcy, aimAngle, halfSpread) {
+    const bounds = target.getBounds();
+    const cx = (bounds.left + bounds.right) / 2; // Entity center
+    const cy = (bounds.top + bounds.bottom) / 2;
+
+    // Points reference of a entity
+    const points = [
+      { x: bounds.left, y: bounds.top },
+      { x: bounds.right, y: bounds.top },
+      { x: bounds.left, y: bounds.bottom },
+      { x: bounds.right, y: bounds.bottom },
+      { x: cx, y: cy },
+    ];
+
+    for (const point of points) {
+      const dx = point.x - pcx;
+      const dy = point.y - pcy;
+
+      // Outside attack radius
+      if (dx * dx + dy * dy > this.range * this.range) {
+        continue;
+      }
+
       let diff = Math.atan2(dy, dx) - aimAngle;
       diff =
         ((((diff + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) -
         Math.PI;
-      if (Math.abs(diff) <= halfSpread) obj.takeDamage(this.damage);
+
+      if (Math.abs(diff) <= halfSpread) {
+        return true;
+      }
     }
+    return false;
   }
 }
