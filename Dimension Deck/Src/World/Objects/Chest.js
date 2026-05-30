@@ -7,38 +7,19 @@ export default class Chest extends GameObject {
   constructor(position) {
     super(position, 16, 16, "#f1c536", "chest");
     this.isOpen = false;
-    this.showPrompt = true; // Shows interaction text
+    this.showPrompt = true;
   }
 
-  // Call when the player presses E
+  // Call when player presses E near the chest
   interact(player, context = {}) {
-    if (this.isOpen) return; // Prevent opening twice
+    if (this.isOpen) return;
     this.isOpen = true;
 
-    // Generate random loot
     const loot = LootTable.roll();
 
-    // Credit reward
     if (loot.type === "credits") {
-      player.addCredits(loot.amount);
-      //console.log(`[Chest] Monedas: ${loot.amount}`);
-      return;
-    }
-
-    // Try to get a random card
-    const card = getRandomCardByRarity(context.cardCatalog, loot.rarity);
-    if (card && context.cardManager) {
-      const result = context.cardManager.addCard(card); // Add card to player collection
-      //console.log(`[Chest] Carta: ${card.name} (${card.rarity})`);
-
-      if (!result.added && result.creditsAwarded > 0) {
-        // Give coins if card cannot be added
-        player.addCredits(result.creditsAwarded); 
-      }
-    } else {
-      // Fallback reward if card generation fails
-      player.addCredits(randInt(1, 10) * 20);
-    }
+      this.#giveCredits(player, loot.amount, context);
+    } else this.#giveCard(player.loot.rarity, context);
   }
 
   draw(renderer) {
@@ -60,5 +41,27 @@ export default class Chest extends GameObject {
         { align: "center" },
       );
     }
+  }
+
+  // --------------------- PRIVATE HELPERS ---------------------
+  // Give credits directly and notify the player
+  #giveCredits(player, amount, context) {
+    player.addCredits(amount);
+    context.showNotification?.(`You got ${amount} Credits!`);
+  }
+
+  // Try to give a card; fallback to random credits if no card is available
+  #giveCard(player, rarity, context) {
+    const card = getRandomCardByRarity(context.cardCatalog, rarity);
+
+    if (card && context.cardManager) {
+      context.cardManager.addCard(card);
+      context.showNotification?.(`You got ${card.name}!`);
+      return;
+    }
+
+    // No card available, give credits instead
+    const amount = randInt(1, 10) * 20;
+    this.#giveCredits(player, amount, context);
   }
 }

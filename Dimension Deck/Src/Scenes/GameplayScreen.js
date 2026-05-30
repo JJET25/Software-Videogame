@@ -22,6 +22,7 @@ import {
   fetchStarterCards,
   fetchAllCards,
 } from "../Utils/Api.js";
+import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
 // Main gameplay screen — initializes all game systems and delegates update and draw each frame
 export default class GameplayScreen extends Screen {
@@ -51,8 +52,9 @@ export default class GameplayScreen extends Screen {
     this._deadEnemies = new Set();
     this._roomCounted = false;
     this.cardCatalog = [];
-    this._paused   = false;
+    this._paused = false;
     this.pauseMenu = new PauseMenu();
+    this._notification = null;
 
     window.testingMode = false;
 
@@ -92,20 +94,33 @@ export default class GameplayScreen extends Screen {
       return;
     }
 
+    if (this._notification) {
+      if (this.input.wasKeyPressed("ENTER")) {
+        this._notification = null;
+        this.player.unfreeze();
+      }
+      return;
+    }
+
     const rm = this.dimManager.getRoomManager();
     const room = rm.currentRoom;
     const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
 
     // ESC toggles pause (only when shop and deck screen are closed)
-    if (this.input.wasKeyPressed("ESCAPE") && !shopOpen && !this.deckScreen.isOpen) {
+    if (
+      this.input.wasKeyPressed("ENTER") &&
+      !shopOpen &&
+      !this.deckScreen.isOpen
+    ) {
       this._paused = !this._paused;
     }
 
     if (this._paused) {
       const result = this.pauseMenu.update(this.mouse);
-      if (result === "resume")  this._paused = false;
-      if (result === "restart") this.screenManager.changeTo(new this.constructor());
-      if (result === "menu")    window.location.href = "../../index.html";
+      if (result === "resume") this._paused = false;
+      if (result === "restart")
+        this.screenManager.changeTo(new this.constructor());
+      if (result === "menu") window.location.href = "../../index.html";
       return;
     }
 
@@ -152,6 +167,7 @@ export default class GameplayScreen extends Screen {
       this.interaction.update(this.player, interactables, {
         cardManager: this.cardManager,
         cardCatalog: this.cardCatalog,
+        showNotification: (msg) => this.showNotification(msg),
       });
     }
 
@@ -177,11 +193,21 @@ export default class GameplayScreen extends Screen {
     const brightness = window.gameBrightness ?? 1.0;
     if (brightness < 1.0) {
       const alpha = ((1.0 - brightness) * 0.85).toFixed(2);
-      renderer.drawRect(0, 0, renderer.GAME_WIDTH, renderer.GAME_HEIGHT, `rgba(0,0,0,${alpha})`);
+      renderer.drawRect(
+        0,
+        0,
+        renderer.GAME_WIDTH,
+        renderer.GAME_HEIGHT,
+        `rgba(0,0,0,${alpha})`,
+      );
     }
 
     if (this._paused) {
       this.pauseMenu.draw(renderer, this.mouse);
+    }
+
+    if (this._notification) {
+      this.#drawNotification(this.renderer, this._notification.message);
     }
   }
 
@@ -204,5 +230,34 @@ export default class GameplayScreen extends Screen {
 
   onVictory() {
     if (!this._runEnded) this._finishRun("victory");
+  }
+
+  showNotification(message) {
+    this._notification = { message };
+    this.player.freeze(99999);
+  }
+
+  #drawNotification(renderer, message) {
+    renderer.drawRect(0, ROOM_HEIGHT - 40, ROOM_WIDTH, 40, "rgba(0,0,0,0.85)");
+
+    // Principal text
+    renderer.drawText(
+      message,
+      ROOM_WIDTH / 2,
+      ROOM_HEIGHT - 24,
+      "9px monospace",
+      "#ffffff",
+      { align: "center" },
+    );
+
+    // Hint for to continue
+    renderer.drawText(
+      "Press ENTER to continue",
+      ROOM_WIDTH / 2,
+      ROOM_HEIGHT - 10,
+      "6px monospace",
+      "#888888",
+      { align: "center" },
+    );
   }
 }
