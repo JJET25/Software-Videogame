@@ -13,6 +13,10 @@ export default class BossEnemy extends Enemy {
     this.width = 44;
     this.height = 44;
 
+    // Hitbox
+    this.hitboxWidth = this.width;
+    this.hitboxHeight = this.height;
+
     // Stats
     this.health = 2500;
     this.maxHealth = 2500;

@@ -10,6 +10,7 @@ import {
   ROOM_WIDTH,
   TILE_SIZE,
 } from "../Utils/Constants.js";
+import DoorBlocker from "../World/Objects/DoorBlocker.js";
 
 // Manages the active room, door transitions, bullet simulation, and credit pickup
 export default class RoomManager {
@@ -23,6 +24,7 @@ export default class RoomManager {
     this.currentRoom = null;
     this.trasitionCooldown = 0;
     this.doors = [];
+    this.doorBlockers = [];
     this.bullets = [];
     this.credits = [];
     this.roomCache = new Map();
@@ -65,6 +67,7 @@ export default class RoomManager {
 
     if (this.currentRoom.enemies.length > 0) {
       this.doors.forEach((door) => door.lock());
+      this.doorBlockers.forEach((doorBlocker) => (doorBlocker.isActive = true));
     }
 
     this.trasitionCooldown = 0.3;
@@ -91,15 +94,38 @@ export default class RoomManager {
       if (this.credits[i].isDead) this.credits.splice(i, 1);
     }
 
+    // Door collisions
     for (const door of this.doors) {
       if (door.isLocked) Collision.resolve(this.player, door);
     }
 
+    // Door blockers collisions
+    for (const blocker of this.doorBlockers) {
+      if (!blocker.isActive) continue;
+
+      Collision.resolve(this.player, blocker);
+      for (const enemy of this.currentRoom.enemies) {
+        Collision.resolve(enemy, blocker);
+      }
+    }
+
+    // Bullets collision
     for (let bullet of this.bullets) {
       bullet.update(deltaTime);
       // Bullets vs Walls
       for (const wall of this.currentRoom.walls) {
         if (Collision.rectCollision(bullet.getBounds(), wall.getBounds())) {
+          bullet.isDead = true;
+          break;
+        }
+      }
+
+      // Bullets vs DoorBlockers
+      for (const blocker of this.doorBlockers) {
+        if (
+          blocker.isActive &&
+          Collision.rectCollision(bullet.getBounds(), blocker.getBounds())
+        ) {
           bullet.isDead = true;
           break;
         }
@@ -139,18 +165,23 @@ export default class RoomManager {
   draw(renderer) {
     this.currentRoom.draw(renderer);
     this.doors.forEach((door) => door.draw(renderer));
+    this.doorBlockers.forEach((doorBlocker) => doorBlocker.draw(renderer));
     for (let bullet of this.bullets) bullet.draw(renderer);
     for (let credit of this.credits) credit.draw(renderer);
   }
 
   #buildDoors(node) {
+    this.doorBlockers = [];
     const arrDoor = [];
     for (const neighbor of this.graph.getNeighbors(node.id)) {
       const direction = this.#getDirectionBetweem(node, neighbor);
       const positions = this.currentRoom.getDoorTilePositions(direction);
 
       for (const position of positions) {
-        arrDoor.push(new Door(position, neighbor.id));
+        arrDoor.push(new Door(position, neighbor.id, direction));
+
+        const offset = this.getInnerOffset(direction);
+        this.doorBlockers.push(new DoorBlocker(position.plus(offset)));
       }
     }
     return arrDoor;
@@ -167,20 +198,10 @@ export default class RoomManager {
       const oppositeDir = OPPOSITE[direction];
       const doorPos = this.currentRoom.getDoorPosition(oppositeDir);
 
-      switch (oppositeDir) {
-        case "north":
-          this.player.position = doorPos.plus(new Vector(0, TILE_SIZE));
-          break;
-        case "south":
-          this.player.position = doorPos.minus(new Vector(0, TILE_SIZE));
-          break;
-        case "east":
-          this.player.position = doorPos.minus(new Vector(TILE_SIZE, 0));
-          break;
-        case "west":
-          this.player.position = doorPos.plus(new Vector(TILE_SIZE, 0));
-          break;
-      }
+      const offset = this.getInnerOffset(oppositeDir);
+      this.player.position = doorPos.plus(
+        new Vector(offset.x * 2, offset.y * 2),
+      );
     }
   }
 
@@ -190,6 +211,10 @@ export default class RoomManager {
     if (this.currentRoom.enemies.length === 0) {
       this.currentRoom.isCleared = true;
       this.doors.forEach((door) => door.unlock());
+      this.doorBlockers.forEach(
+        (doorBlocker) => (doorBlocker.isActive = false),
+      );
+
       const type = this.graph.getNode(this.currentNodeId).type;
       if (type === "miniBoss") this.callbacks.onMiniBossDefeated?.();
       if (type === "finalBoss") this.callbacks.onFinalBossDefeated?.();
@@ -214,5 +239,18 @@ export default class RoomManager {
     if (dx < 0) return "west";
     if (dy > 0) return "south";
     if (dy < 0) return "north";
+  }
+
+  getInnerOffset(direction) {
+    switch (direction) {
+      case "north":
+        return new Vector(0, TILE_SIZE);
+      case "south":
+        return new Vector(0, -TILE_SIZE);
+      case "east":
+        return new Vector(-TILE_SIZE, 0);
+      case "west":
+        return new Vector(TILE_SIZE, 0);
+    }
   }
 }
