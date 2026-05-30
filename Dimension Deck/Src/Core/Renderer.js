@@ -67,43 +67,26 @@ export default class Renderer {
     );
   }
 
-  // Draws text at (x, y)
-  drawText(
-    text,
-    x,
-    y,
-    font = "10px monospace",
-    color = "#ffffff",
-    options = {},
-  ) {
+  // Draws text at (x, y), the size is scale with the game size
+  s(text, x, y, size = 10, color = "#ffffff",options = {}) {
     const defaultOptions = {
+      font: "monospace",
       align: "center",
       baseline: "middle",
-      shadow: true,
     };
+
     const config = { ...defaultOptions, ...options };
     this.context.imageSmoothingEnabled = false;
-    this.context.font = font;
+    this.context.font = `${Math.round(size * this.scale)}px ${config.font}`;
     this.context.fillStyle = color;
     this.context.textAlign = config.align;
     this.context.textBaseline = config.baseline;
-
-    if (config.shadow) {
-      this.context.shadowColor = "rgba(0,0,0,0.45)";
-      this.context.shadowBlur = 0;
-      this.context.shadowOffsetX = 1;
-      this.context.shadowOffsetY = 1;
-    }
 
     this.context.fillText(
       text,
       this.scale * (x + this.offsetX),
       this.scale * (y + this.offsetY),
     );
-
-    this.context.shadowColor = "transparent";
-    this.context.shadowOffsetX = 0;
-    this.context.shadowOffsetY = 0;
   }
 
   drawLine(x1, y1, x2, y2, color, width = 1) {

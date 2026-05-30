@@ -77,9 +77,13 @@ export default class CombatRoom extends Room {
     }
 
     // Boxes
+    const boxType = ["ore", "silver", "wood"];
+    const chosenType = boxType[randInt(0, boxType.length - 1)];
     const boxCount = randInt(0, 3);
     for (let i = 0; i < boxCount; i++) {
-      this.objects.push(new Box(this.#getSafeSpawnPosition(this.tileGrid)));
+      this.objects.push(
+        new Box(this.#getSafeSpawnPosition(this.tileGrid), chosenType),
+      );
     }
 
     // Spikes
