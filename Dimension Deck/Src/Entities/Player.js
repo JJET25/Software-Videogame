@@ -25,7 +25,7 @@ export default class Player extends Entity {
 
     this.aimDirection = new Vector(1, 0);
 
-    this._dashSpeed = 500;
+    this._dashSpeed = 400;
     this._dashDuration = 0.15;
     this._dashCooldown = 0.8;
     this._dashTimer = 0;
@@ -97,27 +97,23 @@ export default class Player extends Entity {
 
     if (this.isDashing) {
       this._dashTimer -= deltaTime;
-    } else if (this.input.isKeyDown("SPACE") && this._dashCooldownTimer <= 0) {
-      const dashDir = isMoving ? direction : this.aimDirection;
+    } else if (
+      this.input.isKeyDown("SPACE") &&
+      this._dashCooldownTimer <= 0 &&
+      isMoving
+    ) {
+      const dashDir = direction;
       this._dashTimer = this._dashDuration;
       this._dashCooldownTimer = this._dashCooldown;
+
+      this.velocity = dashDir.times(this._dashSpeed);
+      this.grantInvincibility(this._dashDuration);
 
       if (this.cardManager) {
         const enemies = this.getEnemies?.() ?? [];
         this.cardManager.fireTrigger(Trigger.ON_DASH, {
           player: this,
           enemies,
-        });
-      }
-
-      this.velocity = dashDir.times(this._dashSpeed);
-      this.grantInvincibility(this._dashDuration);
-
-      if (this.cardManager) {
-        const dashEnemies = this.getEnemies ? this.getEnemies() : [];
-        this.cardManager.fireTrigger(Trigger.ON_DASH, {
-          player: this,
-          enemies: dashEnemies,
         });
       }
     } else {

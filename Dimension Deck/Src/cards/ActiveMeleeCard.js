@@ -57,14 +57,14 @@ export default class ActiveMeleeCard extends ActiveCard {
 
     // Hits solid objects in the cone
     for (const obj of objects) {
-      if (!obj.takeDamge || obj.isDead) continue;
+      if (!obj.takeDamage || obj.isDead) continue;
 
       const eb = obj.getBounds();
       const ocx = (eb.left + eb.right) / 2;
-      const ocy = (eb.left + eb.right) / 2;
+      const ocy = (eb.top + eb.bottom) / 2;
 
       const dx = ocx - pcx;
-      const dy = ocx - pcy;
+      const dy = ocy - pcy;
       if (dx * dx + dy * dy > this.range * this.range) continue;
       let diff = Math.atan2(dy, dx) - aimAngle;
       diff =

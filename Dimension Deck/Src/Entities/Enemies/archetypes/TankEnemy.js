@@ -19,6 +19,10 @@ export default class TankEnemy extends Enemy {
     this.width = 28;
     this.height = 28;
 
+    // Hitbox
+    this.hitboxWidth = this.width;
+    this.hitboxHeight = this.height;
+
     this.color = "purple";
     this.originalColor = "purple";
 

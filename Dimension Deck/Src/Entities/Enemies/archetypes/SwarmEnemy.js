@@ -7,7 +7,6 @@ export default class SwarmEnemy extends Enemy {
 
     // BALANCE
     this.speed = 82;
-
     this.health = 16;
     this.maxHealth = 16;
 
@@ -15,15 +14,15 @@ export default class SwarmEnemy extends Enemy {
     this.width = 12;
     this.height = 12;
 
+    // Hitbox
+    this.hitboxWidth = this.width;
+    this.hitboxHeight = this.height;
+
     this.color = "red";
     this.originalColor = "red";
-
     this.contactDamage = 6;
-
     this.orbitDirection = Math.random() > 0.5 ? 1 : -1;
-
     this.attackTimer = Math.random() * 1.5;
-
     this.isDiving = false;
   }
 
@@ -33,7 +32,7 @@ export default class SwarmEnemy extends Enemy {
       this.player.position.y - this.position.y,
     );
 
-    const distance = direction.magnitude(); 
+    const distance = direction.magnitude();
     const normalizedDirection = direction.normalize();
 
     this.attackTimer -= deltaTime;
