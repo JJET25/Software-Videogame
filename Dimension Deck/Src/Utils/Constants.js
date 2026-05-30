@@ -33,15 +33,6 @@ export const GENERATION = {
   CONNECTION_CHANCE: 0.3, // % chance to connect with nearby rooms
 };
 
-// Player movement between rooms
-// Converts a direction to its opposite side (rooms transitions)
-export const OPPOSITE = {
-  north: "south",
-  south: "north",
-  east: "west",
-  west: "east",
-};
-
 // Minimap UI Config
 export const MINIMAP_CONFIG = {
   anchorX: TILE_SIZE * (ROOM_COLS - 1) + TILE_SIZE / 2,

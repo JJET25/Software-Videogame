@@ -16,9 +16,19 @@ export default class Enemy extends Entity {
     this.originalColor = "green";
     this.damageCooldown = 0; // Delay between contact attacks
     this.contactDamage = 10; // Damage dealt to the player
+    this.activationDelay = 0;
+    this._activationTimer = 0;
+    this.isActive = false;
   }
 
   update(deltaTime) {
+    if (!this.isActive) {
+      this._activationTimer += deltaTime;
+      if (this._activationTimer >= this.activationDelay) this.isActive = true;
+
+      return;
+    }
+
     // Stop updating after death
     if (this.isDead) return;
 

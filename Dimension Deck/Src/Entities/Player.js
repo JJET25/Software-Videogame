@@ -30,6 +30,7 @@ export default class Player extends Entity {
     this._dashCooldown = 0.8;
     this._dashTimer = 0;
     this._dashCooldownTimer = 0;
+    this._freezeTimer = 0;
 
     // Melee arc visual state
     // Written by functon active melee card and read by the draw function
@@ -71,6 +72,9 @@ export default class Player extends Entity {
     } else {
       this.speed = this._baseSpeed; // normal velocity
     }
+
+    // Freeze player when enters a new room
+    if (this._freezeTimer > 0) this._freezeTimer -= deltaTime;
 
     const raw = new Vector(0, 0);
 
@@ -117,7 +121,8 @@ export default class Player extends Entity {
         });
       }
     } else {
-      this.velocity = direction.times(this.speed);
+      const canMove = this._freezeTimer <= 0 && !this.isDashing;
+      this.velocity = canMove ? direction.times(this.speed) : new Vector(0, 0);
     }
 
     this.state = isMoving || this.isDashing ? "moving" : "idle";
@@ -197,5 +202,13 @@ export default class Player extends Entity {
         this.cardManager.fireTrigger(Trigger.ON_HIT, combatState);
       }
     }
+  }
+
+  freeze(duration) {
+    this._freezeTimer = duration;
+  }
+
+  unfreeze() {
+    this._freezeTimer = 0;
   }
 }

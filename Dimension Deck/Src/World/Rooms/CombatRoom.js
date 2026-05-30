@@ -14,7 +14,6 @@ export default class CombatRoom extends Room {
   constructor(doorDirections, player, bullets, credits, dimension) {
     super(doorDirections, player, bullets, credits, dimension);
     this.dimension = dimension;
-    this.spawnDelay = 1;
 
     this.populate();
   }
