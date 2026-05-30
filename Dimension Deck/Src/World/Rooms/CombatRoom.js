@@ -73,7 +73,7 @@ export default class CombatRoom extends Room {
     // Rocks
     const rockCount = randInt(0, 4);
     for (let i = 0; i < rockCount; i++) {
-      const pos = this.#getSafeSpawnPosition(this.tileGrid, this.rng);
+      const pos = this.#getSafeSpawnPosition(this.tileGrid);
       this.objects.push(new Rock(pos));
     }
 

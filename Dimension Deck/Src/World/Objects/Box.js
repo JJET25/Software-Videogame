@@ -7,7 +7,7 @@ export default class Box extends GameObject {
   constructor(position) {
     super(position, 16, 16, "#8B6914", "box");
     this.isSolid = true;
-    this.health = 30;
+    this.health = 10;
     this.isDead = false;
   }
 

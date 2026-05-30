@@ -3,11 +3,22 @@ import ChestRoom from "./ChestRoom.js";
 import CombatRoom from "./CombatRoom.js";
 import ShopRoom from "./ShopRoom.js";
 import Room from "./Room.js";
+import GlitchRoom from "./GlitchRoom.js";
 
 export default class RoomFactory {
   static create(node, doorDirections, player, bullets, credits, dimension) {
     if (node.type === "combat") {
       return new CombatRoom(
+        doorDirections,
+        player,
+        bullets,
+        credits,
+        dimension,
+      );
+    }
+
+    if (node.type === "glitch") {
+      return new GlitchRoom(
         doorDirections,
         player,
         bullets,

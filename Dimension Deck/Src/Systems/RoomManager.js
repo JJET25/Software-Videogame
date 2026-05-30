@@ -82,6 +82,8 @@ export default class RoomManager {
     this.currentRoom.update(deltaTime, this.player);
 
     for (let credit of this.credits) {
+      credit.update(deltaTime);
+      
       const distanceX = Math.abs(this.player.position.x - credit.position.x);
       const distanceY = Math.abs(this.player.position.y - credit.position.y);
       if (distanceX < 28 && distanceY < 28) {

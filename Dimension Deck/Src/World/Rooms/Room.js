@@ -9,7 +9,11 @@ import Wall from "../../World/Objects/Wall.js";
 import Vector from "../../Utils/Vector.js";
 import Collision from "../../Physics/Collision.js";
 import Credit from "../../Entities/pickups/Credit.js";
-import { ROOM_BG } from "../../../Assets/TileSetsID.js";
+
+const ROOM_BG = {
+  tilesOldWest: "../../Assets/Sprites/room/roomOldWest.png",
+  tilesDarkAge: "../../Assets/Sprites/room/roomDungeon.png",
+};
 
 export default class Room {
   constructor(
@@ -20,19 +24,22 @@ export default class Room {
     dimension = null,
   ) {
     this.doorDirections = doorDirections;
+
     this.player = player;
     this.bullets = bullets;
     this.credits = credits;
 
-    // Grid data for room generation
+    // Room generation data
     this.dimension = dimension;
     this.tileGrid = null;
     this.variantGrid = null;
 
+    // Room content
     this.walls = [];
     this.enemies = [];
     this.objects = [];
 
+    // Room state
     this.isCleared = false;
     this.spawnDelay = 0;
 
@@ -43,70 +50,27 @@ export default class Room {
 
   populate() {} // Overriden by child clases
 
+  // ------------------------ Main: Update and Draw ------------------------
   update(deltaTime, player) {
-    // Prevent player from crossing walls
-    this.walls.forEach((wall) => Collision.resolve(player, wall));
-    Collision.resolveEntityBounds(player, ROOM_WIDTH, ROOM_HEIGHT);
+    this.#handlePlayerCollision(player);
+    this.#updateObjects(deltaTime, player);
 
-    // Solid objetc collisions
-    for (const obj of this.objects) {
-      if (!obj.isSolid || obj.isDead) continue;
-      Collision.resolve(player, obj);
-
-      for (const enemy of this.enemies) Collision.resolve(enemy, obj);
-    }
-
-    // Spikes: damage player when pass on it
-    for (const obj of this.objects) {
-      if (obj.type === "spike" && typeof obj.onPlayerContact === "function") {
-        if (Collision.rectCollision(obj.getBounds(), player.getBounds())) {
-          obj.onPlayerContact(player, deltaTime);
-        }
-      }
-    }
-
-    // Wait before enemies act
+    // Wait before enemies start moving
     if (this.spawnDelay > 0) {
       this.spawnDelay -= deltaTime;
       return;
     }
 
-    // Update enemies
-    for (let enemy of this.enemies) {
-      enemy.update(deltaTime);
-      this.walls.forEach((wall) => Collision.resolve(enemy, wall));
-      Collision.resolveEntityBounds(enemy, ROOM_WIDTH, ROOM_HEIGHT);
-    }
-
-    // Remove enemies after death
-    for (let i = this.enemies.length - 1; i >= 0; i--) {
-      const enemy = this.enemies[i];
-
-      if (enemy.isDead) {
-        // Spawn credits where the enemy died
-        this.credits.push(
-          new Credit(new Vector(enemy.position.x, enemy.position.y)),
-        );
-
-        this.enemies.splice(i, 1);
-      }
-    }
-
-    // Remove death objects
-    for (let i = this.objects.length - 1; i >= 0; i--) {
-      const obj = this.objects[i];
-
-      if (obj.isDead) {
-        obj.dropLoot?.(this.credits); // Only boxes used it
-        this.objects.splice(i, 1);
-      }
-    }
+    this.#updateEnemies(deltaTime);
+    this.#removeDeadEnemies();
+    this.#removeDeadObjects();
   }
 
+  // ------------------------ Draw ------------------------
   draw(renderer) {
     const img = Room.#imageCache[this.dimension?.tileSetId];
 
-    // Draw background image if loaded correctly
+    // Draw room background
     if (img?.complete && img.naturalWidth > 0) {
       renderer.drawImage(
         img,
@@ -116,46 +80,99 @@ export default class Room {
         ROOM_HEIGHT + TILE_SIZE * 2,
       );
     } else {
-      // Fallback background color
+      // Fallback background
       renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "#1a1a1a");
     }
 
-    // Draw room walls
-    this.walls.forEach((wall) => wall.draw(renderer));
+    // Draw walls, objects and enemies
+    for (const wall of this.walls) wall.draw(renderer);
+    for (const obj of this.objects) obj.draw(renderer);
+    for (const enemy of this.enemies) enemy.draw(renderer);
+  }
 
-    // Draw room objects
+  // ------------------------ Helpers & Updates functions ------------------------
+  #handlePlayerCollision(player) {
+    for (const wall of this.walls) Collision.resolve(player, wall);
+    Collision.resolveEntityBounds(player, ROOM_WIDTH, ROOM_HEIGHT);
+  }
+
+  #updateObjects(deltaTime, player) {
     for (const obj of this.objects) {
-      obj.draw(renderer);
-    }
+      obj.update?.(deltaTime);
 
-    // Draw enemies
-    for (const enemy of this.enemies) {
-      enemy.draw(renderer);
+      if (obj.isDead) continue;
+      if (obj.isSolid) {
+        Collision.resolve(player, obj);
+
+        for (const enemy of this.enemies) {
+          Collision.resolve(enemy, obj);
+        }
+      }
+
+      if (
+        typeof obj.onPlayerContact === "function" &&
+        Collision.rectCollision(obj.getBounds(), player.getBounds())
+      ) {
+        obj.onPlayerContact(player, deltaTime);
+      }
     }
   }
 
+  #updateEnemies(deltaTime) {
+    for (const enemy of this.enemies) {
+      enemy.update(deltaTime);
+      for (const wall of this.walls) Collision.resolve(enemy, wall);
+      Collision.resolveEntityBounds(enemy, ROOM_WIDTH, ROOM_HEIGHT);
+    }
+  }
+
+  #removeDeadEnemies() {
+    for (let i = this.enemies.length - 1; i >= 0; i--) {
+      const enemy = this.enemies[i];
+      if (!enemy.isDead) continue;
+
+      // Spawn credits where the enemy died
+      this.credits.push(
+        new Credit(new Vector(enemy.position.x, enemy.position.y)),
+      );
+      this.enemies.splice(i, 1);
+    }
+  }
+
+  #removeDeadObjects() {
+    for (let i = this.objects.length - 1; i >= 0; i--) {
+      const obj = this.objects[i];
+      if (!obj.isDead) continue;
+
+      // Some objects can drop loot
+      obj.dropLoot?.(this.credits);
+      this.objects.splice(i, 1);
+    }
+  }
+
+  // ------------------------ Room Generation ------------------------
   buildGrid() {
     const grid = [];
     const variants = [];
 
-    for (let i = 0; i < ROOM_ROWS; i++) {
-      grid[i] = [];
-      variants[i] = [];
+    // Create room tiles
+    for (let row = 0; row < ROOM_ROWS; row++) {
+      grid[row] = [];
+      variants[row] = [];
 
-      for (let j = 0; j < ROOM_COLS; j++) {
-        // Outer tiles become walls
+      for (let col = 0; col < ROOM_COLS; col++) {
         const isWall =
-          i < 2 || i >= ROOM_ROWS - 2 || j < 2 || j >= ROOM_COLS - 2;
+          row < 2 || row >= ROOM_ROWS - 2 || col < 2 || col >= ROOM_COLS - 2;
 
         if (isWall) {
           // Create doors where needed
-          grid[i][j] = this.#isDoorGap(i, j) ? "door" : "wall";
-          variants[i][j] = 0;
+          grid[row][col] = this.#isDoorGap(row, col) ? "door" : "wall";
+          variants[row][col] = 0;
         } else {
-          // Inner tiles are floor tiles
-          grid[i][j] = "floor";
+          // Floor tiles
+          grid[row][col] = "floor";
           // Small varition for appearance
-          variants[i][j] = (i * 7 + j * 13) % 4;
+          variants[row][col] = (row * 7 + col * 13) % 4;
         }
       }
     }
@@ -167,13 +184,11 @@ export default class Room {
   buildWalls() {
     for (let row = 0; row < ROOM_ROWS; row++) {
       for (let col = 0; col < ROOM_COLS; col++) {
-        // Create wall objects from wall tiles
         if (this.tileGrid[row][col] === "wall") {
           this.walls.push(
             new Wall(
               new Vector(
                 col * TILE_SIZE + TILE_SIZE / 2,
-
                 row * TILE_SIZE + TILE_SIZE / 2,
               ),
             ),
@@ -183,11 +198,42 @@ export default class Room {
     }
   }
 
+  #isDoorGap(row, col) {
+    const midCol = Math.floor(ROOM_COLS / 2);
+    const midRow = Math.floor(ROOM_ROWS / 2);
+
+    // Check if tile is inside the door area
+    const inDoorCol =
+      col === midCol || col === midCol - 1 || col === midCol + 1;
+    const inDoorRow =
+      row === midRow || row === midRow - 1 || row === midRow + 1;
+
+    // Open wall tiles where door exists
+    if (this.doorDirections.includes("north") && row < 2 && inDoorCol)
+      return true;
+    if (
+      this.doorDirections.includes("south") &&
+      row >= ROOM_ROWS - 2 &&
+      inDoorCol
+    )
+      return true;
+    if (
+      this.doorDirections.includes("east") &&
+      col >= ROOM_COLS - 2 &&
+      inDoorRow
+    )
+      return true;
+    if (this.doorDirections.includes("west") && col < 2 && inDoorRow)
+      return true;
+
+    return false;
+  }
+
+  // ------------------------ Dooor Utilities ------------------------
   getDoorPosition(direction) {
     let col = 0;
     let row = 0;
 
-    // Get center tile for each room side
     switch (direction) {
       case "north":
         col = Math.floor(ROOM_COLS / 2);
@@ -210,7 +256,6 @@ export default class Room {
         break;
     }
 
-    // Return world position of the door
     return new Vector(
       col * TILE_SIZE + TILE_SIZE / 2,
       row * TILE_SIZE + TILE_SIZE / 2,
@@ -224,7 +269,6 @@ export default class Room {
 
     switch (direction) {
       case "north":
-        // Create 3 tiles for the north door
         for (let dc = -1; dc <= 1; dc++)
           positions.push(
             new Vector(
@@ -235,7 +279,6 @@ export default class Room {
         break;
 
       case "south":
-        // Create 3 tiles for the south door
         for (let dc = -1; dc <= 1; dc++)
           positions.push(
             new Vector(
@@ -246,7 +289,6 @@ export default class Room {
         break;
 
       case "east":
-        // Create 3 tiles for the east door
         for (let dr = -1; dr <= 1; dr++)
           positions.push(
             new Vector(
@@ -257,7 +299,6 @@ export default class Room {
         break;
 
       case "west":
-        // Create 3 tiles for the west door
         for (let dr = -1; dr <= 1; dr++)
           positions.push(
             new Vector(
@@ -267,41 +308,15 @@ export default class Room {
           );
         break;
     }
-
     return positions;
   }
 
-  #isDoorGap(row, col) {
-    const midCol = Math.floor(ROOM_COLS / 2);
-    const midRow = Math.floor(ROOM_ROWS / 2);
-
-    // Check if tile is inside the door area
-    const inDoorCol =
-      col === midCol || col === midCol - 1 || col === midCol + 1;
-    const inDoorRow =
-      row === midRow || row === midRow - 1 || row === midRow + 1;
-
-    // Open gaps only where door exist
-    if (this.doorDirections.includes("north") && row < 2 && inDoorCol)
-      return true;
-    if (
-      this.doorDirections.includes("south") &&
-      row >= ROOM_ROWS - 2 &&
-      inDoorCol
-    )
-      return true;
-    if (
-      this.doorDirections.includes("east") &&
-      col >= ROOM_COLS - 2 &&
-      inDoorRow
-    )
-      return true;
-    if (this.doorDirections.includes("west") && col < 2 && inDoorRow)
-      return true;
-
-    return false;
+  // ------------------------ Room State ------------------------
+  getInteractables() {
+    return [];
   }
 
+  // ------------------------ Static ------------------------
   // Shared image cache for all rooms
   static #imageCache = {};
 
@@ -315,9 +330,5 @@ export default class Room {
       Room.#imageCache[tileSetId] = img;
     }
     return Room.#imageCache[tileSetId];
-  }
-
-  getInteractables() {
-    return [];
   }
 }
