@@ -1,32 +1,37 @@
 import Vector from "../../Utils/Vector.js";
 
 export default class GameObject {
-    constructor(position, width, height, color = null, type) {
-        this.position = position;
-        this.velocity = new Vector(0, 0);
+  constructor(position, width, height, color = null, type, options = {}) {
+    this.position = position;
+    this.velocity = new Vector(0, 0);
 
-        this.width = width;
-        this.height = height;
+    this.width = width;
+    this.height = height;
 
-        this.color = color;
-        this.type = type; 
-    }
+    // Hitbox config
+    this.hitboxWidth = options.hitboxWidth ?? width;
+    this.hitboxHeight = options.hitboxHeight ?? height;
+    this.hitboxOffset = options.hitboxOffset ?? new Vector(0, 0);
 
-    // Returns the hitbox edges for collisions
-    getBounds() {
-        return {
-            left: this.position.x - this.width / 2,
-            right: this.position.x + this.width / 2,
-            top: this.position.y - this.height / 2,
-            bottom: this.position.y + this.height / 2
-        };
-    }
+    this.color = color;
+    this.type = type;
+  }
 
-    // Draws the gameObject, it centers the obj on its position
-    draw(renderer) {
-        const drawX = this.position.x - this.width / 2;
-        const drawY = this.position.y - this.height / 2;
+  // Returns the hitbox edges for collisions
+  getBounds() {
+    return {
+      left: this.position.x + this.hitboxOffset.x - this.hitboxWidth / 2,
+      right: this.position.x + this.hitboxOffset.x + this.hitboxWidth / 2,
+      top: this.position.y + this.hitboxOffset.y - this.hitboxHeight / 2,
+      bottom: this.position.y + this.hitboxOffset.y + this.hitboxHeight / 2,
+    };
+  }
 
-        renderer.drawRect(drawX, drawY, this.width, this.height, this.color);
-    }
+  // Draws the gameObject, it centers the obj on its position
+  draw(renderer) {
+    const drawX = this.position.x - this.width / 2;
+    const drawY = this.position.y - this.height / 2;
+
+    renderer.drawRect(drawX, drawY, this.width, this.height, this.color);
+  }
 }
