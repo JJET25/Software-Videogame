@@ -13,7 +13,7 @@ export default class Entity {
     this.hitboxOffset = options.hitboxOffset ?? new Vector(0, 0);
 
     this.color = color;
-    this.health = 100;  
+    this.health = 100;
     this.maxHealth = 100;
     this.shield = 0;
     this.isDead = false;
@@ -103,5 +103,7 @@ export default class Entity {
     if (this._invincibleTimer > 0) this._invincibleTimer -= deltaTime;
     if (this._flashTimer > 0) this._flashTimer -= deltaTime;
     this.position = this.position.plus(this.velocity.times(deltaTime));
+
+    if (this.animation) this.animation.update(deltaTime);
   }
 }

@@ -9,7 +9,11 @@ import Wall from "../../World/Objects/Wall.js";
 import Vector from "../../Utils/Vector.js";
 import Collision from "../../Physics/Collision.js";
 import Credit from "../../Entities/pickups/Credit.js";
-import { ROOM_BG } from "../../../Assets/TileSetsID.js";
+
+const ROOM_BG = {
+  tilesOldWest: "../../Assets/Sprites/room/roomOldWest.png",
+  tilesDarkAge: "../../Assets/Sprites/room/roomDungeon.png",
+};
 
 export default class Room {
   constructor(
