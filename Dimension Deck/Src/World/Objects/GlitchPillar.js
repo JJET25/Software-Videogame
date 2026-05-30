@@ -12,7 +12,7 @@ const PILLAR_SHEET = new SpriteSheet({
 export default class GlitchPillar extends GameObject {
   constructor(position) {
     super(position, 64, 64, "#3bb0a6", "glitchPillar");
-    this.hitboxHeight = 8;
+    this.hitboxHeight = 16;
     this.hitboxWidth = 8;
     this.isSolid = false;
     this.isTriggered = false;

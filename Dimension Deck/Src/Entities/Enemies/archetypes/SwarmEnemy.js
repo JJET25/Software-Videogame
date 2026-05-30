@@ -18,6 +18,8 @@ export default class SwarmEnemy extends Enemy {
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
+    this.activationDelay = 0.5;
+
     this.color = "red";
     this.originalColor = "red";
     this.contactDamage = 6;

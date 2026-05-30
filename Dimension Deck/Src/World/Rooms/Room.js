@@ -41,8 +41,7 @@ export default class Room {
 
     // Room state
     this.isCleared = false;
-    this.spawnDelay = 0;
-
+    
     Room.#loadImage(this.dimension?.tileSetId);
     this.buildGrid();
     this.buildWalls();
@@ -54,12 +53,6 @@ export default class Room {
   update(deltaTime, player) {
     this.#handlePlayerCollision(player);
     this.#updateObjects(deltaTime, player);
-
-    // Wait before enemies start moving
-    if (this.spawnDelay > 0) {
-      this.spawnDelay -= deltaTime;
-      return;
-    }
 
     this.#updateEnemies(deltaTime);
     this.#removeDeadEnemies();

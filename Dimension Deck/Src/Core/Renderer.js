@@ -9,6 +9,9 @@ export default class Renderer {
     this.GAME_HEIGHT = ROOM_HEIGHT;
     this.canvas.style.imageRendering = "pixelated";
 
+    this.offsetX = 0;
+    this.offsetY = 0;
+
     this.resize();
   }
 
@@ -56,10 +59,9 @@ export default class Renderer {
 
   drawRect(x, y, width, height, color) {
     this.context.fillStyle = color;
-
     this.context.fillRect(
-      this.scale * x,
-      this.scale * y,
+      this.scale * (x + this.offsetX),
+      this.scale * (y + this.offsetY),
       this.scale * width,
       this.scale * height,
     );
@@ -79,20 +81,13 @@ export default class Renderer {
       baseline: "middle",
       shadow: true,
     };
-
-    // Merge user options with defaults
     const config = { ...defaultOptions, ...options };
-
-    // Sharper text rendering
     this.context.imageSmoothingEnabled = false;
-
     this.context.font = font;
     this.context.fillStyle = color;
-
     this.context.textAlign = config.align;
     this.context.textBaseline = config.baseline;
 
-    // Small shadow for readability
     if (config.shadow) {
       this.context.shadowColor = "rgba(0,0,0,0.45)";
       this.context.shadowBlur = 0;
@@ -100,12 +95,12 @@ export default class Renderer {
       this.context.shadowOffsetY = 1;
     }
 
-    const posX = this.scale * x;
-    const posY = this.scale * y;
+    this.context.fillText(
+      text,
+      this.scale * (x + this.offsetX),
+      this.scale * (y + this.offsetY),
+    );
 
-    this.context.fillText(text, posX, posY);
-
-    // Reset shadow
     this.context.shadowColor = "transparent";
     this.context.shadowOffsetX = 0;
     this.context.shadowOffsetY = 0;
@@ -113,11 +108,14 @@ export default class Renderer {
 
   drawLine(x1, y1, x2, y2, color, width = 1) {
     this.context.beginPath();
-
-    this.context.moveTo(this.scale * x1, this.scale * y1);
-
-    this.context.lineTo(this.scale * x2, this.scale * y2);
-
+    this.context.moveTo(
+      this.scale * (x1 + this.offsetX),
+      this.scale * (y1 + this.offsetY),
+    );
+    this.context.lineTo(
+      this.scale * (x2 + this.offsetX),
+      this.scale * (y2 + this.offsetY),
+    );
     this.context.lineWidth = width;
     this.context.strokeStyle = color;
     this.context.stroke();
@@ -125,16 +123,14 @@ export default class Renderer {
 
   drawImage(image, x, y, width, height) {
     this.context.imageSmoothingEnabled = false;
-
     this.context.drawImage(
       image,
-      this.scale * x,
-      this.scale * y,
+      this.scale * (x + this.offsetX),
+      this.scale * (y + this.offsetY),
       this.scale * width,
       this.scale * height,
     );
   }
-
   // Fills the entire canvas with a semi-transparent color overlay
   drawFlash(color) {
     this.context.fillStyle = color;
@@ -149,17 +145,15 @@ export default class Renderer {
 
   drawSprite(image, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
     if (!image.complete || image.naturalWidth === 0) return;
-
     this.context.imageSmoothingEnabled = false;
-
     this.context.drawImage(
       image,
       srcX,
       srcY,
       srcW,
       srcH,
-      this.scale * destX,
-      this.scale * destY,
+      this.scale * (destX + this.offsetX),
+      this.scale * (destY + this.offsetY),
       this.scale * destW,
       this.scale * destH,
     );
@@ -167,9 +161,7 @@ export default class Renderer {
 
   drawAnimation(animation, x, y, width, height) {
     const { sheet, frame } = animation;
-
     if (!sheet.isLoaded) return;
-
     this.drawSprite(
       sheet.image,
       frame * sheet.frameWidth,
@@ -181,5 +173,10 @@ export default class Renderer {
       width,
       height,
     );
+  }
+
+  setOffset(x, y) {
+    this.offsetX = x;
+    this.offsetY = y;
   }
 }

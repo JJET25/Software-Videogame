@@ -23,6 +23,8 @@ export default class RangedEnemy extends Enemy {
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
+    this.activationDelay = 0.8;
+
     // Shooting
     this.shootCooldown = 0;
     this.shootRate = 1.5;

@@ -19,6 +19,8 @@ export default class TankEnemy extends Enemy {
     this.width = 28;
     this.height = 28;
 
+    this.activationDelay = 1.1;
+
     // Hitbox
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
