@@ -1,3 +1,7 @@
+import {
+  OBJECTS_IMAGE,
+  OBJECTS_SPRITE,
+} from "../../../Assets/Sprites/ObjectsID.js";
 import { getRandomCardByRarity } from "../../cards/CardFactory.js";
 import { randInt } from "../../Utils/Random.js";
 import GameObject from "./GameObject.js";
@@ -7,48 +11,45 @@ export default class Chest extends GameObject {
   constructor(position) {
     super(position, 16, 16, "#f1c536", "chest");
     this.isOpen = false;
-    this.showPrompt = true; // Shows interaction text
+    this.showPrompt = true;
   }
 
-  // Call when the player presses E
+  // Call when player presses E near the chest
   interact(player, context = {}) {
-    if (this.isOpen) return; // Prevent opening twice
+    if (this.isOpen) return;
     this.isOpen = true;
 
-    // Generate random loot
     const loot = LootTable.roll();
 
-    // Credit reward
     if (loot.type === "credits") {
-      player.addCredits(loot.amount);
-      //console.log(`[Chest] Monedas: ${loot.amount}`);
-      return;
-    }
-
-    // Try to get a random card
-    const card = getRandomCardByRarity(context.cardCatalog, loot.rarity);
-    if (card && context.cardManager) {
-      const result = context.cardManager.addCard(card); // Add card to player collection
-      //console.log(`[Chest] Carta: ${card.name} (${card.rarity})`);
-
-      if (!result.added && result.creditsAwarded > 0) {
-        // Give coins if card cannot be added
-        player.addCredits(result.creditsAwarded); 
-      }
-    } else {
-      // Fallback reward if card generation fails
-      player.addCredits(randInt(1, 10) * 20);
-    }
+      this.#giveCredits(player, loot.amount, context);
+    } else this.#giveCard(player, loot.rarity, context);
   }
 
   draw(renderer) {
-    renderer.drawRect(
-      this.position.x - this.width / 2,
-      this.position.y - this.height / 2,
-      this.width,
-      this.height,
-      this.isOpen ? "#6B4C11" : "#f1c536",
-    );
+    const key = this.isOpen ? "chestOpen" : "chestClosed";
+    const s = OBJECTS_SPRITE[key];
+
+    if (OBJECTS_IMAGE.complete && OBJECTS_IMAGE.naturalWidth > 0) {
+      renderer.drawSprite(
+        OBJECTS_IMAGE,
+        s.srcX,
+        s.srcY,
+        s.srcW,
+        s.srcH,
+        this.position.x - this.width / 2,
+        this.position.y - this.height / 2,
+        this.width,
+        this.height,
+      );
+    } else
+      renderer.drawRect(
+        this.position.x - this.width / 2,
+        this.position.y - this.height / 2,
+        this.width,
+        this.height,
+        this.isOpen ? "#6B4C11" : "#f1c536",
+      );
 
     if (this.showPrompt && !this.isOpen) {
       renderer.drawText(
@@ -60,5 +61,27 @@ export default class Chest extends GameObject {
         { align: "center" },
       );
     }
+  }
+
+  // --------------------- PRIVATE HELPERS ---------------------
+  // Give credits directly and notify the player
+  #giveCredits(player, amount, context) {
+    player.addCredits(amount);
+    context.showNotification?.(`You got ${amount} Credits!`);
+  }
+
+  // Try to give a card; fallback to random credits if no card is available
+  #giveCard(player, rarity, context) {
+    const card = getRandomCardByRarity(context.cardCatalog, rarity);
+
+    if (card && context.cardManager) {
+      context.cardManager.addCard(card);
+      context.showNotification?.(`You got ${card.name}!`);
+      return;
+    }
+
+    // No card available, give credits instead
+    const amount = randInt(1, 10) * 20;
+    this.#giveCredits(player, amount, context);
   }
 }

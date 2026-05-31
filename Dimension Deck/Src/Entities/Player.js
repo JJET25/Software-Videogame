@@ -63,6 +63,7 @@ export default class Player extends Entity {
   }
 
   update(deltaTime) {
+    if (this.inputLocked) return;
     if (this.isDead) return;
 
     // Slow timer: decreses each frame, when ends the velocity restart

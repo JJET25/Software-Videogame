@@ -17,7 +17,7 @@ export default class Spike extends GameObject {
 
     // Hitbox
     this.hitboxHeight = 8;
-    this.hitboxWidth - 8;
+    this.hitboxWidth = 8;
 
     const variants = ["spike_1", "spike_2"];
     this.spriteKey = variants[randInt(0, variants.length - 1)];

@@ -21,15 +21,15 @@ export default class Renderer {
     const scaleY = window.innerHeight / this.GAME_HEIGHT;
 
     this.scale = Math.max(1, Math.floor(Math.min(scaleX, scaleY)));
+    const dpr = window.devicePixelRatio || 1;
 
-    // Real resolution game
-    this.canvas.width = this.scale * this.GAME_WIDTH;
-    this.canvas.height = this.scale * this.GAME_HEIGHT;
+    this.canvas.width = this.scale * this.GAME_WIDTH * dpr;
+    this.canvas.height = this.scale * this.GAME_HEIGHT * dpr;
 
-    // Screen size (1:1 with buffer -> no rescale of browser)
-    this.canvas.style.width = this.GAME_WIDTH * this.scale + "px";
-    this.canvas.style.height = this.GAME_HEIGHT * this.scale + "px";
+    this.canvas.style.width = `${this.scale * this.GAME_WIDTH}px`;
+    this.canvas.style.height = `${this.scale * this.GAME_HEIGHT}px`;
 
+    this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
     // imageSmoothing resets when canvas.width changes
     this.context.imageSmoothingEnabled = false;
   }
@@ -67,43 +67,26 @@ export default class Renderer {
     );
   }
 
-  // Draws text at (x, y)
-  drawText(
-    text,
-    x,
-    y,
-    font = "10px monospace",
-    color = "#ffffff",
-    options = {},
-  ) {
+  // Draws text at (x, y), the size is scale with the game size
+  drawText(text, x, y, size = 10, color = "#ffffff", options = {}) {
     const defaultOptions = {
+      font: "arial",
       align: "center",
       baseline: "middle",
-      shadow: true,
     };
+
     const config = { ...defaultOptions, ...options };
-    this.context.imageSmoothingEnabled = false;
-    this.context.font = font;
+    this.context.imageSmoothingEnabled = true;
+    this.context.font = `${Math.round(size * this.scale)}px ${config.font}`;
     this.context.fillStyle = color;
     this.context.textAlign = config.align;
     this.context.textBaseline = config.baseline;
-
-    if (config.shadow) {
-      this.context.shadowColor = "rgba(0,0,0,0.45)";
-      this.context.shadowBlur = 0;
-      this.context.shadowOffsetX = 1;
-      this.context.shadowOffsetY = 1;
-    }
 
     this.context.fillText(
       text,
       this.scale * (x + this.offsetX),
       this.scale * (y + this.offsetY),
     );
-
-    this.context.shadowColor = "transparent";
-    this.context.shadowOffsetX = 0;
-    this.context.shadowOffsetY = 0;
   }
 
   drawLine(x1, y1, x2, y2, color, width = 1) {
