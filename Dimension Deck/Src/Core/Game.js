@@ -3,6 +3,7 @@ import MouseManager from "./MouseManager.js";
 import Renderer from "./Renderer.js";
 import ScreenManager from "../Systems/ScreenManager.js";
 import GameplayScreen from "../Scenes/GameplayScreen.js";
+import StartScreen from "../Scenes/StartScreen.js";
 
 // Root game object: owns the renderer, input, and screen manager, and drives the loop
 export default class Game {
@@ -22,7 +23,7 @@ export default class Game {
       mouse: this.mouse,
     });
 
-    this.screens.changeTo(new GameplayScreen());
+    this.screens.changeTo(new StartScreen());
 
     this.start();
   }
