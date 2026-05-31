@@ -148,6 +148,7 @@ export default class Player extends Entity {
 
   // Draws the melee arc overlay when a strike is active, then renders the sprite
   draw(renderer) {
+    if (!this.isVisible) return;
     if (this._strikeTimer > 0) {
       const DURATION = 0.18;
       const alpha = this._strikeTimer / DURATION;

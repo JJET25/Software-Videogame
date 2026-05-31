@@ -15,7 +15,7 @@ const OPPOSITE = {
   west: "east",
 };
 
-const TRANSITION_DURATION = 0.6;
+const TRANSITION_DURATION = 0.8;
 
 function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
@@ -159,6 +159,7 @@ export default class RoomManager {
     this.#setDoorsLocked(this.currentRoom.enemies.length > 0);
 
     this.trasitionCooldown = 0.3;
+    this.player.isVisible = true;
     this.player.inputLocked = false;
   }
 
@@ -326,14 +327,13 @@ export default class RoomManager {
         break;
     }
 
+    this.player.isVisible = false;
+
     renderer.setOffset(fromOffsetX, fromOffsetY);
     fromRoom.draw(renderer);
 
     renderer.setOffset(toOffsetX, toOffsetY);
     toRoom.draw(renderer);
-
-    // Player travels with the new room
-    this.player.draw(renderer);
 
     renderer.setOffset(0, 0);
   }
