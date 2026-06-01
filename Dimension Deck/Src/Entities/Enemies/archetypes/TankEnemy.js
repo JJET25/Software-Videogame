@@ -4,7 +4,7 @@ import Enemy from "../../Enemy.js";
 const DASH_RANGE = 150;
 const CHARGE_DURATION = 0.4;
 const DASH_COOLDOWN = 2.5; // seconds between dashes
-const DASH_DURATION = 0.3; // 300ms in seconds
+const DASH_DURATION = 0.5;
 const DASH_SPEED_MULT = 3;
 
 export default class TankEnemy extends Enemy {
@@ -39,6 +39,7 @@ export default class TankEnemy extends Enemy {
 
     this._isCharging = false;
     this._chargeTimer = 0;
+    this._chargeDir = null;
   }
 
   onUpdate(deltaTime) {
@@ -53,22 +54,28 @@ export default class TankEnemy extends Enemy {
     this.dashCooldownTimer -= deltaTime;
 
     if (this.isDashing) {
-      const speed = this.speed * DASH_SPEED_MULT;
-      this.velocity = normalizedDirection.times(speed);
-
-      if (this.dashTimer <= 0) {}
-    }
-
-    if (this.isDashing) {
+      this.velocity = this._chargeDir.times(this.speed * DASH_SPEED_MULT);
       this.dashTimer -= deltaTime;
-      if (this.dashTimer <= 0) this.isDashing = false; // Dash ends
-    } else if (this.dashCooldownTimer <= 0) {
-      this.isDashing = true; // Dash starts
-      this.dashTimer = DASH_DURATION;
-      this.dashCooldownTimer = DASH_COOLDOWN; // Dash resets
-    }
 
-    const speed = this.isDashing ? this.speed * DASH_SPEED_MULT : this.speed;
-    this.velocity = normalizedDirection.times(speed);
+      if (this.dashTimer <= 0) this.isDashing = false; // Dash ends
+    } else if (this._isCharging) {
+      this.velocity = new Vector(0, 0);
+      this._flashTimer = 0.2;
+      this._chargeTimer -= deltaTime;
+      this.dashTimer = DASH_DURATION;
+      if (this._chargeTimer <= 0) {
+        this._isCharging = false;
+        this.isDashing = true;
+      }
+    } else {
+      this.velocity = normalizedDirection.times(this.speed);
+      const distance = direction.magnitude();
+      if (this.dashCooldownTimer <= 0 && distance < DASH_RANGE) {
+        this._isCharging = true;
+        this._chargeDir = normalizedDirection;
+        this.dashCooldownTimer = DASH_COOLDOWN;
+        this._chargeTimer = CHARGE_DURATION;
+      }
+    }
   }
 }

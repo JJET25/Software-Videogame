@@ -1,3 +1,4 @@
+import { randInt } from "../../../Utils/Random.js";
 import Vector from "../../../Utils/Vector.js";
 import Enemy from "../../Enemy.js";
 
@@ -25,7 +26,9 @@ export default class SwarmEnemy extends Enemy {
     this.contactDamage = 6;
     this.orbitDirection = Math.random() > 0.5 ? 1 : -1;
     this.attackTimer = Math.random() * 1.5;
+    this._orbitFlipTimer = randInt(3, 5);
     this.isDiving = false;
+    this.preferredOrbitDistance = 120;
   }
 
   onUpdate(deltaTime) {
@@ -40,7 +43,7 @@ export default class SwarmEnemy extends Enemy {
     this.attackTimer -= deltaTime;
 
     // Dive attack
-    if (this.attackTimer <= 0 && !this.isDiving) {
+    if (this.attackTimer <= 0 && !this.isDiving && distance < 100) {
       this.isDiving = true;
       this.attackTimer = 0.55;
     }
@@ -55,6 +58,11 @@ export default class SwarmEnemy extends Enemy {
     if (this.isDiving) {
       this.velocity = normalizedDirection.times(this.speed * 1.6);
     } else {
+      this._orbitFlipTimer -= deltaTime;
+      if (this._orbitFlipTimer <= 0) {
+        this.orbitDirection *= -1;
+        this._orbitFlipTimer = randInt(3, 5);
+      }
       const perpendicular = new Vector(
         -normalizedDirection.y * this.orbitDirection,
         normalizedDirection.x * this.orbitDirection,
