@@ -1,4 +1,4 @@
-const INTERACTION_RANGE_SQ = 48 ** 2; // squared to avoid sqrt each frame
+const INTERACTION_RANGE_SQ = 24 ** 2; // squared to avoid sqrt each frame
 
 // Detects a single-frame E press and triggers the nearest in-range interactable
 export default class InteractionManager {
@@ -9,6 +9,8 @@ export default class InteractionManager {
 
   // Call once per frame; fires interact() on the closest object within range
   update(player, interactables, context = {}) {
+    this.#updateProximity(player, interactables);
+
     const eDown = this.input.isKeyDown("E");
     const pressed = eDown && !this._ePrev;
     this._ePrev = eDown;
@@ -40,5 +42,12 @@ export default class InteractionManager {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
     return dx * dx + dy * dy;
+  }
+
+  #updateProximity(player, interactables) {
+    for (const obj of interactables) {
+      obj.isPlayerNear =
+        this.#distanceSq(player.position, obj.position) <= INTERACTION_RANGE_SQ;
+    }
   }
 }

@@ -45,10 +45,25 @@ export default class DimensionManager {
   getCurrentDimension() {
     return this.runDimensions[this.currentDimIndex];
   }
+
   getRoomManager() {
     return this.roomManager;
   }
 
+  canAdvanceLevel() {
+    return !(
+      this.currentDimIndex === this.runDimensions.length - 1 &&
+      this.currentPhase === "finalBoss"
+    );
+    if (this.currentDimIndex === "finalBoss") this.onFinalBossDefeated();
+  }
+
+  advanceLevel() {
+    if (this.currentPhase === "miniBoss") this.onMiniBossDefeated();
+    else if (this.currentPhase === "finalBoss") this.onFinalBossDefeated();
+  }
+
+  // --------------------- PRIVATE HELPERS ---------------------
   // Generates the room graph for the current phase and creates a fresh RoomManager
   #loadCurrentPhase() {
     this.currentGenerator = new DimensionGenerator(
