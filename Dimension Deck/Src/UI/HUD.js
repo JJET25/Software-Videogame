@@ -88,7 +88,7 @@ export default class HUD {
       `HP ${player.health}/${player.maxHealth}`,
       BAR_X,
       BAR_Y - 6,
-      "12px monospace",
+      5,
       "#cccccc",
     );
   }

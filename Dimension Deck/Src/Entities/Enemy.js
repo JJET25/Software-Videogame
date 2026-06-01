@@ -1,5 +1,6 @@
 import Entity from "./Entity.js";
 import Collision from "../Physics/Collision.js";
+import Vector from "../Utils/Vector.js";
 
 // Base enemy class
 // Moves directly toward the player and deals contact damage
@@ -19,33 +20,47 @@ export default class Enemy extends Entity {
     this.activationDelay = 0;
     this._activationTimer = 0;
     this.isActive = false;
+
+    this._prevX = this.position.x;
+    this._prevY = this.position.y;
+    this._stuckTimer = 0;
+    this._stuckSteering = 0;
+    this._stuckSign = 1;
   }
 
   update(deltaTime) {
-    if (!this.isActive) {
-      this._activationTimer += deltaTime;
-      if (this._activationTimer >= this.activationDelay) this.isActive = true;
+    if (this.isDead) return;
 
-      return;
+    const dx = this.position.x - this._prevX;
+    const dy = this.position.y - this._prevY;
+
+    // If player moves less of 0.5px
+    if (dx * dx + dy * dy < 2) {
+      this._stuckTimer += deltaTime;
+      if (this._stuckTimer > 0.4 && this._stuckSteering <= 0) {
+        this._stuckSteering = 0.8;
+        this._stuckSign = Math.random() > 0.5 ? 1 : -1;
+      }
+    } else this._stuckTimer = 0;
+
+    if (this._stuckSteering > 0) this._stuckSteering -= deltaTime;
+
+    this._prevX = this.position.x;
+    this._prevY = this.position.y;
+
+    // --------------------- Base logic ---------------------
+    this.onUpdate(deltaTime);
+
+    if (this._stuckSteering > 0 && this.velocity.squareLength() > 0) {
+      const perp = new Vector(-this.velocity.y, this.velocity.x).normalize();
+      this.velocity = this.velocity.plus(
+        perp.times(this.speed * this._stuckSign),
+      );
     }
 
-    // Stop updating after death
-    if (this.isDead) return;
-
-    this.onUpdate(deltaTime);
-    this._applyContactDamage(deltaTime); // Check collision damage
-    if (this.health <= 0) this.die(); // Kill enemy if health reaches 0
+    this._applyContactDamage(deltaTime);
+    if (this.health <= 0) this.die();
     super.update(deltaTime);
-  }
-
-  // Reduces enemy health and shows hit flash
-  takeDamage(amount) {
-    if (this.isDead) return;
-    this.health = Math.max(0, this.health - amount);
-
-    // Small white flash effect
-    this._flashTimer = 0.12;
-    if (this.health === 0) this.die();
   }
 
   // Draw enemy and health bar

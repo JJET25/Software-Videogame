@@ -2,8 +2,17 @@ import Entity from "./Entity.js";
 import Vector from "../Utils/Vector.js";
 import { Trigger } from "../cards/AutomaticCard.js";
 
-// Player entity
-// Handles movement, dashing, aiming, card activation, and automatic trigger firing
+// DASH CONFIG
+const DASH_SPEED = 350;
+const DASH_DURATION = 0.2; // how long the dash lasts
+const DASH_COOLDOWN = 0.8; // wait before next dash is allowed
+const DASH_IFRAMES = 0.45; // extra no-damage time after the dash ends
+
+// MOVEMENT CONFIG
+const BASE_SPEED = 150;
+const SLOW_FACTOR = 0.4; // speed multiplier when slowed by spikes
+
+// Player entity handles movement, dashing, aiming, card activation and trigger firing
 export default class Player extends Entity {
   constructor(position, input, mouse) {
     super(position, 16, 32, "#4488ff", {
@@ -14,44 +23,51 @@ export default class Player extends Entity {
 
     this.input = input;
     this.mouse = mouse;
-    this.speed = 150;
-    this._baseSpeed = 150;
+
+    // movement
+    this.speed = BASE_SPEED;
+    this._baseSpeed = BASE_SPEED;
     this._slowTimer = 0;
     this.state = "idle";
-    this.getObjects = null;
 
-    this.cardManager = null;
-    this.credits = 0;
-    this.totalDamageDealt = 0;
-
+    // aim direction follows the mouse
     this.aimDirection = new Vector(1, 0);
 
-    this._dashSpeed = 400;
-    this._dashDuration = 0.15;
-    this._dashCooldown = 0.8;
+    // cards and economy
+    this.cardManager = null;
+    this.credits = 0;
+
+    // callbacks set by GameplayScreen so player can read room state
+    this.getEnemies = null;
+    this.getObjects = null;
+
+    // dash state
     this._dashTimer = 0;
     this._dashCooldownTimer = 0;
+    this._dashDir = null;
+
+    // freeze blocks all movement, used by notifications and room entry
     this._freezeTimer = 0;
 
-    // Melee arc visual state
-    // Written by functon active melee card and read by the draw function
+    // melee arc visual, written by ActiveMeleeCard and read in draw
     this._strikeTimer = 0;
     this._strikeDir = new Vector(1, 0);
     this._strikeRange = 120;
     this._strikeSpread = Math.PI * 0.6;
   }
 
+  // true while the dash is active
   get isDashing() {
     return this._dashTimer > 0;
   }
 
-  // Fires damage trigger only when health actually decreases
+  // reduces health and fires ON_DAMAGE trigger if health actually dropped
   takeDamage(amount) {
     if (window.testingMode) return;
-    const healthBefore = this.health;
+    const prev = this.health;
     super.takeDamage(amount);
-    if (this.cardManager && this.health < healthBefore) {
-      const enemies = this.getEnemies ? this.getEnemies() : [];
+    if (this.cardManager && this.health < prev) {
+      const enemies = this.getEnemies?.() ?? [];
       this.cardManager.fireTrigger(Trigger.ON_DAMAGE, {
         player: this,
         enemies,
@@ -63,23 +79,36 @@ export default class Player extends Entity {
     this.credits += amount;
   }
 
+  // hold all input and movement for a given duration
+  freeze(duration) {
+    this._freezeTimer = duration;
+  }
+
+  unfreeze() {
+    this._freezeTimer = 0;
+  }
+
   update(deltaTime) {
-    if (this.inputLocked) return;
     if (this.isDead) return;
 
-    // Slow timer: decreses each frame, when ends the velocity restart
+    // spike slow effect
     if (this._slowTimer > 0) {
       this._slowTimer -= deltaTime;
-      this.speed = this._baseSpeed * 0.4; // 40% velocity
+      this.speed = this._baseSpeed * SLOW_FACTOR;
     } else {
-      this.speed = this._baseSpeed; // normal velocity
+      this.speed = this._baseSpeed;
     }
 
-    // Freeze player when enters a new room
-    if (this._freezeTimer > 0) this._freezeTimer -= deltaTime;
+    // freeze blocks all input and movement
+    if (this._freezeTimer > 0) {
+      this._freezeTimer -= deltaTime;
+      this.velocity = new Vector(0, 0);
+      super.update(deltaTime);
+      return;
+    }
 
+    // read movement input from WASD and arrows
     const raw = new Vector(0, 0);
-
     if (this.input.isKeyDown("W") || this.input.isKeyDown("ARROWUP"))
       raw.y -= 1;
     if (this.input.isKeyDown("S") || this.input.isKeyDown("ARROWDOWN"))
@@ -92,69 +121,56 @@ export default class Player extends Entity {
     const isMoving = raw.squareLength() > 0;
     const direction = raw.normalize();
 
+    // aim follows mouse position in game-space
     if (this.mouse) {
       const toMouse = this.mouse.position.minus(this.position);
-      if (toMouse.squareLength() > 0) {
-        this.aimDirection = toMouse.normalize();
-      }
+      if (toMouse.squareLength() > 0) this.aimDirection = toMouse.normalize();
     }
 
     if (this._dashCooldownTimer > 0) this._dashCooldownTimer -= deltaTime;
 
     if (this.isDashing) {
+      // hold dash velocity for the full duration
       this._dashTimer -= deltaTime;
+      this.velocity = this._dashDir.times(DASH_SPEED);
     } else if (
-      this.input.isKeyDown("SPACE") &&
+      this.input.wasKeyPressed("SPACE") &&
       this._dashCooldownTimer <= 0 &&
       isMoving
     ) {
-      const dashDir = direction;
-      this._dashTimer = this._dashDuration;
-      this._dashCooldownTimer = this._dashCooldown;
-
-      this.velocity = dashDir.times(this._dashSpeed);
-      this.grantInvincibility(this._dashDuration);
-
-      if (this.cardManager) {
-        const enemies = this.getEnemies?.() ?? [];
-        this.cardManager.fireTrigger(Trigger.ON_DASH, {
-          player: this,
-          enemies,
-        });
-      }
+      this.#startDash(direction);
     } else {
-      const canMove = this._freezeTimer <= 0 && !this.isDashing;
-      this.velocity = canMove ? direction.times(this.speed) : new Vector(0, 0);
+      this.velocity = direction.times(this.speed);
     }
 
     this.state = isMoving || this.isDashing ? "moving" : "idle";
 
+    // card slot selection with keys 1-5, click to play selected card
     if (this.cardManager) {
       for (let i = 0; i < 5; i++) {
         if (this.input.wasKeyPressed(String(i + 1))) {
           this.cardManager.selectSlot(i);
         }
       }
-
       if (this.mouse?.consumeClick()) {
         this._playCardAtSlot(this.cardManager.selectedIndex);
       }
     }
 
-    if (this._strikeTimer > 0)
+    // melee arc counts down each frame
+    if (this._strikeTimer > 0) {
       this._strikeTimer = Math.max(0, this._strikeTimer - deltaTime);
+    }
 
     super.update(deltaTime);
   }
 
-  // Draws the melee arc overlay when a strike is active, then renders the sprite
   draw(renderer) {
-    if (!this.isVisible) return;
+    // draw the melee cone while the strike is active
     if (this._strikeTimer > 0) {
       const DURATION = 0.18;
       const alpha = this._strikeTimer / DURATION;
       const angle = Math.atan2(this._strikeDir.y, this._strikeDir.x);
-      const SPREAD = this._strikeSpread;
       const r = this._strikeRange;
       const ctx = renderer.context;
       const s = renderer.scale;
@@ -164,7 +180,13 @@ export default class Player extends Entity {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r * s, angle - SPREAD / 2, angle + SPREAD / 2);
+      ctx.arc(
+        cx,
+        cy,
+        r * s,
+        angle - this._strikeSpread / 2,
+        angle + this._strikeSpread / 2,
+      );
       ctx.closePath();
       ctx.fillStyle = `rgba(255, 230, 80, ${(alpha * 0.3).toFixed(2)})`;
       ctx.fill();
@@ -177,6 +199,25 @@ export default class Player extends Entity {
     super.draw(renderer);
   }
 
+  // --------------------- PRIVATE ---------------------
+  // start a dash in the given direction, grant iframes and fire card trigger
+  #startDash(dir) {
+    this._dashDir = dir;
+    this._dashTimer = DASH_DURATION;
+    this._dashCooldownTimer = DASH_COOLDOWN;
+    this.velocity = dir.times(DASH_SPEED);
+
+    // invincibility during dash and a short window after it ends
+    this.grantInvincibility(DASH_DURATION + DASH_IFRAMES);
+    this._flashTimer = DASH_DURATION;
+
+    if (this.cardManager) {
+      const enemies = this.getEnemies?.() ?? [];
+      this.cardManager.fireTrigger(Trigger.ON_DASH, { player: this, enemies });
+    }
+  }
+
+  // play card at the given slot and fire ON_HIT or ON_KILL triggers
   _playCardAtSlot(index) {
     if (!this.cardManager) return;
 
@@ -197,23 +238,11 @@ export default class Player extends Entity {
 
     for (const snap of snapshots) {
       if (snap.wasDead) continue;
-      const combatState = { player: this, enemies, enemy: snap.enemy };
-
-      this.totalDamageDealt += Math.max(0, snap.health - snap.enemy.health);
-
-      if (snap.enemy.isDead) {
-        this.cardManager.fireTrigger(Trigger.ON_KILL, combatState);
-      } else if (snap.enemy.health < snap.health) {
-        this.cardManager.fireTrigger(Trigger.ON_HIT, combatState);
-      }
+      const state = { player: this, enemies, enemy: snap.enemy };
+      if (snap.enemy.isDead)
+        this.cardManager.fireTrigger(Trigger.ON_KILL, state);
+      else if (snap.enemy.health < snap.health)
+        this.cardManager.fireTrigger(Trigger.ON_HIT, state);
     }
-  }
-
-  freeze(duration) {
-    this._freezeTimer = duration;
-  }
-
-  unfreeze() {
-    this._freezeTimer = 0;
   }
 }

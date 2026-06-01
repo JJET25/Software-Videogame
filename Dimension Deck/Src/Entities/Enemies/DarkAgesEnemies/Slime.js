@@ -1,3 +1,3 @@
-import SwarmEnemy from "../archetypes/SwarmEnemy.js";
+import TankEnemy from "../archetypes/TankEnemy.js";
 
-export default class Slime extends SwarmEnemy {}
+export default class Slime extends TankEnemy {}

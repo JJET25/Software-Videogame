@@ -50,7 +50,6 @@ export default class TankEnemy extends Enemy {
   }
 
   // --------------------- PRIVATE ---------------------
-
   // Move at full dash speed until timer runs out
   #stateDashing(deltaTime) {
     this.velocity = this._chargeDir.times(this.speed * DASH_SPEED_MULT);
@@ -58,7 +57,7 @@ export default class TankEnemy extends Enemy {
     if (this.dashTimer <= 0) this.isDashing = false;
   }
 
-  // Stand still and flash — then launch the dash
+  // Stand still and flash, then launch the dash
   #stateCharging(deltaTime) {
     this.velocity = new Vector(0, 0);
     this._flashTimer = 0.2;
@@ -70,7 +69,7 @@ export default class TankEnemy extends Enemy {
     }
   }
 
-  // Walk toward player; start a charge when close enough and cooldown is ready
+  // Walk toward player, start a charge when close enough and cooldown is ready
   #stateWalking(normDir, distance) {
     this.velocity = normDir.times(this.speed);
     if (this.dashCooldownTimer <= 0 && distance < DASH_RANGE) {
