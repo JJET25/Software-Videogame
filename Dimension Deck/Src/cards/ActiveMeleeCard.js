@@ -28,10 +28,9 @@ export default class ActiveMeleeCard extends ActiveCard {
     const aimAngle = Math.atan2(player.aimDirection.y, player.aimDirection.x);
     const halfSpread = this.spread / 2;
 
-    // Real center player hitbox
-    const pb = player.getBounds();
-    const pcx = (pb.left + pb.right) / 2;
-    const pcy = (pb.top + pb.bottom) / 2;
+    // Player hitbox
+    const pcx = player.position.x;
+    const pcy = player.position.y;
 
     // Hits enemiys in the cone
     for (const enemy of enemies) {

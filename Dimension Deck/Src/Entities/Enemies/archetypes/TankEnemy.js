@@ -1,6 +1,8 @@
 import Vector from "../../../Utils/Vector.js";
 import Enemy from "../../Enemy.js";
 
+const DASH_RANGE = 150;
+const CHARGE_DURATION = 0.4;
 const DASH_COOLDOWN = 2.5; // seconds between dashes
 const DASH_DURATION = 0.3; // 300ms in seconds
 const DASH_SPEED_MULT = 3;
@@ -34,6 +36,9 @@ export default class TankEnemy extends Enemy {
     this.dashCooldownTimer = DASH_COOLDOWN;
     this.dashTimer = 0;
     this.isDashing = false;
+
+    this._isCharging = false;
+    this._chargeTimer = 0;
   }
 
   onUpdate(deltaTime) {
@@ -46,6 +51,11 @@ export default class TankEnemy extends Enemy {
 
     // Dash
     this.dashCooldownTimer -= deltaTime;
+
+    if (this.isDashing) {
+      const speed = this.speed * DASH_SPEED_MULT;
+      this.velocity = normalizedDirection.times(speed);
+    }
 
     if (this.isDashing) {
       this.dashTimer -= deltaTime;

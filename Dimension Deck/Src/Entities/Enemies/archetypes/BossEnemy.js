@@ -1,273 +1,254 @@
 import Enemy from "../../Enemy.js";
 import EnemyBullet from "../../EnemyBullet.js";
 import SwarmEnemy from "./SwarmEnemy.js";
-import RangedEnemy from "./RangedEnemy.js";
-import TankEnemy from "./TankEnemy.js";
 import Vector from "../../../Utils/Vector.js";
+import {
+  ROOM_HEIGHT,
+  ROOM_WIDTH,
+  TILE_SIZE,
+} from "../../../Utils/Constants.js";
+import { randFloat } from "../../../Utils/Random.js";
+
+// --------------------- PHASE CONFIG ---------------------
+const PHASE = {
+  1: { speed: 24, dashSpeed: 260, dashCooldown: 5, attackRate: 1.5 },
+  2: { speed: 28, dashSpeed: 380, dashCooldown: 4, attackRate: 1.5 },
+  3: { speed: 32, dashSpeed: 520, dashCooldown: 3, attackRate: 0.8 },
+};
+
+const DASH_DURATION = 0.45;
+const CHARGE_DURATION = 0.6;
+const CHARGE_DURATION_2 = 0.5; // Short pause before second dash in phase 3
+const INTRO_DURATION = 1.0;
+const POST_DASH_WAIT = 2.0;
+const RADIAL_RANGE = 60
+const DASH_RANGE = 320;
 
 export default class BossEnemy extends Enemy {
   constructor(position, deps) {
     super(position, deps);
 
-    // Boss size
-    this.width = 44;
-    this.height = 44;
-
-    // Hitbox
+    this.width = 40;
+    this.height = 40;
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
-    // Stats
     this.health = 2500;
     this.maxHealth = 2500;
-
-    // Slower movement
-    this.speed = 24;
     this.contactDamage = 35;
 
-    // Phases
+    // Phase state
     this.phase = 1;
     this.isEnraged = false;
+    this.#applyPhase(1); // Set speed and dashSpeed from config
 
-    // Dash
-    this.dashSpeed = 260;
+    // Timers
     this.dashCooldown = 0;
+    this.attackCooldown = 0;
+    this.radialCooldown = 0;
+    this._introTimer = INTRO_DURATION;
+    this._recoveryTimer = 0;
+    this._postDashTimer = 0;
+
+    // Dash state machine
     this.isDashing = false;
     this.dashTimer = 0;
     this.dashDirection = new Vector(0, 0);
-
-    // Attacks
-    this.attackCooldown = 0;
-    this.radialCooldown = 0;
-
-    // Summons
-    this.summonCooldown = 6;
-    this.enemyList = null;
+    this._isCharging = false;
+    this._chargeTimer = 0;
+    this._chargeDir = null;
+    this._dashesThisCycle = 0;
   }
 
   onUpdate(deltaTime) {
-    // Timers
-    this.dashCooldown -= deltaTime;
-    this.dashTimer -= deltaTime;
-    this.attackCooldown -= deltaTime;
-    this.radialCooldown -= deltaTime;
-    this.summonCooldown -= deltaTime;
+    this.#tickTimers(deltaTime);
 
-    // Phase transitions
-    this.updatePhase();
+    // Freeze during intro animation
+    if (this._introTimer > 0) {
+      this._introTimer -= deltaTime;
+      this.velocity = new Vector(0, 0);
+      return;
+    }
 
-    // Direction to player
+    this.#updatePhase();
+
     const dir = new Vector(
       this.player.position.x - this.position.x,
       this.player.position.y - this.position.y,
     );
-
     const normDir = dir.normalize();
     const distance = dir.magnitude();
 
-    // Dash behavior
-    if (this.isDashing) {
-      this.velocity = this.dashDirection.times(this.dashSpeed);
+    this.#updateMovement(deltaTime, normDir, distance);
+    this.#updateAttacks(normDir, distance);
+  }
 
-      // Stop dash after timer ends
-      if (this.dashTimer <= 0) {
-        this.isDashing = false;
-      }
+  // --------------------- PRIVATE HELPERS ---------------------
+  // Decrease all cooldown timers each frame
+  #tickTimers(deltaTime) {
+    this.dashCooldown -= deltaTime;
+    this.dashTimer -= deltaTime;
+    this.attackCooldown -= deltaTime;
+    this.radialCooldown -= deltaTime;
+    if (this._recoveryTimer > 0) this._recoveryTimer -= deltaTime;
+    if (this._postDashTimer > 0) this._postDashTimer -= deltaTime;
+  }
+
+  // Three state machine: dashing -> charging -> walking
+  #updateMovement(deltaTime, normDir, distance) {
+    if (this.isDashing) this.#stateDashing(normDir);
+    else if (this._isCharging) this.#stateCharging(deltaTime, normDir);
+    else this.#stateWalking(normDir, distance);
+  }
+
+  // Move at full dash speed; check if dash is done
+  #stateDashing(normDir) {
+    this.velocity = this.dashDirection.times(this.dashSpeed);
+
+    if (this.dashTimer > 0) return;
+
+    this.isDashing = false;
+
+    // Phase 3: chain a second dash before resting
+    if (this.phase === 3 && this._dashesThisCycle < 1) {
+      this._dashesThisCycle++;
+      this._isCharging = true;
+      this._chargeTimer = CHARGE_DURATION_2;
+      this._chargeDir = normDir;
     } else {
-      // Normal movement toward player
-      this.velocity = normDir.times(this.speed);
-
-      // Start dash when player is close
-      if (distance < 320 && this.dashCooldown <= 0) {
-        this.startDash(normDir);
-      }
-    }
-
-    // Main shooting attack
-    if (this.attackCooldown <= 0) {
-      this.shootBurst(normDir);
-
-      this.attackCooldown = this.phase === 3 ? 0.8 : 1.5;
-    }
-
-    // Circular bullet attack
-    if (this.phase >= 2 && this.radialCooldown <= 0) {
-      this.radialAttack();
-
-      this.radialCooldown = this.phase === 3 ? 2 : 4;
-    }
-
-    // Spawn extra enemies
-    if (this.summonCooldown <= 0) {
-      this.summonEnemies();
-    }
-
-    // Contact damage
-    const dx = Math.abs(this.player.position.x - this.position.x);
-
-    const dy = Math.abs(this.player.position.y - this.position.y);
-
-    if (dx < 60 && dy < 60 && this.damageCooldown <= 0) {
-      this.player.takeDamage(this.contactDamage);
-
-      this.damageCooldown = 0.5;
-    }
-
-    // Move
-    this.position = this.position.plus(this.velocity.times(deltaTime));
-
-    // Death
-    if (this.health <= 0) {
-      this.die();
+      this._dashesThisCycle = 0;
+      this._postDashTimer = POST_DASH_WAIT;
     }
   }
 
-  updatePhase() {
-    // Phase 2
+  // Stand still and flash, then launch the dash
+  #stateCharging(deltaTime, normDir) {
+    this._chargeTimer -= deltaTime;
+    this.velocity = new Vector(0, 0);
+    this._flashTimer = 0.1;
+
+    if (this._chargeTimer <= 0) {
+      this._isCharging = false;
+      this.#startDash(this._chargeDir ?? normDir);
+    }
+  }
+
+  // Walk to player, start a charge when close enough
+  #stateWalking(normDir, distance) {
+    this.velocity = normDir.times(this.speed);
+
+    const canDash =
+      distance < DASH_RANGE &&
+      this.dashCooldown <= 0 &&
+      this._recoveryTimer <= 0;
+
+    if (canDash) {
+      this._isCharging = true;
+      this._chargeTimer = CHARGE_DURATION;
+      this._chargeDir = normDir;
+      this.dashCooldown = PHASE[this.phase].dashCooldown;
+    }
+  }
+
+  // Fire burst and radial attacks when cooldowns allow
+  #updateAttacks(normDir, distance) {
+    const idle =
+      !this._isCharging && !this.isDashing && this._recoveryTimer <= 0;
+
+    if (idle && this.attackCooldown <= 0) {
+      this.#shootBurst(normDir);
+      this.attackCooldown = PHASE[this.phase].attackRate;
+      this._recoveryTimer = 0.8;
+    }
+
+    const canRadial =
+      this.phase >= 2 &&
+      distance < RADIAL_RANGE &&
+      this.radialCooldown <= 0 &&
+      !this.isDashing &&
+      !this._isCharging &&
+      this._postDashTimer <= 0;
+
+    if (canRadial) {
+      this.#radialAttack();
+      this.radialCooldown = 2;
+      this._recoveryTimer = this.phase === 2 ? 3 : 1;
+    }
+  }
+
+  // Transition to the next phase and apply new stats
+  #updatePhase() {
     if (this.health <= this.maxHealth * 0.65 && this.phase === 1) {
       this.phase = 2;
-
-      this.speed = 32;
-
-      this.dashSpeed = 380;
+      this.#applyPhase(2);
+      this.#spawnMinions(2);
     }
-
-    // Phase 3
     if (this.health <= this.maxHealth * 0.3 && this.phase === 2) {
       this.phase = 3;
-
-      this.speed = 42;
-
-      this.dashSpeed = 520;
-
       this.isEnraged = true;
+      this.#applyPhase(3);
+      this.#spawnMinions(3);
     }
   }
 
-  startDash(direction) {
-    this.isDashing = true;
-
-    this.dashTimer = 0.45;
-
-    this.dashDirection = direction;
-
-    this.dashCooldown = this.phase === 3 ? 1.2 : 3;
+  // Pull speed and dashSpeed from the PHASE config table
+  #applyPhase(phase) {
+    this.speed = PHASE[phase].speed;
+    this.dashSpeed = PHASE[phase].dashSpeed;
   }
 
-  shootBurst(direction) {
-    const spread = [-0.25, 0, 0.25];
+  #startDash(direction) {
+    this.isDashing = true;
+    this.dashTimer = DASH_DURATION;
+    this.dashDirection = direction;
+    this.dashCooldown = PHASE[this.phase].dashCooldown;
+  }
 
-    for (let angle of spread) {
+  // 3 bullet spread toward the player
+  #shootBurst(direction) {
+    for (const angle of [-0.25, 0, 0.25]) {
       const rotated = new Vector(
         direction.x * Math.cos(angle) - direction.y * Math.sin(angle),
-
         direction.x * Math.sin(angle) + direction.y * Math.cos(angle),
       );
-
       this.bullets.push(
         new EnemyBullet(
           new Vector(this.position.x, this.position.y),
-
           rotated.normalize(),
         ),
       );
     }
   }
 
-  radialAttack() {
-    const bulletCount = this.phase === 3 ? 18 : 12;
-
-    for (let i = 0; i < bulletCount; i++) {
-      const angle = ((Math.PI * 2) / bulletCount) * i;
-
-      const dir = new Vector(Math.cos(angle), Math.sin(angle));
-
+  // Ring of bullets in all directions
+  #radialAttack() {
+    const count = this.phase === 3 ? 18 : 12;
+    for (let i = 0; i < count; i++) {
+      const angle = ((Math.PI * 2) / count) * i;
       this.bullets.push(
         new EnemyBullet(
           new Vector(this.position.x, this.position.y),
-
-          dir,
+          new Vector(Math.cos(angle), Math.sin(angle)),
         ),
       );
     }
   }
 
-  summonEnemies() {
-    if (!this.enemyList) return;
-
-    // Prevent enemy overflow
-    if (this.enemyList.length > 8) {
-      this.summonCooldown = 5;
-
-      return;
-    }
-
-    // Phase 1
-    if (this.phase === 1) {
-      for (let i = 0; i < 3; i++) {
-        this.enemyList.push(
-          new SwarmEnemy(this.randomSpawn(), {
-            player: this.player,
-          }),
-        );
-      }
-
-      this.summonCooldown = 7;
-    }
-
-    // Phase 2
-    else if (this.phase === 2) {
-      for (let i = 0; i < 2; i++) {
-        this.enemyList.push(
-          new SwarmEnemy(this.randomSpawn(), {
-            player: this.player,
-          }),
-        );
-      }
-
+  // Spawn SwarmEnemies at random positions on phase transition
+  #spawnMinions(phase) {
+    const count = phase === 2 ? 2 : 3;
+    for (let i = 0; i < count; i++) {
       this.enemyList.push(
-        new RangedEnemy(this.randomSpawn(), {
-          player: this.player,
-          bullets: this.bullets,
-        }),
+        new SwarmEnemy(this.#randomSpawn(), { player: this.player }),
       );
-
-      this.summonCooldown = 6;
-    }
-
-    // Phase 3
-    else {
-      for (let i = 0; i < 5; i++) {
-        this.enemyList.push(
-          new SwarmEnemy(this.randomSpawn(), {
-            player: this.player,
-          }),
-        );
-      }
-
-      this.enemyList.push(
-        new TankEnemy(this.randomSpawn(), {
-          player: this.player,
-          bullets: this.bullets,
-        }),
-      );
-
-      this.enemyList.push(
-        new RangedEnemy(this.randomSpawn(), {
-          player: this.player,
-          bullets: this.bullets,
-        }),
-      );
-
-      this.summonCooldown = 4;
     }
   }
 
-  randomSpawn() {
+  #randomSpawn() {
+    const margin = TILE_SIZE * 3;
     return new Vector(
-      this.position.x + (Math.random() - 0.5) * 260,
-
-      this.position.y + (Math.random() - 0.5) * 260,
+      randFloat(margin, ROOM_WIDTH - margin),
+      randFloat(margin, ROOM_HEIGHT - margin),
     );
   }
 }
