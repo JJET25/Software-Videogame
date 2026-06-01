@@ -55,6 +55,8 @@ export default class TankEnemy extends Enemy {
     if (this.isDashing) {
       const speed = this.speed * DASH_SPEED_MULT;
       this.velocity = normalizedDirection.times(speed);
+
+      if (this.dashTimer <= 0) {}
     }
 
     if (this.isDashing) {
