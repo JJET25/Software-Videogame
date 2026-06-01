@@ -230,6 +230,8 @@ export default class GameplayScreen extends Screen {
         cardManager: this.cardManager,
         cardCatalog: this.cardCatalog,
         showNotification: (msg) => this.showNotification(msg),
+        advanceLevel: () => this.dimManager.advanceLevel(),
+        canAdvance: () => this.dimManager.canAdvanceLevel(),
       });
     }
   }

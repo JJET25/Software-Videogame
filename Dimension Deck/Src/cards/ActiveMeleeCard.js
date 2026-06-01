@@ -25,8 +25,6 @@ export default class ActiveMeleeCard extends ActiveCard {
     player._strikeRange = this.range;
     player._strikeSpread = this.spread;
 
-    if (!enemies?.length) return;
-
     const aimAngle = Math.atan2(player.aimDirection.y, player.aimDirection.x);
     const halfSpread = this.spread / 2;
 

@@ -10,8 +10,8 @@ import LootTable from "./LootTable.js";
 export default class Chest extends GameObject {
   constructor(position) {
     super(position, 16, 16, "#f1c536", "chest");
+    this.isSolid = true;
     this.isOpen = false;
-    this.showPrompt = true;
   }
 
   // Call when player presses E near the chest
@@ -51,14 +51,13 @@ export default class Chest extends GameObject {
         this.isOpen ? "#6B4C11" : "#f1c536",
       );
 
-    if (this.showPrompt && !this.isOpen) {
+    if (this.isPlayerNear && !this.isOpen) {
       renderer.drawText(
         "[E] Open Chest",
         this.position.x,
         this.position.y - 16,
-        "12px monospace",
+        5,
         "#000000",
-        { align: "center" },
       );
     }
   }

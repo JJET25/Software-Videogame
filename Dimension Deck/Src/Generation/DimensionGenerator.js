@@ -6,7 +6,6 @@ import RoomTypeAssigner from "./RoomTypeAssigner.js";
 export default class DimensionGenerator {
   constructor(dimension) {
     this.dimension = dimension; // Current world/dimension
-    //this.rng = rng                              // Random Number Generator
     this.assigner = new RoomTypeAssigner();
   }
 
