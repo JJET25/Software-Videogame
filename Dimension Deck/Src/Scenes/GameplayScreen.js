@@ -43,7 +43,14 @@ export default class GameplayScreen extends Screen {
     this.player.getObjects = () =>
       this.dimManager?.getRoomManager()?.currentRoom?.objects ?? [];
 
-    this.dimManager = new DimensionManager(this.player, () => this.onVictory());
+    this._overlay = null;
+
+    this.dimManager = new DimensionManager(
+      this.player,
+      () => this.onVictory(),
+      (levelNum, done) => this.#showLevelOverlay(levelNum, done),
+      (fromName, toName, done) => this.#showDimensionTransitionOverlay(fromName, toName, done),
+    );
     this.dimManager.startRun();
 
     this.minimap = new MiniMap(this.dimManager);
@@ -64,14 +71,11 @@ export default class GameplayScreen extends Screen {
     this.pauseMenu = new PauseMenu();
     window.testingMode = false;
 
-    // Overlay para LevelScreen / VictoryScreen / DimensionTransitionScreen
-    this._overlay = null;
+    // Mostrar Level 1 al iniciar la run
+    this.#showLevelOverlay(1, null);
 
     // Load starter cards from DB; fall back to hardcoded deck if API is down
     this._loadStarterCards();
-
-    // Mostrar Level 1 al iniciar
-    this.#showLevelOverlay(1, null);
   }
 
   async _loadStarterCards() {
@@ -103,7 +107,7 @@ export default class GameplayScreen extends Screen {
   exit() {}
 
   update(deltaTime) {
-    // El overlay maneja su propio input; el juego se pausa detrás
+    // Overlay activo — el juego se pausa detrás
     if (this._overlay) {
       this._overlay.update(deltaTime);
       return;
@@ -194,8 +198,16 @@ export default class GameplayScreen extends Screen {
     if (this._notification)
       this.#drawNotification(renderer, this._notification.message);
 
-    // El overlay se dibuja encima de todo
-    if (this._overlay) this._overlay.draw(renderer);
+    // Overlay encima de todo — reset ctx después para no contaminar el HUD
+    if (this._overlay) {
+      this._overlay.draw(renderer);
+      const ctx = renderer.context;
+      ctx.globalAlpha   = 1;
+      ctx.shadowColor   = "transparent";
+      ctx.shadowBlur    = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    }
   }
 
   // --------------------- METHODS ---------------------
@@ -208,18 +220,7 @@ export default class GameplayScreen extends Screen {
     this.player.freeze(99999);
   }
 
-  // Llamar esto desde DimensionManager cuando avanza de fase
-  showLevelVictory(nextLevelNumber, onContinue) {
-    this.#showVictoryOverlay(nextLevelNumber, onContinue);
-  }
-
-  // Llamar esto desde DimensionManager al cambiar de dimensión
-  showDimensionTransition(fromName, toName, onDone) {
-    this.#showDimensionTransitionOverlay(fromName, toName, onDone);
-  }
-
   // --------------------- PRIVATE HELPERS ---------------------
-  // Crea y muestra un overlay adjuntando los servicios necesarios
   #mountOverlay(OverlayClass, context) {
     const overlay = new OverlayClass();
     overlay.attach({
@@ -238,16 +239,6 @@ export default class GameplayScreen extends Screen {
       onDone: () => {
         this._overlay = null;
         onDone?.();
-      },
-    });
-  }
-
-  #showVictoryOverlay(nextLevelNumber, onContinue) {
-    this.#mountOverlay(VictoryScreen, {
-      nextLevelNumber,
-      onContinue: () => {
-        this._overlay = null;
-        onContinue?.();
       },
     });
   }
@@ -294,7 +285,7 @@ export default class GameplayScreen extends Screen {
 
     if (room?.isCleared && !this._roomCounted && this._deadEnemies.size > 0) {
       this._roomCounted = true;
-      this.stats.roomsCleared++;
+      this.stats.roomsCleared++; 
     }
   }
 
