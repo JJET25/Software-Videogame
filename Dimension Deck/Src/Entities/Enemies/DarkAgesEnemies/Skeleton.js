@@ -1,3 +1,3 @@
-import TankEnemy from "../archetypes/TankEnemy.js";
+import RangedEnemy from "../archetypes/RangedEnemy.js";
 
-export default class Skeleton extends TankEnemy{}
+export default class Skeleton extends RangedEnemy{}

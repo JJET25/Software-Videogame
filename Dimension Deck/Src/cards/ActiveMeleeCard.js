@@ -20,7 +20,10 @@ export default class ActiveMeleeCard extends ActiveCard {
 
   // Sets the visual arc state on the player and applies damage to enemies within the cone
   effect({ player, enemies, objects = [] }) {
-    player._strikeTimer = 0.18 + this.range / 1000;
+    // Visual arc draw by Player.draw
+    const strikeDuration = 0.18;
+    player._strikeTimer = strikeDuration;
+    player._strikeDuration = strikeDuration;
     player._strikeDir = player.aimDirection;
     player._strikeRange = this.range;
     player._strikeSpread = this.spread;
@@ -28,25 +31,38 @@ export default class ActiveMeleeCard extends ActiveCard {
     const aimAngle = Math.atan2(player.aimDirection.y, player.aimDirection.x);
     const halfSpread = this.spread / 2;
 
-    // Real center player hitbox
-    const pb = player.getBounds();
-    const pcx = (pb.left + pb.right) / 2;
-    const pcy = (pb.top + pb.bottom) / 2;
+    // Real center of player hitbox
+    const player_bounds = player.getBounds();
+    const player_collision_x = (player_bounds.left + player_bounds.right) / 2;
+    const player_collision_y = (player_bounds.top + player_bounds.bottom) / 2;
 
-    // Hits enemiys in the cone
+    // Apply damage
     for (const enemy of enemies) {
       if (enemy.isDead) continue;
-
-      if (this._isTargetInsideCone(enemy, pcx, pcy, aimAngle, halfSpread)) {
+      if (
+        this._isTargetInsideCone(
+          enemy,
+          player_collision_x,
+          player_collision_y,
+          aimAngle,
+          halfSpread,
+        )
+      ) {
         enemy.takeDamage(this.damage);
       }
     }
 
-    // Hits solid objects in the cone
     for (const obj of objects) {
       if (!obj.takeDamage || obj.isDead) continue;
-
-      if (this._isTargetInsideCone(obj, pcx, pcy, aimAngle, halfSpread)) {
+      if (
+        this._isTargetInsideCone(
+          obj,
+          player_collision_x,
+          player_collision_y,
+          aimAngle,
+          halfSpread,
+        )
+      ) {
         obj.takeDamage(this.damage);
       }
     }
@@ -54,36 +70,47 @@ export default class ActiveMeleeCard extends ActiveCard {
 
   _isTargetInsideCone(target, pcx, pcy, aimAngle, halfSpread) {
     const bounds = target.getBounds();
-    const cx = (bounds.left + bounds.right) / 2; // Entity center
+    const rangeSq = this.range * this.range;
+
+    // Check 5 points of the target bounding box
+    const cx = (bounds.left + bounds.right) / 2;
     const cy = (bounds.top + bounds.bottom) / 2;
 
     // Points reference of a entity
     const points = [
-      { x: bounds.left, y: bounds.top },
-      { x: bounds.right, y: bounds.top },
-      { x: bounds.left, y: bounds.bottom },
-      { x: bounds.right, y: bounds.bottom },
-      { x: cx, y: cy },
+      { x: bounds.left, y: bounds.top }, // top-left corner
+      { x: bounds.right, y: bounds.top }, // top-right corner
+      { x: bounds.left, y: bounds.bottom }, // bottom-left corner
+      { x: bounds.right, y: bounds.bottom }, // bottom-right corner
+      { x: cx, y: cy }, // center
     ];
 
-    for (const point of points) {
-      const dx = point.x - pcx;
-      const dy = point.y - pcy;
-
-      // Outside attack radius
-      if (dx * dx + dy * dy > this.range * this.range) {
-        continue;
-      }
-
-      let diff = Math.atan2(dy, dx) - aimAngle;
-      diff =
-        ((((diff + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) -
-        Math.PI;
-
-      if (Math.abs(diff) <= halfSpread) {
+    for (const { x, y } of points) {
+      if (this.#pointInsideCone(x, y, pcx, pcy, aimAngle, halfSpread, rangeSq))
         return true;
-      }
     }
     return false;
+  }
+
+  // Returns true if a single (x, y) point is inside the cone
+  #pointInsideCone(x, y, pcx, pcy, aimAngle, halfSpread, rangeSq) {
+    const dx = x - pcx;
+    const dy = y - pcy;
+
+    // Distance check
+    if (dx * dx + dy * dy > rangeSq) return false;
+
+    // Angle of this point relative to the player
+    const pointAngle = Math.atan2(dy, dx);
+
+    // Difference between the point angle and aim direction
+    const rawDiff = pointAngle - aimAngle;
+
+    // Normalized [-PI, PI] so wrap-around is handdle correctly
+    const diff =
+      (((rawDiff % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+
+    // Inside  the arc?
+    return Math.abs(diff) <= halfSpread;
   }
 }

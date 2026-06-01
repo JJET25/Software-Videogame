@@ -1,6 +1,7 @@
 import Vector from "../../../Utils/Vector.js";
 import EnemyBullet from "../../EnemyBullet.js";
 import Enemy from "../../Enemy.js";
+import { randInt } from "../../../Utils/Random.js";
 
 export default class RangedEnemy extends Enemy {
   constructor(position, deps) {
@@ -30,7 +31,9 @@ export default class RangedEnemy extends Enemy {
     this.shootRate = 1.5;
 
     // Preferred distance
-    this.preferredDistance = 180;
+    this.preferredDistance = 100;
+    this._strafeDir = Math.random() > 0.5 ? 1 : -1;
+    this._strafeTimer = randInt(3, 5);
   }
 
   onUpdate(deltaTime) {
@@ -52,13 +55,18 @@ export default class RangedEnemy extends Enemy {
       // Move away from player
       this.velocity = normalizedDirection.times(-this.speed);
     } else {
+      this._strafeTimer -= deltaTime;
+      if (this._strafeTimer <= 0) {
+        this._strafeDir *= -1;
+        this._strafeTimer = randInt(3, 5);
+      }
       // Strafe around player
       const strafeDirection = new Vector(
         -normalizedDirection.y,
         normalizedDirection.x,
       );
 
-      this.velocity = strafeDirection.times(this.speed * 0.7);
+      this.velocity = strafeDirection.times(this.speed * 0.7 * this._strafeDir);
     }
 
     // SHOOT
