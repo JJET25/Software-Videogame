@@ -16,6 +16,10 @@ import PauseMenu from "../UI/PauseMenu.js";
 import DimensionManager from "../Systems/DimensionManager.js";
 import InteractionManager from "../Systems/InteractionManager.js";
 
+import LevelScreen from "./LevelScreen.js";
+import VictoryScreen from "./VictoryScreen.js";
+import DimensionTransitionScreen from "./DimensionTransitionScreen.js";
+
 import {
   createRun,
   endRun,
@@ -59,12 +63,14 @@ export default class GameplayScreen extends Screen {
     this.pauseMenu = new PauseMenu();
     window.testingMode = false;
 
-    // LEVEL 1 splash text
-  this.levelText = "LEVEL 1";
-  this.levelTextTimer = 3;
+    // Overlay para LevelScreen / VictoryScreen / DimensionTransitionScreen
+    this._overlay = null;
 
     // Load starter cards from DB; fall back to hardcoded deck if API is down
     this._loadStarterCards();
+
+    // Mostrar Level 1 al iniciar
+    this.#showLevelOverlay(1, null);
   }
 
   async _loadStarterCards() {
@@ -94,6 +100,12 @@ export default class GameplayScreen extends Screen {
   exit() {}
 
   update(deltaTime) {
+    // El overlay maneja su propio input; el juego se pausa detrás
+    if (this._overlay) {
+      this._overlay.update(deltaTime);
+      return;
+    }
+
     if (this.player.isDead && !this._runEnded) {
       this.#finishRun("defeat");
       return;
@@ -178,6 +190,9 @@ export default class GameplayScreen extends Screen {
 
     if (this._notification)
       this.#drawNotification(renderer, this._notification.message);
+
+    // El overlay se dibuja encima de todo
+    if (this._overlay) this._overlay.draw(renderer);
   }
 
   // --------------------- METHODS ---------------------
@@ -190,7 +205,61 @@ export default class GameplayScreen extends Screen {
     this.player.freeze(99999);
   }
 
+  // Llamar esto desde DimensionManager cuando avanza de fase
+  showLevelVictory(nextLevelNumber, onContinue) {
+    this.#showVictoryOverlay(nextLevelNumber, onContinue);
+  }
+
+  // Llamar esto desde DimensionManager al cambiar de dimensión
+  showDimensionTransition(fromName, toName, onDone) {
+    this.#showDimensionTransitionOverlay(fromName, toName, onDone);
+  }
+
   // --------------------- PRIVATE HELPERS ---------------------
+  // Crea y muestra un overlay adjuntando los servicios necesarios
+  #mountOverlay(OverlayClass, context) {
+    const overlay = new OverlayClass();
+    overlay.attach({
+      renderer:      this.renderer,
+      input:         this.input,
+      mouse:         this.mouse,
+      screenManager: this.screenManager,
+    });
+    overlay.enter(context);
+    this._overlay = overlay;
+  }
+
+  #showLevelOverlay(levelNumber, onDone) {
+    this.#mountOverlay(LevelScreen, {
+      levelNumber,
+      onDone: () => {
+        this._overlay = null;
+        onDone?.();
+      },
+    });
+  }
+
+  #showVictoryOverlay(nextLevelNumber, onContinue) {
+    this.#mountOverlay(VictoryScreen, {
+      nextLevelNumber,
+      onContinue: () => {
+        this._overlay = null;
+        onContinue?.();
+      },
+    });
+  }
+
+  #showDimensionTransitionOverlay(fromName, toName, onDone) {
+    this.#mountOverlay(DimensionTransitionScreen, {
+      fromName,
+      toName,
+      onDone: () => {
+        this._overlay = null;
+        onDone?.();
+      },
+    });
+  }
+
   // Handles pause menu button results
   #updatePauseMenu() {
     const result = this.pauseMenu.update(this.mouse);
