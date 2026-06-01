@@ -19,33 +19,42 @@ export default class DefeatScreen extends Screen {
     this._btnHovered = false;
 
     if (context.runId) {
-      const {
-        runId,
-        status,
-        roomsCleared,
-        enemiesKilled,
-        damageTaken,
-        creditsEarned,
-        cardsCollected,
-      } = context;
-      // Backend expects snake_case field names
-      endRun(runId, {
-        status,
-        rooms_cleared: roomsCleared,
-        enemies_killed: enemiesKilled,
-        damage_taken: damageTaken,
-        credits_earned: creditsEarned,
-        cards_collected: cardsCollected,
-      })
+      this._saveRun(context.runId, context);
+    } else if (context.runPromise) {
+      // runId not resolved yet — wait for createRun to finish first
+      context.runPromise
         .then((data) => {
-          this.score = data?.score ?? 0;
+          const id = data?.runId ?? null;
+          if (id) this._saveRun(id, context);
+          else this.score = 0;
         })
-        .catch(() => {
-          this.score = 0;
-        });
+        .catch(() => { this.score = 0; });
     } else {
       this.score = 0;
     }
+  }
+
+  _saveRun(runId, context) {
+    const {
+      status,
+      roomsCleared,
+      enemiesKilled,
+      damageDealt,
+      damageTaken,
+      creditsEarned,
+      cardsCollected,
+    } = context;
+    endRun(runId, {
+      status,
+      rooms_cleared:   roomsCleared,
+      enemies_killed:  enemiesKilled,
+      damage_dealt:    damageDealt,
+      damage_taken:    damageTaken,
+      credits_earned:  creditsEarned,
+      cards_collected: cardsCollected,
+    })
+      .then((data) => { this.score = data?.score ?? 0; })
+      .catch(()    => { this.score = 0; });
   }
 
   update(deltaTime) {

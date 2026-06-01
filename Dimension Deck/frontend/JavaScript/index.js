@@ -7,6 +7,7 @@ const user = document.getElementById("user");
 const heroPlay = document.getElementById("heroPlay");
 const navPlay = document.getElementById("navPlay");
 const navStats = document.getElementById("navStats");
+const navTutorial = document.getElementById("navTutorial");
 const logoutBtn = document.getElementById("logoutBtn");
 
 // Temporal para probar UI — comenta el fetch y pon esto:
@@ -95,13 +96,7 @@ function navigateToGame() {
 }
 
 function navigateToStats() {
-    const token = localStorage.getItem("token");
-    if (token) {
-        window.location.href = "frontend/HTML/stats.html";
-    } else {
-        localStorage.setItem("redirectAfter", "frontend/HTML/game.html");
-        window.location.href = "frontend/HTML/login.html";
-    }
+    window.location.href = "frontend/HTML/stats.html";
 }
 
 // Header scroll

@@ -22,6 +22,7 @@ export default class Player extends Entity {
 
     this.cardManager = null;
     this.credits = 0;
+    this.totalDamageDealt = 0;
 
     this.aimDirection = new Vector(1, 0);
 
@@ -197,6 +198,8 @@ export default class Player extends Entity {
     for (const snap of snapshots) {
       if (snap.wasDead) continue;
       const combatState = { player: this, enemies, enemy: snap.enemy };
+
+      this.totalDamageDealt += Math.max(0, snap.health - snap.enemy.health);
 
       if (snap.enemy.isDead) {
         this.cardManager.fireTrigger(Trigger.ON_KILL, combatState);

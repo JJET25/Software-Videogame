@@ -52,6 +52,7 @@ export default class GameplayScreen extends Screen {
     this._runEnded = false;
     this._notification = null;
     this.runId = null;
+    this._runPromise = null;
     this.cardCatalog = [];
     this.stats = { roomsCleared: 0, enemiesKilled: 0, damageTaken: 0 };
 
@@ -74,9 +75,11 @@ export default class GameplayScreen extends Screen {
   }
 
   async _loadStarterCards() {
+    const runPromise = createRun();
+    this._runPromise = runPromise;
     try {
       const [runData, dbCards, allCards] = await Promise.all([
-        createRun(),
+        runPromise,
         fetchStarterCards(),
         fetchAllCards(),
       ]);
@@ -314,6 +317,7 @@ export default class GameplayScreen extends Screen {
     const finalStats = {
       status,
       ...this.stats,
+      damageDealt: this.player.totalDamageDealt,
       creditsEarned: this.player.credits,
       cardsCollected: [
         ...this.cardManager.activeSlots,
@@ -322,6 +326,7 @@ export default class GameplayScreen extends Screen {
     };
     this.screenManager.changeTo(new DefeatScreen(), {
       runId: this.runId,
+      runPromise: this._runPromise,
       ...finalStats,
     });
   }

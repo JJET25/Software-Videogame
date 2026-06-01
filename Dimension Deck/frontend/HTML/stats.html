@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../CSS/index.css" />
+    <link rel="stylesheet" href="../CSS/stats.css" />
+    <title>Dimension Deck — Stats</title>
+  </head>
+  <body>
+
+    <header>
+      <nav>
+        <a href="../../index.html" id="navPlay">PLAY</a>
+        <a href="../../index.html#cards" id="navCards">CARDS</a>
+        <a href="tutorial.html">TUTORIAL</a>
+        <a href="stats.html" class="nav-active">STATS</a>
+      </nav>
+      <div id="signupUser" class="signup_user">
+        <a href="login.html" class="loginBtn">SIGN UP</a>
+      </div>
+      <div id="user" class="user" style="display: none">
+        <div class="user-avatar" id="userAvatar">
+          <span id="usernameInitial"></span>
+          <div class="user-dropdown" id="userDropdown">
+            <p>Hi, <span id="usernameDisplay"></span>!</p>
+            <button id="logoutBtn">LOG OUT</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+
+      <!-- ===== PAGE HERO ===== -->
+      <section class="stats-hero">
+        <h1 class="stats-hero__title">STATS</h1>
+        <p class="stats-hero__sub">Your performance across all runs</p>
+      </section>
+
+      <!-- ===== MY STATS ===== -->
+      <section class="stats-zone" id="myStatsZone">
+        <h2 class="zone-title">MY STATS</h2>
+
+        <!-- Not-logged-in overlay -->
+        <div class="no-auth-overlay" id="noAuthOverlay">
+          <div class="no-auth-overlay__box">
+            <p>Log in to see your personal stats</p>
+            <a href="login.html" class="loginBtn">LOG IN</a>
+          </div>
+        </div>
+
+        <!-- Player header card -->
+        <div class="player-card" id="playerCard">
+          <div class="player-card__avatar" id="pcAvatar">?</div>
+          <div class="player-card__info">
+            <h3 class="player-card__name" id="pcName">–</h3>
+            <p class="player-card__meta" id="pcMeta">– runs completed</p>
+          </div>
+          <div class="player-card__kpis">
+            <div class="player-kpi">
+              <span class="player-kpi__val" id="pcBestScore">–</span>
+              <span class="player-kpi__label">BEST SCORE</span>
+            </div>
+            <div class="player-kpi">
+              <span class="player-kpi__val" id="pcWinRate">–</span>
+              <span class="player-kpi__label">WIN RATE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bento grid -->
+        <div class="bento-grid">
+
+          <!-- Win-rate ring -->
+          <div class="bento-cell cell-ring">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="ring-track" cx="50" cy="50" r="40" />
+                <circle class="ring-fill" id="winRateRing" cx="50" cy="50" r="40" />
+              </svg>
+              <div class="ring-center">
+                <span class="ring-pct" id="ringPct">–</span>
+                <span class="ring-sublabel">WIN RATE</span>
+              </div>
+            </div>
+            <div class="ring-meta">
+              <span class="ring-meta__w" id="ringW">– W</span>
+              <span class="ring-meta__l" id="ringL">– L</span>
+            </div>
+          </div>
+
+          <!-- Score cell -->
+          <div class="bento-cell cell-scores">
+            <div class="score-block">
+              <span class="score-block__label">BEST SCORE</span>
+              <span class="score-block__val" id="bestScore">–</span>
+            </div>
+            <div class="score-sep"></div>
+            <div class="score-block">
+              <span class="score-block__label">AVG SCORE</span>
+              <span class="score-block__val score-block__val--muted" id="avgScore">–</span>
+            </div>
+          </div>
+
+          <!-- W / L split bar -->
+          <div class="bento-cell cell-wl">
+            <div class="cell-header">
+              <span class="cell-label">RUNS</span>
+              <span class="cell-total" id="wlTotal">–</span>
+            </div>
+            <div class="wl-legend">
+              <span class="wl-leg wl-leg--win" id="wlWins">– W</span>
+              <span class="wl-leg wl-leg--loss" id="wlLosses">– L</span>
+            </div>
+            <div class="wl-bar">
+              <div class="wl-bar__win" id="wlBarWin"></div>
+              <div class="wl-bar__loss" id="wlBarLoss"></div>
+            </div>
+          </div>
+
+          <!-- Kills & Rooms cell -->
+          <div class="bento-cell cell-kills">
+            <div class="counter-pair">
+              <span class="counter-pair__big" id="totalKills">–</span>
+              <span class="counter-pair__label">ENEMIES KILLED</span>
+              <span class="counter-pair__avg" id="avgKills">– avg / run</span>
+            </div>
+            <div class="counter-sep"></div>
+            <div class="counter-pair">
+              <span class="counter-pair__big" id="totalRooms">–</span>
+              <span class="counter-pair__label">ROOMS CLEARED</span>
+              <span class="counter-pair__avg" id="avgRooms">– avg / run</span>
+            </div>
+          </div>
+
+          <!-- Damage bars cell -->
+          <div class="bento-cell cell-damage">
+            <span class="cell-label">DAMAGE</span>
+
+            <div class="dmg-row">
+              <span class="dmg-row__tag dmg-tag--dealt">DEALT</span>
+              <span class="dmg-row__val" id="dmgDealt">–</span>
+            </div>
+            <div class="dmg-track">
+              <div class="dmg-fill dmg-fill--dealt" id="dmgBarDealt"></div>
+            </div>
+
+            <div class="dmg-row">
+              <span class="dmg-row__tag dmg-tag--taken">TAKEN</span>
+              <span class="dmg-row__val" id="dmgTaken">–</span>
+            </div>
+            <div class="dmg-track">
+              <div class="dmg-fill dmg-fill--taken" id="dmgBarTaken"></div>
+            </div>
+
+            <p class="dmg-ratio" id="dmgRatio">&nbsp;</p>
+          </div>
+
+        </div><!-- /bento-grid -->
+
+        <!-- Favorite cards -->
+        <div class="subsection">
+          <h3 class="subsection-title">FAVORITE CARDS</h3>
+          <div class="fav-strip" id="favStrip">
+            <div class="fav-skeleton skeleton"></div>
+            <div class="fav-skeleton skeleton"></div>
+            <div class="fav-skeleton skeleton"></div>
+            <div class="fav-skeleton skeleton"></div>
+            <div class="fav-skeleton skeleton"></div>
+          </div>
+        </div>
+
+        <!-- Milestones -->
+        <div class="subsection">
+          <h3 class="subsection-title">MILESTONES</h3>
+          <div class="milestones-grid" id="milestonesGrid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </section><!-- /myStatsZone -->
+
+      <!-- ===== GLOBAL STATS ===== -->
+      <section class="stats-zone stats-zone--global" id="globalStatsZone">
+        <h2 class="zone-title">GLOBAL STATS</h2>
+
+        <div class="global-counters">
+          <div class="g-counter">
+            <span class="g-counter__val" id="gPlayers">–</span>
+            <span class="g-counter__label">PLAYERS</span>
+          </div>
+          <div class="g-counter">
+            <span class="g-counter__val" id="gRuns">–</span>
+            <span class="g-counter__label">TOTAL RUNS</span>
+          </div>
+          <div class="g-counter">
+            <span class="g-counter__val" id="gVictories">–</span>
+            <span class="g-counter__label">VICTORIES</span>
+          </div>
+          <div class="g-counter">
+            <span class="g-counter__val" id="gWinRate">–</span>
+            <span class="g-counter__label">GLOBAL WIN RATE</span>
+          </div>
+          <div class="g-counter g-counter--record">
+            <span class="g-counter__val" id="gRecord">–</span>
+            <span class="g-counter__label">RECORD SCORE</span>
+          </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="subsection">
+          <h3 class="subsection-title">LEADERBOARD</h3>
+          <div class="lb-wrapper">
+            <table class="lb-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>PLAYER</th>
+                  <th>BEST SCORE</th>
+                  <th>VICTORIES</th>
+                  <th>RUNS</th>
+                </tr>
+              </thead>
+              <tbody id="lbBody">
+                <tr class="lb-row lb-skeleton">
+                  <td colspan="5"><div class="skeleton" style="height:18px;border-radius:6px;"></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section><!-- /globalStatsZone -->
+
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+      <div class="footer__github">
+        <a href="https://github.com/JJET25/Software-Videogame" target="_blank">
+          <img src="../../Assets/Website/github_logo.png" alt="GitHub Logo" />
+          <span>GitHub</span>
+        </a>
+      </div>
+      <div class="footer__authors">
+        <h3>By</h3>
+        <p>Jesus Espinoza, Gonzalo Zamarrón, Vladimir Reyes</p>
+      </div>
+      <div class="footer__copyright">
+        <p>© <time datetime="2026">2026</time><br />Dimension Deck<br />All Rights Reserved</p>
+      </div>
+    </footer>
+
+    <script src="../JavaScript/stats.js"></script>
+  </body>
+</html>
