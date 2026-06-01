@@ -59,6 +59,10 @@ export default class GameplayScreen extends Screen {
     this.pauseMenu = new PauseMenu();
     window.testingMode = false;
 
+    // LEVEL 1 splash text
+  this.levelText = "LEVEL 1";
+  this.levelTextTimer = 3;
+
     // Load starter cards from DB; fall back to hardcoded deck if API is down
     this._loadStarterCards();
   }
