@@ -1,9 +1,9 @@
 import Entity from "./Entity.js";
-import Collision from "../Physics/Collision.js";
 import Vector from "../Utils/Vector.js";
+import Collision from "../Physics/Collision.js";
 
-// Base enemy class
-// Moves directly toward the player and deals contact damage
+// base class for all enemies
+// handles contact damage, health bar, and stuck avoidance
 export default class Enemy extends Entity {
   constructor(position, { player, bullets = [], enemyList = null } = {}) {
     super(position, 16, 16, "green");
@@ -11,16 +11,21 @@ export default class Enemy extends Entity {
     this.player = player;
     this.bullets = bullets;
     this.enemyList = enemyList;
-    this.speed = 55; // Basic movement speed
+
+    this.speed = 55;
     this.health = 50;
     this.maxHealth = 50;
     this.originalColor = "green";
-    this.damageCooldown = 0; // Delay between contact attacks
-    this.contactDamage = 10; // Damage dealt to the player
+
+    this.contactDamage = 10;
+    this.damageCooldown = 0;
+
+    // activation delay lets the room show enemies before they start moving
     this.activationDelay = 0;
     this._activationTimer = 0;
     this.isActive = false;
 
+    // stuck avoidance, compares position frame to frame
     this._prevX = this.position.x;
     this._prevY = this.position.y;
     this._stuckTimer = 0;
@@ -31,26 +36,31 @@ export default class Enemy extends Entity {
   update(deltaTime) {
     if (this.isDead) return;
 
+    // measure net movement from last frame including collision resolution
     const dx = this.position.x - this._prevX;
     const dy = this.position.y - this._prevY;
+    const moved = dx * dx + dy * dy;
 
-    // If player moves less of 0.5px
-    if (dx * dx + dy * dy < 2) {
+    if (moved < 0.25) {
+      // enemy barely moved, might be stuck against a wall or box
       this._stuckTimer += deltaTime;
       if (this._stuckTimer > 0.4 && this._stuckSteering <= 0) {
         this._stuckSteering = 0.8;
         this._stuckSign = Math.random() > 0.5 ? 1 : -1;
       }
-    } else this._stuckTimer = 0;
+    } else {
+      this._stuckTimer = 0;
+    }
 
     if (this._stuckSteering > 0) this._stuckSteering -= deltaTime;
 
+    // save position before this frame changes it
     this._prevX = this.position.x;
     this._prevY = this.position.y;
 
-    // --------------------- Base logic ---------------------
     this.onUpdate(deltaTime);
 
+    // push sideways if stuck, so enemy can get around the obstacle
     if (this._stuckSteering > 0 && this.velocity.squareLength() > 0) {
       const perp = new Vector(-this.velocity.y, this.velocity.x).normalize();
       this.velocity = this.velocity.plus(
@@ -63,25 +73,18 @@ export default class Enemy extends Entity {
     super.update(deltaTime);
   }
 
-  // Draw enemy and health bar
   draw(renderer) {
     super.draw(renderer);
 
-    const BAR_W = this.width;
-    const BAR_H = 4;
+    // health bar just above the enemy sprite
+    const W = this.width;
+    const H = 4;
+    const bx = this.position.x - W / 2;
+    const by = this.position.y - this.height / 2 - H - 2;
 
-    // Position above the enemy
-    const bx = this.position.x - this.width / 2;
-    const by = this.position.y - this.height / 2 - BAR_H - 2;
-
-    // Background bar
-    renderer.drawRect(bx, by, BAR_W, BAR_H, "#333333");
-
-    // Health fill amount
-    const fill = Math.max(0, (this.health / this.maxHealth) * BAR_W);
-
-    // Current health bar
-    renderer.drawRect(bx, by, fill, BAR_H, "#22cc44");
+    renderer.drawRect(bx, by, W, H, "#333333");
+    const fill = Math.max(0, (this.health / this.maxHealth) * W);
+    renderer.drawRect(bx, by, fill, H, "#22cc44");
   }
 
   die() {
@@ -89,18 +92,16 @@ export default class Enemy extends Entity {
   }
 
   _applyContactDamage(deltaTime) {
-    // Wait until cooldown finishes
     if (this.damageCooldown > 0) {
       this.damageCooldown -= deltaTime;
       return;
     }
-
-    // Damage player on collision
     if (Collision.rectCollision(this.getBounds(), this.player.getBounds())) {
       this.player.takeDamage(this.contactDamage);
       this.damageCooldown = 0.5;
     }
   }
 
+  // subclasses override this to define their movement and attacks
   onUpdate(deltaTime) {}
 }

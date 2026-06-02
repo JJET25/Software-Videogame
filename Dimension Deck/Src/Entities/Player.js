@@ -24,16 +24,16 @@ export default class Player extends Entity {
     this.input = input;
     this.mouse = mouse;
 
-    // movement
+    // Movement
     this.speed = BASE_SPEED;
     this._baseSpeed = BASE_SPEED;
     this._slowTimer = 0;
     this.state = "idle";
 
-    // aim direction follows the mouse
+    // Aim direction follows the mouse
     this.aimDirection = new Vector(1, 0);
 
-    // cards and economy
+    // Cards and economy
     this.cardManager = null;
     this.credits = 0;
 
