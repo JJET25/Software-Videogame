@@ -17,6 +17,7 @@ export default class ShrineRoom extends Room {
     );
     this.shrinePortal = new ShrinePortal(centerPos);
     this.objects.push(this.shrinePortal);
+    this.buildDecorGrid();
   }
 
   getInteractables() {
