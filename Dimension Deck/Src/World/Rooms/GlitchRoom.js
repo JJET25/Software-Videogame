@@ -18,6 +18,8 @@ export default class GlitchRoom extends Room {
 
     this.glitchPillar = new GlitchPillar(centerPos);
     this.objects.push(this.glitchPillar);
+
+    this.buildDecorGrid();
   }
 
   getInteractables() {

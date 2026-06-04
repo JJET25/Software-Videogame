@@ -18,6 +18,8 @@ export default class ChestRoom extends Room {
 
     this.chest = new Chest(centerPos);  
     this.objects.push(this.chest);
+
+    this.buildDecorGrid();
   }
 
   getInteractables() {

@@ -14,7 +14,6 @@ export default class GraphBuilder {
 
   build(roomCount) {
     const graph = new RoomGraph();
-
     const startNode = this.#createNode(0, 0);
 
     startNode.type = "start";

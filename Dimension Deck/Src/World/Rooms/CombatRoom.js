@@ -50,6 +50,7 @@ export default class CombatRoom extends Room {
 
     // Add room objects after enemies
     this.#populateObjects();
+    this.buildDecorGrid();
   }
 
   #getSafeSpawnPosition(tileGrid) {
@@ -69,27 +70,56 @@ export default class CombatRoom extends Room {
   }
 
   #populateObjects() {
-    // Rocks
-    const rockCount = randInt(0, 4);
-    for (let i = 0; i < rockCount; i++) {
-      const pos = this.#getSafeSpawnPosition(this.tileGrid);
-      this.objects.push(new Rock(pos));
-    }
+    if (this.dimension.objectConfig === null) return;
+    this.#spawnCluster(Rock, this.dimension.objectConfig.rocks, null);
+    this.#spawnCluster(Box, this.dimension.objectConfig.boxes, [
+      "ore",
+      "silver",
+      "wood",
+    ]);
+    this.#spawnCluster(Spike, this.dimension.objectConfig.spikes, null);
+  }
 
-    // Boxes
-    const boxType = ["ore", "silver", "wood"];
-    const chosenType = boxType[randInt(0, boxType.length - 1)];
-    const boxCount = randInt(0, 3);
-    for (let i = 0; i < boxCount; i++) {
-      this.objects.push(
-        new Box(this.#getSafeSpawnPosition(this.tileGrid), chosenType),
+  #spawnCluster(ObjectClass, config, typeOptions) {
+    const count = randInt(config.min, config.max);
+    if (count === 0) return;
+
+    const centerRow = randInt(5, ROOM_ROWS - 5);
+    const centerCol = randInt(5, ROOM_COLS - 5);
+
+    // Object have type variants ?
+    const type = typeOptions
+      ? typeOptions[randInt(0, typeOptions.length - 1)]
+      : null;
+
+    for (let i = 0; i < count; i++) {
+      const objectPos = this.#getNearbyFloorTile(centerRow, centerCol);
+      if (!objectPos) continue;
+      this.objects.push(new ObjectClass(objectPos, type));
+    }
+  }
+
+  #getNearbyFloorTile(centerRow, centerCol) {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      // Generate a near tile of a determinated point,
+      // But inside secure limits
+      const row = Math.min(
+        Math.max(centerRow + randInt(-1, 1), 5),
+        ROOM_ROWS - 5,
       );
-    }
+      const col = Math.min(
+        Math.max(centerCol + randInt(-1, 1), 5),
+        ROOM_COLS - 5,
+      );
 
-    // Spikes
-    const spikeCount = randInt(0, 4);
-    for (let i = 0; i < spikeCount; i++) {
-      this.objects.push(new Spike(this.#getSafeSpawnPosition(this.tileGrid)));
+      if (this.tileGrid[row][col] === "floor") {
+        this.tileGrid[row][col] = "object";
+        return new Vector(
+          col * TILE_SIZE + TILE_SIZE / 2,
+          row * TILE_SIZE + TILE_SIZE / 2,
+        );
+      }
     }
+    return null;
   }
 }

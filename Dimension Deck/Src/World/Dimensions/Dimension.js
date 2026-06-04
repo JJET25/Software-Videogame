@@ -1,12 +1,14 @@
-export default class Dimension{
-    constructor(config){
-        this.id = config.id;
-        this.name = config.name;
-        this.roomWeights = config.roomWeights;
-        this.enemyPool = config.enemyPool;
-        this.tileSetId = config.tileSetId; 
-        this.miniBoss = config.miniBoss ?? null;
-        this.finalBoss = config.finalBoss ?? null;
-        //this.musicId
-    }
+export default class Dimension {
+  constructor(config) {
+    this.id = config.id;
+    this.name = config.name;
+    this.roomWeights = config.roomWeights;
+    this.enemyPool = config.enemyPool;
+    this.tileSetId = config.tileSetId;
+    this.miniBoss = config.miniBoss ?? null;
+    this.finalBoss = config.finalBoss ?? null;
+    this.objectConfig = config.objectConfig ?? null;
+    this.decorations = config.decorations ?? null;
+    //this.musicId
+  }
 }

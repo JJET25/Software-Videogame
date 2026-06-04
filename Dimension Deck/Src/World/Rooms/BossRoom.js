@@ -45,5 +45,7 @@ export default class BossRoom extends Room {
 
     boss.enemyList = this.enemies;
     this.enemies.push(boss);
+
+    this.buildDecorGrid();
   }
 }

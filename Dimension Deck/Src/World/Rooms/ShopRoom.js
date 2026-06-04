@@ -20,6 +20,10 @@ export default class ShopRoom extends Room {
     this.merchant.storeUI = this.storeUI;
   }
 
+  populate() {
+    this.buildDecorGrid();
+  }
+
   // Calls super so wall collisions are resolved correctly
   update(deltaTime, player) {
     super.update(deltaTime, player);

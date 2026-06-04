@@ -9,10 +9,16 @@ import Wall from "../../World/Objects/Wall.js";
 import Vector from "../../Utils/Vector.js";
 import Collision from "../../Physics/Collision.js";
 import Credit from "../../Entities/pickups/Credit.js";
+import { randFloat, randInt } from "../../Utils/Random.js";
 
 const ROOM_BG = {
   tilesOldWest: "../../Assets/Sprites/room/roomOldWest.png",
   tilesDarkAge: "../../Assets/Sprites/room/roomDungeon.png",
+};
+
+const ROOM_TILESET = {
+  tilesDarkAge: "../../Assets/Sprites/tiles/tilesDungeon.png",
+  tilesOldWest: "../../Assets/Sprites/tiles/tilesOldWest.png",
 };
 
 export default class Room {
@@ -32,7 +38,7 @@ export default class Room {
     // Room generation data
     this.dimension = dimension;
     this.tileGrid = null;
-    this.variantGrid = null;
+    this.decorGrid = null;
 
     // Room content
     this.walls = [];
@@ -41,8 +47,9 @@ export default class Room {
 
     // Room state
     this.isCleared = false;
-    
+
     Room.#loadImage(this.dimension?.tileSetId);
+    Room.#loadTileset(this.dimension?.tileSetId);
     this.buildGrid();
     this.buildWalls();
   }
@@ -77,6 +84,8 @@ export default class Room {
       renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "#1a1a1a");
     }
 
+    this.#drawDecor(renderer);
+
     // Draw walls, objects and enemies
     for (const wall of this.walls) wall.draw(renderer);
     for (const obj of this.objects) obj.draw(renderer);
@@ -84,6 +93,38 @@ export default class Room {
   }
 
   // ------------------------ Helpers & Updates functions ------------------------
+  #drawDecor(renderer) {
+    if (!this.decorGrid) return;
+    const pool = this.dimension?.decorations?.pool;
+    if (!pool) return;
+
+    const img = Room.#tilesetCache[this.dimension?.tileSetId];
+    if (!img?.complete || img.naturalWidth === 0) return;
+
+    for (let row = 0; row < ROOM_ROWS; row++) {
+      for (let col = 0; col < ROOM_COLS; col++) {
+        const key = this.decorGrid[row][col];
+        if (!key) continue;
+
+        const { srcX, srcY, srcW, srcH } = pool[key];
+        const destX = col * TILE_SIZE;
+        const destY = row * TILE_SIZE;
+
+        renderer.drawSprite(
+          img,
+          srcX,
+          srcY,
+          srcW,
+          srcH,
+          destX,
+          destY,
+          TILE_SIZE,
+          TILE_SIZE,
+        );
+      }
+    }
+  }
+
   #handlePlayerCollision(player) {
     for (const wall of this.walls) Collision.resolve(player, wall);
     Collision.resolveEntityBounds(player, ROOM_WIDTH, ROOM_HEIGHT);
@@ -151,7 +192,6 @@ export default class Room {
     // Create room tiles
     for (let row = 0; row < ROOM_ROWS; row++) {
       grid[row] = [];
-      variants[row] = [];
 
       for (let col = 0; col < ROOM_COLS; col++) {
         const isWall =
@@ -160,18 +200,14 @@ export default class Room {
         if (isWall) {
           // Create doors where needed
           grid[row][col] = this.#isDoorGap(row, col) ? "door" : "wall";
-          variants[row][col] = 0;
         } else {
           // Floor tiles
           grid[row][col] = "floor";
-          // Small varition for appearance
-          variants[row][col] = (row * 7 + col * 13) % 4;
         }
       }
     }
 
     this.tileGrid = grid;
-    this.variantGrid = variants;
   }
 
   buildWalls() {
@@ -189,6 +225,29 @@ export default class Room {
         }
       }
     }
+  }
+
+  buildDecorGrid() {
+    const decor = this.dimension?.decorations;
+    if (!decor?.pool) {
+      this.decorGrid = null;
+      return;
+    }
+
+    const keys = Object.keys(decor.pool);
+    const grid = [];
+
+    for (let row = 0; row < ROOM_ROWS; row++) {
+      grid[row] = [];
+      for (let col = 0; col < ROOM_COLS; col++) {
+        const isFloor = this.tileGrid[row][col] === "floor";
+        const isInner =
+          row >= 3 && row < ROOM_ROWS - 3 && col >= 3 && col < ROOM_COLS - 3;
+        const roll = isFloor && isInner && randFloat(0, 1) <= decor.frequency;
+        grid[row][col] = roll ? keys[randInt(0, keys.length - 1)] : null;
+      }
+    }
+    this.decorGrid = grid;
   }
 
   #isDoorGap(row, col) {
@@ -312,6 +371,7 @@ export default class Room {
   // ------------------------ Static ------------------------
   // Shared image cache for all rooms
   static #imageCache = {};
+  static #tilesetCache = {};
 
   static #loadImage(tileSetId) {
     if (!tileSetId || !ROOM_BG[tileSetId]) return null;
@@ -323,5 +383,15 @@ export default class Room {
       Room.#imageCache[tileSetId] = img;
     }
     return Room.#imageCache[tileSetId];
+  }
+
+  static #loadTileset(tileSetId) {
+    if (!tileSetId || !ROOM_TILESET[tileSetId]) return null;
+    if (!Room.#tilesetCache[tileSetId]) {
+      const img = new Image();
+      img.src = ROOM_TILESET[tileSetId];
+      Room.#tilesetCache[tileSetId] = img;
+    }
+    return Room.#tilesetCache[tileSetId];
   }
 }
