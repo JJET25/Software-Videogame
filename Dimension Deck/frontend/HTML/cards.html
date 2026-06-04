@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../CSS/index.css" />
+    <link rel="stylesheet" href="../CSS/cards.css" />
+    <title>Dimension Deck — Cards</title>
+  </head>
+  <body>
+
+    <header>
+      <nav>
+        <a href="../../index.html" id="navPlay">PLAY</a>
+        <a href="cards.html" class="nav-active" id="navCards">CARDS</a>
+        <a href="tutorial.html" id="navTutorial">TUTORIAL</a>
+        <a href="stats.html" id="navStats">STATS</a>
+      </nav>
+      <div id="signupUser" class="signup_user">
+        <a href="login.html" class="loginBtn">SIGN UP</a>
+      </div>
+      <div id="user" class="user" style="display: none">
+        <div class="user-avatar" id="userAvatar">
+          <span id="usernameInitial"></span>
+          <div class="user-dropdown" id="userDropdown">
+            <p>Hi, <span id="usernameDisplay"></span>!</p>
+            <button id="logoutBtn">LOG OUT</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+
+      <!-- HERO -->
+      <section class="cards-hero">
+        <div>
+          <h1 class="cards-hero__title">CARD CATALOG</h1>
+          <p class="cards-hero__subtitle">Every card available across both dimensions</p>
+        </div>
+      </section>
+
+      <!-- FILTERS -->
+      <div class="cards-filters">
+        <button class="filter-btn active" data-filter-type="all">ALL</button>
+        <button class="filter-btn" data-filter-type="active">ACTIVE</button>
+        <button class="filter-btn" data-filter-type="automatic">AUTOMATIC</button>
+        <button class="filter-btn" data-filter-rarity="all">ALL RARITIES</button>
+        <button class="filter-btn" data-filter-rarity="common">COMMON</button>
+        <button class="filter-btn" data-filter-rarity="rare">RARE</button>
+        <button class="filter-btn" data-filter-rarity="epic">EPIC</button>
+        <button class="filter-btn" data-filter-rarity="legendary">LEGENDARY</button>
+      </div>
+
+      <!-- GRID -->
+      <section class="cards-main">
+        <ul class="cards-grid" id="cardsGrid"></ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <div class="footer__github">
+        <a href="https://github.com/JJET25/Software-Videogame" target="_blank">
+          <img src="../../Assets/Website/github_logo.png" alt="GitHub Logo" />
+          <span>GitHub</span>
+        </a>
+      </div>
+      <div class="footer__authors">
+        <h3>By</h3>
+        <p>Jesus Espinoza, Gonzalo Zamarrón, Vladimir Reyes</p>
+      </div>
+      <div class="footer__copyright">
+        <p>© <time datetime="2026">2026</time><br />Dimension Deck<br />All Rights Reserved</p>
+      </div>
+    </footer>
+
+    <script src="../JavaScript/cards.js"></script>
+  </body>
+</html>

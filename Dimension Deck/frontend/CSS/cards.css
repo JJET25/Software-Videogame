@@ -1,0 +1,221 @@
+/* =============================================
+   CARDS PAGE — extends index.css variables
+   ============================================= */
+
+nav a.nav-active {
+  color: var(--acent);
+}
+nav a.nav-active::after {
+  width: 100%;
+}
+
+/* ===== HERO ===== */
+.cards-hero {
+  height: 38vh;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: radial-gradient(ellipse at center, #3d1070 0%, #110025 70%);
+}
+
+.cards-hero__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--highlight-text);
+  margin-bottom: 0.6rem;
+}
+
+.cards-hero__subtitle {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: var(--secondary-text);
+}
+
+/* ===== FILTERS ===== */
+.cards-filters {
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+  padding: 1rem 2rem;
+  background: rgba(20, 5, 40, 0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.filter-btn {
+  padding: 0.4rem 1.1rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: var(--secondary-text);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.filter-btn.active {
+  background: var(--acent);
+  border-color: var(--acent);
+  color: #000;
+}
+
+/* ===== GRID ===== */
+.cards-main {
+  padding: 3rem 2rem 5rem;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem;
+  list-style: none;
+}
+
+/* ===== CARD ===== */
+.card-item {
+  --rarity-color: #8c8c8c;
+
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--primary-color);
+  border-top: 3px solid var(--rarity-color);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: default;
+}
+
+.card-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-item[data-rarity="common"]    { --rarity-color: #8c8c8c; }
+.card-item[data-rarity="rare"]      { --rarity-color: #4fc3f7; }
+.card-item[data-rarity="epic"]      { --rarity-color: #ce93d8; }
+.card-item[data-rarity="legendary"] { --rarity-color: #ffb300; }
+
+/* ===== CARD IMAGE ===== */
+.card-img-wrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.card-item:hover .card-img-wrap img {
+  transform: scale(1.06);
+}
+
+/* Placeholder when no image */
+.card-img-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1a0a30, #3a1060);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Starter ribbon */
+.card-starter {
+  position: absolute;
+  top: 12px;
+  right: -24px;
+  background: var(--acent);
+  color: #000;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  padding: 0.2rem 2rem;
+  transform: rotate(35deg);
+}
+
+/* ===== CARD INFO ===== */
+.card-info {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.card-rarity {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--rarity-color);
+  margin-bottom: 0.25rem;
+}
+
+.card-name {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.card-desc {
+  font-size: 0.78rem;
+  color: var(--secondary-text);
+  line-height: 1.5;
+  margin-bottom: 0.7rem;
+}
+
+/* ===== STATS ===== */
+.card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stat-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--secondary-text);
+  white-space: nowrap;
+}
+
+/* ===== HIDDEN ===== */
+.card-item.hidden {
+  display: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
