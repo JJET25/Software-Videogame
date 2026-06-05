@@ -108,7 +108,7 @@ function handleAuthSuccess(token, username){
     const redirectAfter = localStorage.getItem("redirectAfter");
 
     if (!redirectAfter) {
-        window.location.href = "../../index.html";
+        window.location.href = "/index.html";
         return;
     } 
     

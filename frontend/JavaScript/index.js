@@ -88,15 +88,15 @@ navStats?.addEventListener("click", (event) => {
 function navigateToGame() {
   const token = localStorage.getItem("token");
   if (token) {
-    window.location.href = "frontend/HTML/game.html";
+    window.location.href = "/frontend/HTML/game.html";
   } else {
-    localStorage.setItem("redirectAfter", "frontend/HTML/game.html");
-    window.location.href = "frontend/HTML/login.html";
+    localStorage.setItem("redirectAfter", "/frontend/HTML/game.html");
+    window.location.href = "/frontend/HTML/login.html";
   }
 }
 
 function navigateToStats() {
-    window.location.href = "frontend/HTML/stats.html";
+    window.location.href = "/frontend/HTML/stats.html";
 }
 
 // Header scroll
