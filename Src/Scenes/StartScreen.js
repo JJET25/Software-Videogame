@@ -25,7 +25,7 @@ export default class StartScreen extends Screen {
         label: "EXIT",
         y: 130,
         hovered: false,
-        action: () => (window.location.href = "../../index.html"),
+        action: () => (window.location.href = "/index.html"),
       },
     ];
   }

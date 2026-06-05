@@ -159,15 +159,35 @@
 
         </div><!-- /bento-grid -->
 
-        <!-- Favorite cards -->
+        <!-- Score history chart -->
         <div class="subsection">
-          <h3 class="subsection-title">FAVORITE CARDS</h3>
-          <div class="fav-strip" id="favStrip">
-            <div class="fav-skeleton skeleton"></div>
-            <div class="fav-skeleton skeleton"></div>
-            <div class="fav-skeleton skeleton"></div>
-            <div class="fav-skeleton skeleton"></div>
-            <div class="fav-skeleton skeleton"></div>
+          <h3 class="subsection-title">SCORE HISTORY</h3>
+          <div class="chart-wrap chart-wrap--history">
+            <canvas id="scoreHistoryChart"></canvas>
+          </div>
+          <p class="chart-empty" id="scoreHistoryEmpty">Play some runs to see your score history.</p>
+        </div>
+
+        <!-- Radar + Doughnut row -->
+        <div class="subsection">
+          <h3 class="subsection-title">PERFORMANCE &amp; COLLECTION</h3>
+          <div class="charts-row">
+            <div class="chart-wrap chart-wrap--radar">
+              <span class="chart-label">PERFORMANCE RADAR</span>
+              <canvas id="radarChart"></canvas>
+            </div>
+            <div class="chart-wrap chart-wrap--donut">
+              <span class="chart-label">CARD RARITY</span>
+              <canvas id="rarityChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top cards bar chart -->
+        <div class="subsection">
+          <h3 class="subsection-title">TOP CARDS</h3>
+          <div class="chart-wrap chart-wrap--cards" id="favStrip">
+            <canvas id="cardsChart"></canvas>
           </div>
         </div>
 
@@ -208,7 +228,15 @@
           </div>
         </div>
 
-        <!-- Leaderboard -->
+        <!-- Leaderboard bar chart -->
+        <div class="subsection">
+          <h3 class="subsection-title">TOP SCORES</h3>
+          <div class="chart-wrap chart-wrap--lb">
+            <canvas id="lbChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Leaderboard table -->
         <div class="subsection">
           <h3 class="subsection-title">LEADERBOARD</h3>
           <div class="lb-wrapper">
@@ -252,6 +280,7 @@
       </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="../JavaScript/stats.js"></script>
   </body>
 </html>

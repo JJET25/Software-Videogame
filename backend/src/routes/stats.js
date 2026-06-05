@@ -30,6 +30,22 @@ router.get('/me/cards', requireAuth, async (req, res) => {
     }
 });
 
+// GET /stats/me/runs  — last 15 completed runs, oldest-first for chart
+router.get('/me/runs', requireAuth, async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT score, status, rooms_cleared, enemies_killed, ended_at
+             FROM runs
+             WHERE user_id = ? AND status IN ('victory', 'defeat')
+             ORDER BY ended_at DESC LIMIT 15`,
+            [req.user.id]
+        );
+        res.json(rows.reverse());
+    } catch {
+        res.status(500).json({ error: 'Failed to fetch run history' });
+    }
+});
+
 // GET /stats/global  — server-wide aggregates (uses v_global_stats + v_top_cards)
 router.get('/global', async (_req, res) => {
     try {
