@@ -15,7 +15,9 @@ export default class AudioManager {
 
   // Registers a BGM track: call once during asset loading
   loadBGM(name, path) {
-    this._bgmTracks[name] = new Audio(path);
+    const audio = new Audio(path);
+    audio.loop = true;
+    this._bgmTracks[name] = audio;
   }
 
   // Fetches, decodes and stores an SFX buffer, call once during asset loading
