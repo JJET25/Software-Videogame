@@ -16,6 +16,6 @@ export default class Credit extends Entity {
     this.hitboxWidth = TILE_SIZE;
     this.hitboxHeight = TILE_SIZE;
     this.value = value;
-    this.animation = new Animation({ sheet: COIN_SHEET, fps: 6, loop: true });
+    this._animation = new Animation({ sheet: COIN_SHEET, fps: 6, loop: true });
   }
 }

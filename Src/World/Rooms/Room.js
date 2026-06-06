@@ -126,8 +126,11 @@ export default class Room {
   }
 
   #handlePlayerCollision(player) {
-    for (const wall of this.walls) Collision.resolve(player, wall);
-    Collision.resolveEntityBounds(player, ROOM_WIDTH, ROOM_HEIGHT);
+    const iterations = player.isDashing ? 3 : 1;
+    for (let i = 0; i < iterations; i++) {
+      for (const wall of this.walls) Collision.resolve(player, wall);
+      Collision.resolveEntityBounds(player, ROOM_WIDTH, ROOM_HEIGHT);
+    }
   }
 
   #updateObjects(deltaTime, player) {
