@@ -2,31 +2,45 @@ import Screen from "./Screen.js";
 import { endRun } from "../Utils/Api.js";
 import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
-// Shown when the player dies or wins — saves the run to the backend and displays the result
+const P = {
+  bg:      "#0d0520",
+  panel:   "#130838",
+  divider: "#2a1050",
+  muted:   "#4a2870",
+  sub:     "#866ea7",
+  text:    "#d0b8ff",
+  win:     "#44ff99",
+  lose:    "#ff4455",
+  accent:  "#7c4dff",
+  gold:    "#ffd700",
+};
+
 export default class DefeatScreen extends Screen {
   enter(context = {}) {
     this.status = context.status ?? "defeat";
-    this.score = null; // null = waiting for API response
+    this.score  = null;   // null = waiting for API
 
-    // Button state
-    this._timer      = 0;
-    this._ready      = false;
-    this._readyAt    = 1.2;
-    this._btnW       = 90;
-    this._btnH       = 16;
-    this._btnX       = (ROOM_WIDTH - 90) / 2;
-    this._btnY       = ROOM_HEIGHT / 2 + 36;
-    this._btnHovered = false;
+    this.roomsCleared  = context.roomsCleared  ?? 0;
+    this.enemiesKilled = context.enemiesKilled ?? 0;
+    this.damageDealt   = context.damageDealt   ?? 0;
+
+    this._timer   = 0;
+    this._ready   = false;
+    this._readyAt = 1.4;   // prevent accidental instant-click
+
+    this._font = "monospace";
+    document.fonts.load("5px 'Press Start 2P'").then(() => {
+      this._font = "'Press Start 2P', monospace";
+    });
 
     if (context.runId) {
       this._saveRun(context.runId, context);
     } else if (context.runPromise) {
-      // runId not resolved yet — wait for createRun to finish first
       context.runPromise
-        .then((data) => {
+        .then(data => {
           const id = data?.runId ?? null;
           if (id) this._saveRun(id, context);
-          else this.score = 0;
+          else    this.score = 0;
         })
         .catch(() => { this.score = 0; });
     } else {
@@ -34,89 +48,94 @@ export default class DefeatScreen extends Screen {
     }
   }
 
-  _saveRun(runId, context) {
-    const {
-      status,
-      roomsCleared,
-      enemiesKilled,
-      damageDealt,
-      damageTaken,
-      creditsEarned,
-      cardsCollected,
-    } = context;
+  _saveRun(runId, ctx) {
     endRun(runId, {
-      status,
-      rooms_cleared:   roomsCleared,
-      enemies_killed:  enemiesKilled,
-      damage_dealt:    damageDealt,
-      damage_taken:    damageTaken,
-      credits_earned:  creditsEarned,
-      cards_collected: cardsCollected,
+      status:          ctx.status,
+      rooms_cleared:   ctx.roomsCleared,
+      enemies_killed:  ctx.enemiesKilled,
+      damage_dealt:    ctx.damageDealt,
+      damage_taken:    ctx.damageTaken,
+      credits_earned:  ctx.creditsEarned,
+      cards_collected: ctx.cardsCollected,
     })
-      .then((data) => { this.score = data?.score ?? 0; })
-      .catch(()    => { this.score = 0; });
+      .then(data  => { this.score = data?.score ?? 0; })
+      .catch(()   => { this.score = 0; });
   }
 
   update(deltaTime) {
     this._timer += deltaTime;
     if (this._timer >= this._readyAt) this._ready = true;
-
     if (!this._ready) return;
 
-    const mx = this.mouse.position.x;
-    const my = this.mouse.position.y;
-    this._btnHovered =
-      mx >= this._btnX && mx <= this._btnX + this._btnW &&
-      my >= this._btnY && my <= this._btnY + this._btnH;
-
+    // ANY click or ENTER → back to StartScreen
     const clicked = this.mouse.consumeClick();
-    if ((clicked && this._btnHovered) || this.input.wasKeyPressed("ENTER")) {
-      import("./GameplayScreen.js").then(({ default: GameplayScreen }) => {
-        this.screenManager.changeTo(new GameplayScreen());
+    if (clicked || this.input.wasKeyPressed("ENTER")) {
+      import("./StartScreen.js").then(({ default: StartScreen }) => {
+        this.screenManager.changeTo(new StartScreen());
       });
     }
   }
 
   draw(renderer) {
-    const isVictory = this.status === "victory";
-    const label = isVictory ? "YOU WIN!" : "GAME OVER";
-    const color = isVictory ? "#44ff88" : "#ff4444";
+    const isWin  = this.status === "victory";
+    const cx     = ROOM_WIDTH / 2;
+    const f      = this._font;
 
-    renderer.drawText(label, ROOM_WIDTH / 2, ROOM_HEIGHT / 2, "32px monospace", color);
+    // ── Background ──────────────────────────────────────────────────────────
+    renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, P.bg);
+
+    // ── Title ───────────────────────────────────────────────────────────────
+    renderer.drawText(
+      isWin ? "YOU WIN!" : "GAME OVER",
+      cx, 20, 13,
+      isWin ? P.win : P.lose,
+      { align: "center", font: f }
+    );
+
+    // ── Divider ─────────────────────────────────────────────────────────────
+    renderer.drawRect((ROOM_WIDTH - 160) / 2, 32, 160, 1, P.divider);
+
+    // ── Score ───────────────────────────────────────────────────────────────
+    renderer.drawText("SCORE", cx, 42, 3.5, P.sub, { align: "center", font: f });
 
     if (this.score === null) {
-      renderer.drawText("Saving run...", ROOM_WIDTH / 2, ROOM_HEIGHT / 2 + 10, "14px monospace", "#888888");
+      // Blink while waiting for API
+      if (Math.floor(this._timer * 2) % 2 === 0) {
+        renderer.drawText("SAVING...", cx, 58, 6, P.muted, { align: "center", font: f });
+      }
     } else {
       renderer.drawText(
-        `Score: ${this.score}`,
-        ROOM_WIDTH / 2,
-        ROOM_HEIGHT / 2 + 20,
-        "20px monospace",
-        "#ffffff",
+        this.score.toLocaleString(),
+        cx, 58, 13,
+        isWin ? P.gold : P.text,
+        { align: "center", font: f }
       );
     }
 
-    // --- Botón NEW RUN ---
-    if (this._ready) {
-      const bx  = this._btnX;
-      const by  = this._btnY;
-      const bw  = this._btnW;
-      const bh  = this._btnH;
-      const hov = this._btnHovered;
+    // ── Divider ─────────────────────────────────────────────────────────────
+    renderer.drawRect((ROOM_WIDTH - 160) / 2, 74, 160, 1, P.divider);
 
-      renderer.drawRect(bx, by, bw, bh, hov ? "#882222" : "#440000");
-      renderer.drawRect(bx,          by,          bw, 1,  "#ff4444");
-      renderer.drawRect(bx,          by + bh - 1, bw, 1,  "#ff4444");
-      renderer.drawRect(bx,          by,          1,  bh, "#ff4444");
-      renderer.drawRect(bx + bw - 1, by,          1,  bh, "#ff4444");
+    // ── Stats (3 columns) ───────────────────────────────────────────────────
+    const col = [ROOM_WIDTH / 4, ROOM_WIDTH / 2, (3 * ROOM_WIDTH) / 4];
 
+    renderer.drawText("ROOMS",  col[0], 84, 3.2, P.sub, { align: "center", font: f });
+    renderer.drawText("KILLS",  col[1], 84, 3.2, P.sub, { align: "center", font: f });
+    renderer.drawText("DAMAGE", col[2], 84, 3.2, P.sub, { align: "center", font: f });
+
+    renderer.drawText(String(this.roomsCleared),          col[0], 96, 7, P.text, { align: "center", font: f });
+    renderer.drawText(String(this.enemiesKilled),          col[1], 96, 7, P.text, { align: "center", font: f });
+    renderer.drawText(this.damageDealt.toLocaleString(),   col[2], 96, 7, P.text, { align: "center", font: f });
+
+    // ── Divider ─────────────────────────────────────────────────────────────
+    renderer.drawRect((ROOM_WIDTH - 160) / 2, 108, 160, 1, P.divider);
+
+    // ── Continue prompt (blink after ready) ──────────────────────────────────
+    if (this._ready && Math.floor(this._timer * 1.6) % 2 === 0) {
       renderer.drawText(
-        "NEW RUN  [ENTER]",
-        bx + bw / 2,
-        by + bh / 2,
-        6,
-        hov ? "#ffffff" : "#ffaaaa",
-        { font: "monospace", align: "center" },
+        "CLICK TO CONTINUE",
+        cx, 136, 4,
+        P.accent,
+        { align: "center", font: f }
       );
     }
   }
