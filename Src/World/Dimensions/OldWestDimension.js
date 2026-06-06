@@ -23,7 +23,7 @@ const DECORATIONS = {
 export default class OldWestDimension extends Dimension {
   constructor() {
     super({
-      id: "old_west",
+      id: "oldWest",
       name: "Old West",
       roomWeights: ROOM_WEIGHTS,
       tileSetId: "tilesOldWest",

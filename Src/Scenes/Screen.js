@@ -5,6 +5,7 @@ export default class Screen {
     this.input = null;
     this.mouse = null;
     this.screenManager = null;
+    this.audio = null;
   }
 
   // Called by ScreenManager before enter() to bind renderer, input, mouse, and screenManager
@@ -13,6 +14,7 @@ export default class Screen {
     this.input = services.input;
     this.mouse = services.mouse;
     this.screenManager = services.screenManager;
+    this.audio = services.audio;
   }
 
   enter(context = {}) {}

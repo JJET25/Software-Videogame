@@ -26,7 +26,7 @@ const DECORATIONS = {
 export default class DarkAgesDimension extends Dimension {
   constructor() {
     super({
-      id: "dark_ages",
+      id: "darkAges",
       name: "Dark Ages",
       roomWeights: ROOM_WEIGHTS,
       tileSetId: "tilesDarkAge",
