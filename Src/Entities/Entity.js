@@ -17,7 +17,7 @@ export default class Entity {
     this.maxHealth = 100;
     this.shield = 0;
     this.isDead = false;
-    this.animation = null;
+    this._animation = null;
 
     this._invincibleTimer = 0;
     this._flashTimer = 0;
@@ -75,9 +75,9 @@ export default class Entity {
     const drawX = this.position.x - this.width / 2;
     const drawY = this.position.y - this.height / 2;
 
-    if (this.animation) {
+    if (this._animation) {
       renderer.drawAnimation(
-        this.animation,
+        this._animation,
         drawX,
         drawY,
         this.width,
@@ -104,6 +104,6 @@ export default class Entity {
     if (this._flashTimer > 0) this._flashTimer -= deltaTime;
     this.position = this.position.plus(this.velocity.times(deltaTime));
 
-    if (this.animation) this.animation.update(deltaTime);
+    if (this._animation) this._animation.update(deltaTime);
   }
 }

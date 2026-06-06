@@ -13,7 +13,6 @@ const OBJECT_CONFIG = {
 
 const DECORATIONS = {
   pool: {
-    floor: { srcX: 0, srcY: 0, srcW: 16, srcH: 16 },
     blood_1: { srcX: 64, srcY: 0, srcW: 16, srcH: 16 },
     blood_2: { srcX: 80, srcY: 0, srcW: 16, srcH: 16 },
     blood_3: { srcX: 96, srcY: 0, srcW: 16, srcH: 16 },

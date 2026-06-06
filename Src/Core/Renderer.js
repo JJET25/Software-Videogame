@@ -148,7 +148,7 @@ export default class Renderer {
     this.drawSprite(
       sheet.image,
       frame * sheet.frameWidth,
-      0,
+      sheet.row * sheet.frameHeight,
       sheet.frameWidth,
       sheet.frameHeight,
       x,

@@ -13,7 +13,6 @@ const OBJECT_CONFIG = {
 
 const DECORATIONS = {
   pool: {
-    floor: { srcX: 0, srcY: 0, srcW: 16, srcH: 16 },
     crack_1: { srcX: 16, srcY: 0, srcW: 16, srcH: 16 },
     crack_2: { srcX: 32, srcY: 0, srcW: 16, srcH: 16 },
     crack_3: { srcX: 48, srcY: 0, srcW: 16, srcH: 16 },

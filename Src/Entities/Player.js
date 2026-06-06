@@ -1,6 +1,8 @@
 import Entity from "./Entity.js";
 import Vector from "../Utils/Vector.js";
 import { Trigger } from "../cards/AutomaticCard.js";
+import SpriteSheet from "../Animation/SpriteSheet.js";
+import Animation from "../Animation/Animation.js";
 
 // DASH CONFIG
 const DASH_SPEED = 350;
@@ -9,13 +11,139 @@ const DASH_COOLDOWN = 0.8; // wait before next dash is allowed
 const DASH_IFRAMES = 0.45; // extra no-damage time after the dash ends
 
 // MOVEMENT CONFIG
-const BASE_SPEED = 150;
+const BASE_SPEED = 0;
 const SLOW_FACTOR = 0.4; // speed multiplier when slowed by spikes
+
+// PLAYER ANIMATIONS
+const PLAYER_SHEET = "../../Assets/Sprites/player/knight/knight-Sheet.png";
+
+const ANIMATIONS = {
+  down: {
+    idle: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 1,
+      row: 0,
+    }),
+    walk: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 7,
+      row: 0,
+    }),
+    attack: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 0,
+    }),
+    defense: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 0,
+    }),
+  },
+  left: {
+    idle: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 1,
+      row: 1,
+    }),
+    walk: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 1,
+    }),
+    attack: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 1,
+    }),
+    defense: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 3,
+      row: 1,
+    }),
+  },
+  right: {
+    idle: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 1,
+      row: 2,
+    }),
+    walk: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 2,
+    }),
+    attack: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 2,
+    }),
+    defense: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 3,
+      row: 2,
+    }),
+  },
+  up: {
+    idle: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 1,
+      row: 3,
+    }),
+    walk: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 2,
+      row: 3,
+    }),
+    attack: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 3,
+    }),
+    defense: new SpriteSheet({
+      src: PLAYER_SHEET,
+      frameWidth: 64,
+      frameHeight: 52,
+      frameCount: 4,
+      row: 3,
+    }),
+  },
+};
 
 // Player entity handles movement, dashing, aiming, card activation and trigger firing
 export default class Player extends Entity {
   constructor(position, input, mouse) {
-    super(position, 16, 32, "#4488ff", {
+    super(position, 64, 64, "#4488ff", {
       hitboxHeight: 16,
       hitboxWidth: 16,
       hitboxOffset: new Vector(0, 8),
@@ -28,7 +156,13 @@ export default class Player extends Entity {
     this.speed = BASE_SPEED;
     this._baseSpeed = BASE_SPEED;
     this._slowTimer = 0;
-    this.state = "idle";
+    this._facingDir = "down";
+    this._actionState = "idle";
+    this._animation = new Animation({
+      sheet: ANIMATIONS.down.idle,
+      fps: 1,
+      loop: true,
+    });
 
     // Aim direction follows the mouse
     this.aimDirection = new Vector(1, 0);
@@ -109,14 +243,25 @@ export default class Player extends Entity {
 
     // read movement input from WASD and arrows
     const raw = new Vector(0, 0);
-    if (this.input.isKeyDown("W") || this.input.isKeyDown("ARROWUP"))
+    if (this.input.isKeyDown("W") || this.input.isKeyDown("ARROWUP")) {
+      this._facingDir = "up";
       raw.y -= 1;
-    if (this.input.isKeyDown("S") || this.input.isKeyDown("ARROWDOWN"))
+    }
+
+    if (this.input.isKeyDown("S") || this.input.isKeyDown("ARROWDOWN")) {
+      this._facingDir = "down";
       raw.y += 1;
-    if (this.input.isKeyDown("A") || this.input.isKeyDown("ARROWLEFT"))
+    }
+
+    if (this.input.isKeyDown("A") || this.input.isKeyDown("ARROWLEFT")) {
+      this._facingDir = "left";
       raw.x -= 1;
-    if (this.input.isKeyDown("D") || this.input.isKeyDown("ARROWRIGHT"))
+    }
+
+    if (this.input.isKeyDown("D") || this.input.isKeyDown("ARROWRIGHT")) {
+      this._facingDir = "right";
       raw.x += 1;
+    }
 
     const isMoving = raw.squareLength() > 0;
     const direction = raw.normalize();
@@ -143,7 +288,8 @@ export default class Player extends Entity {
       this.velocity = direction.times(this.speed);
     }
 
-    this.state = isMoving || this.isDashing ? "moving" : "idle";
+    this._actionState = isMoving || this.isDashing ? "walk" : "idle";
+    this.#selectAnimation();
 
     // card slot selection with keys 1-5, click to play selected card
     if (this.cardManager) {
@@ -153,7 +299,7 @@ export default class Player extends Entity {
         }
       }
       if (this.mouse?.consumeClick()) {
-        this._playCardAtSlot(this.cardManager.selectedIndex);
+        this.#playCardAtSlot(this.cardManager.selectedIndex);
       }
     }
 
@@ -196,7 +342,15 @@ export default class Player extends Entity {
       ctx.restore();
     }
 
-    super.draw(renderer);
+    if (this._animation) {
+      renderer.drawAnimation(
+        this._animation,
+        this.position.x - this.width / 2,
+        this.position.y - this.height / 2,
+        this.width,
+        this.height,
+      );
+    }
   }
 
   // --------------------- PRIVATE ---------------------
@@ -218,7 +372,7 @@ export default class Player extends Entity {
   }
 
   // play card at the given slot and fire ON_HIT or ON_KILL triggers
-  _playCardAtSlot(index) {
+  #playCardAtSlot(index) {
     if (!this.cardManager) return;
 
     const enemies = this.getEnemies?.() ?? [];
@@ -243,6 +397,13 @@ export default class Player extends Entity {
         this.cardManager.fireTrigger(Trigger.ON_KILL, state);
       else if (snap.enemy.health < snap.health)
         this.cardManager.fireTrigger(Trigger.ON_HIT, state);
+    }
+  }
+
+  #selectAnimation() {
+    const sheet = ANIMATIONS[this._facingDir][this._actionState];
+    if (this._animation.sheet !== sheet) {
+      this._animation = new Animation({ sheet, fps: 8, loop: true });
     }
   }
 }
