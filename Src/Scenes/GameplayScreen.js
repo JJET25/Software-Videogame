@@ -54,6 +54,8 @@ export default class GameplayScreen extends Screen {
     );
     this.dimManager.startRun();
 
+    this.#loadAndPlayBGM();
+
     this.minimap = new MiniMap(this.dimManager);
 
     this._paused = false;
@@ -103,7 +105,9 @@ export default class GameplayScreen extends Screen {
     for (const create of STARTER_DECK) this.cardManager.addCard(create());
   }
 
-  exit() {}
+  exit() {
+    this.audio?.stopBGM();
+  }
 
   update(deltaTime) {
     // Overlay activo — el juego se pausa detrás
@@ -169,6 +173,8 @@ export default class GameplayScreen extends Screen {
 
     if (room?.isShopRoom)
       room.storeUI?.update(this.input, this.player, this.cardManager);
+
+    this.#updateBGM();
   }
 
   draw(renderer) {
@@ -206,9 +212,9 @@ export default class GameplayScreen extends Screen {
     if (this._overlay) {
       this._overlay.draw(renderer);
       const ctx = renderer.context;
-      ctx.globalAlpha   = 1;
-      ctx.shadowColor   = "transparent";
-      ctx.shadowBlur    = 0;
+      ctx.globalAlpha = 1;
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
     }
@@ -228,9 +234,9 @@ export default class GameplayScreen extends Screen {
   #mountOverlay(OverlayClass, context) {
     const overlay = new OverlayClass();
     overlay.attach({
-      renderer:      this.renderer,
-      input:         this.input,
-      mouse:         this.mouse,
+      renderer: this.renderer,
+      input: this.input,
+      mouse: this.mouse,
       screenManager: this.screenManager,
     });
     overlay.enter(context);
@@ -350,5 +356,27 @@ export default class GameplayScreen extends Screen {
     renderer.drawRect(0, ROOM_HEIGHT - 40, ROOM_WIDTH, 40, "rgba(0,0,0,0.85)");
     renderer.drawText(message, ROOM_WIDTH / 2, ROOM_HEIGHT - 24, 7, "#ffffff", { align: "center" });
     renderer.drawText("Press ENTER to continue", ROOM_WIDTH / 2, ROOM_HEIGHT - 10, 5, "#888888", { align: "center" });
+  }
+
+  #loadAndPlayBGM() {
+    const BASE = "../../Assets/Audios/BGM/";
+    this.audio.loadBGM("darkAges", BASE + "DarkAgesTheme.mp3");
+    this.audio.loadBGM("oldWest", BASE + "OldWestTheme.mp3");
+    this.audio.loadBGM("combat", BASE + "CombatRoomTheme.mp3");
+
+    this.#updateBGM();
+  }
+
+  #updateBGM() {
+    const room = this.dimManager?.getRoomManager()?.currentRoom;
+    const dim = this.dimManager?.getCurrentDimension();
+
+    const inCombat = room?.enemies?.length > 0 && !room?.isCleared;
+
+    if (inCombat) this.audio.playBGM("combat");
+    else {
+      const dimKey = dim?.id === "oldWest" ? "oldWest" : "darkAges";
+      this.audio.playBGM(dimKey);
+    }
   }
 }

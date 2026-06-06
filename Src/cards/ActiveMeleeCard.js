@@ -1,6 +1,6 @@
 import ActiveCard from "./ActiveCard.js";
 
-// Active card that deals area damage in a cone format of the player aim direction
+// Deals damage in a cone in front of the player's aim direction
 export default class ActiveMeleeCard extends ActiveCard {
   constructor({
     name,
@@ -18,99 +18,80 @@ export default class ActiveMeleeCard extends ActiveCard {
     this.spread = spread;
   }
 
-  // Sets the visual arc state on the player and applies damage to enemies within the cone
+  // Activates the visual arc and applies damage to all targets inside the cone
   effect({ player, enemies, objects = [] }) {
-    // Visual arc draw by Player.draw
-    const strikeDuration = 0.18;
-    player._strikeTimer = strikeDuration;
-    player._strikeDuration = strikeDuration;
-    player._strikeDir = player.aimDirection;
-    player._strikeRange = this.range;
-    player._strikeSpread = this.spread;
+    this.#activateArc(player);
 
     const aimAngle = Math.atan2(player.aimDirection.y, player.aimDirection.x);
     const halfSpread = this.spread / 2;
 
-    // Real center of player hitbox
-    const player_bounds = player.getBounds();
-    const player_collision_x = (player_bounds.left + player_bounds.right) / 2;
-    const player_collision_y = (player_bounds.top + player_bounds.bottom) / 2;
+    // Use the center of the player hitbox as the cone origin
+    const bounds = player.getBounds();
+    const pcx = (bounds.left + bounds.right) / 2;
+    const pcy = (bounds.top + bounds.bottom) / 2;
 
-    // Apply damage
     for (const enemy of enemies) {
-      if (enemy.isDead) continue;
       if (
-        this._isTargetInsideCone(
-          enemy,
-          player_collision_x,
-          player_collision_y,
-          aimAngle,
-          halfSpread,
-        )
-      ) {
+        !enemy.isDead &&
+        this._isTargetInsideCone(enemy, pcx, pcy, aimAngle, halfSpread)
+      )
         enemy.takeDamage(this.damage);
-      }
     }
 
     for (const obj of objects) {
-      if (!obj.takeDamage || obj.isDead) continue;
       if (
-        this._isTargetInsideCone(
-          obj,
-          player_collision_x,
-          player_collision_y,
-          aimAngle,
-          halfSpread,
-        )
-      ) {
+        !obj.isDead &&
+        obj.takeDamage &&
+        this._isTargetInsideCone(obj, pcx, pcy, aimAngle, halfSpread)
+      )
         obj.takeDamage(this.damage);
-      }
     }
   }
 
+  // --------------------- PRIVATE ---------------------
+  // Sets the visual arc state on the player — read by Player.draw()
+  #activateArc(player) {
+    const duration = 0.5;
+    player._strikeTimer = duration;
+    player._strikeDuration = duration;
+    player._strikeDir = player.aimDirection;
+    player._strikeRange = this.range;
+    player._strikeSpread = this.spread;
+  }
+
+  // Returns true if any corner or center of the target bounds falls inside the cone
   _isTargetInsideCone(target, pcx, pcy, aimAngle, halfSpread) {
-    const bounds = target.getBounds();
+    const b = target.getBounds();
+    const cx = (b.left + b.right) / 2;
+    const cy = (b.top + b.bottom) / 2;
     const rangeSq = this.range * this.range;
 
-    // Check 5 points of the target bounding box
-    const cx = (bounds.left + bounds.right) / 2;
-    const cy = (bounds.top + bounds.bottom) / 2;
-
-    // Points reference of a entity
+    // Test 4 corners + center for a hit detection
     const points = [
-      { x: bounds.left, y: bounds.top }, // top-left corner
-      { x: bounds.right, y: bounds.top }, // top-right corner
-      { x: bounds.left, y: bounds.bottom }, // bottom-left corner
-      { x: bounds.right, y: bounds.bottom }, // bottom-right corner
-      { x: cx, y: cy }, // center
+      { x: b.left, y: b.top },
+      { x: b.right, y: b.top },
+      { x: b.left, y: b.bottom },
+      { x: b.right, y: b.bottom },
+      { x: cx, y: cy },
     ];
 
-    for (const { x, y } of points) {
-      if (this.#pointInsideCone(x, y, pcx, pcy, aimAngle, halfSpread, rangeSq))
-        return true;
-    }
-    return false;
+    return points.some(({ x, y }) =>
+      this.#pointInsideCone(x, y, pcx, pcy, aimAngle, halfSpread, rangeSq),
+    );
   }
 
-  // Returns true if a single (x, y) point is inside the cone
+  // Returns true if a single point is within range and inside the angle arc
   #pointInsideCone(x, y, pcx, pcy, aimAngle, halfSpread, rangeSq) {
     const dx = x - pcx;
     const dy = y - pcy;
 
-    // Distance check
     if (dx * dx + dy * dy > rangeSq) return false;
 
-    // Angle of this point relative to the player
-    const pointAngle = Math.atan2(dy, dx);
-
-    // Difference between the point angle and aim direction
-    const rawDiff = pointAngle - aimAngle;
-
-    // Normalized [-PI, PI] so wrap-around is handdle correctly
+    // Normalize angle difference to [-PI, PI] to handle wrap-around
+    const raw = Math.atan2(dy, dx) - aimAngle;
     const diff =
-      (((rawDiff % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+      (((raw % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
 
-    // Inside  the arc?
     return Math.abs(diff) <= halfSpread;
   }
 }

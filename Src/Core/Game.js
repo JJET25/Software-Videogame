@@ -2,17 +2,19 @@ import InputManager from "./InputManager.js";
 import MouseManager from "./MouseManager.js";
 import Renderer from "./Renderer.js";
 import ScreenManager from "../Systems/ScreenManager.js";
-import GameplayScreen from "../Scenes/GameplayScreen.js";
 import StartScreen from "../Scenes/StartScreen.js";
+import AudioManager from "./AudioManager.js";
 
-// Root game object: owns the renderer, input, and screen manager, and drives the loop
+// Root object, owns all core services and drives the game loop
 export default class Game {
   constructor(canvas) {
     this.lastTime = 0;
 
+    // Core services: instantiated once and injected into all screens
     this.renderer = new Renderer(canvas);
     this.input = new InputManager();
     this.mouse = new MouseManager(canvas);
+    this.audio = new AudioManager();
 
     this.renderer.resize();
     this.renderer.setupResizeListener();
@@ -21,19 +23,20 @@ export default class Game {
       renderer: this.renderer,
       input: this.input,
       mouse: this.mouse,
+      audio: this.audio,
     });
 
     this.screens.changeTo(new StartScreen());
-
-    this.start();
+    this.#startLoop();
   }
 
-  start() {
-    requestAnimationFrame((ts) => this.gameLoop(ts));
+  // --------------------- PRIVATE ---------------------
+  #startLoop() {
+    requestAnimationFrame((ts) => this.#gameLoop(ts));
   }
 
-  // Fixed the loop, prevents a spiral of death on loss
-  gameLoop(timestamp) {
+  // Caps deltaTime at 50ms to prevent spiral-of-death on focus loss
+  #gameLoop(timestamp) {
     const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
     this.lastTime = timestamp;
 
@@ -41,6 +44,6 @@ export default class Game {
     this.screens.draw(this.renderer);
     this.input.update();
 
-    requestAnimationFrame((ts) => this.gameLoop(ts));
+    requestAnimationFrame((ts) => this.#gameLoop(ts));
   }
 }
