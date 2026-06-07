@@ -13,7 +13,7 @@ export default class InputManager {
             if (!event.repeat) this._pressedThisFrame.add(k);
             this.keys[k] = true;
             // Prevents browser default behavior for game keys
-            if (k === "TAB" || k === "ESCAPE") event.preventDefault();
+            if (k === "TAB" || k === "ESCAPE" || k === "SPACE") event.preventDefault();
         });
 
         window.addEventListener("keyup", (event) => {

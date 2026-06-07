@@ -169,7 +169,7 @@ export default class GameplayScreen extends Screen {
     this.#updateInteractables(room, shopOpen);
 
     if (room?.isShopRoom)
-      room.storeUI?.update(this.input, this.player, this.cardManager);
+      room.storeUI?.update(this.input, this.player, this.cardManager, this.mouse);
 
     this.#updateBGM();
   }
@@ -184,7 +184,7 @@ export default class GameplayScreen extends Screen {
 
     const room = this.dimManager.getRoomManager().currentRoom;
     if (room?.isShopRoom && room.storeUI?.isOpen) {
-      room.storeUI.draw(renderer, this.player, this.cardManager);
+      room.storeUI.draw(renderer, this.player, this.cardManager, this.mouse);
     }
 
     // Darken the screen if brightness is reduced in settings

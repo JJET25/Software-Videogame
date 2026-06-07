@@ -309,6 +309,13 @@ export default class Player extends Entity {
     };
   }
 
+  // Returns a unit vector for the current facing direction
+  #facingVector() {
+    const map = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
+    const [x, y] = map[this._facingDir] ?? [0, 1];
+    return new Vector(x, y);
+  }
+
   // Keep aim direction pointed at the mouse cursor
   #updateAim() {
     if (!this.mouse) return;
@@ -325,10 +332,9 @@ export default class Player extends Entity {
       this.velocity = this._dashDir.times(DASH_SPEED);
     } else if (
       this.input.wasKeyPressed("SPACE") &&
-      this._dashCooldownTimer <= 0 &&
-      isMoving
+      this._dashCooldownTimer <= 0
     ) {
-      this.#startDash(direction);
+      this.#startDash(isMoving ? direction : this.#facingVector());
     } else this.velocity = direction.times(this.speed);
   }
 
