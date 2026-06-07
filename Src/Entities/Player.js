@@ -206,6 +206,9 @@ export default class Player extends Entity {
     this._strikeDir = new Vector(1, 0);
     this._strikeRange = 120;
     this._strikeSpread = Math.PI * 0.6;
+
+    this.floorType = "stone";
+    this._stepTimer = 0;
   }
 
   // True while the dash is active
@@ -320,7 +323,7 @@ export default class Player extends Entity {
 
   // Returns a unit vector for the current facing direction
   #facingVector() {
-    const map = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
+    const map = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
     const [x, y] = map[this._facingDir] ?? [0, 1];
     return new Vector(x, y);
   }
@@ -373,6 +376,13 @@ export default class Player extends Entity {
     }
 
     this.#selectAnimation();
+
+    // Steps: only to walk with cooldown for no overflow the bus
+    if (this._actionState === "walk" && this._stepTimer <= 0) {
+      const sfx = this.floorType === "wood" ? "stepsWood" : "stepsStone";
+      this.audio?.playSFX(sfx);
+      this._stepTimer = 0.35; // Seconds between steps
+    }
   }
 
   // Count down melee and defense timers
@@ -381,6 +391,8 @@ export default class Player extends Entity {
       this._strikeTimer = Math.max(0, this._strikeTimer - deltaTime);
     if (this._defenseTimer > 0)
       this._defenseTimer = Math.max(0, this._defenseTimer - deltaTime);
+    if (this._stepTimer > 0)
+      this._stepTimer = Math.max(0, this._stepTimer - deltaTime);
   }
 
   // Start a dash: set timers, grant iframes, fire ON_DASH trigger
