@@ -11,7 +11,7 @@ const CARDS = [
     description: "Deal damage to enemies within 80 px in a forward cone.",
     stats: ["25 DMG", "80 px", "2 s CD"],
     starter: true,
-    image: null,
+    image: ACT + "quick-strike.jpeg",
   },
   {
     name: "Iron Fist",
@@ -19,7 +19,7 @@ const CARDS = [
     description: "A brutal close-range blow dealing 65 damage within 28 px.",
     stats: ["65 DMG", "28 px", "2.5 s CD"],
     starter: false,
-    image: null,
+    image: ACT + "iron-fist.jpeg",
   },
   {
     name: "Nova Burst",
@@ -27,7 +27,7 @@ const CARDS = [
     description: "Full-circle explosion dealing 120 damage to all enemies within 72 px.",
     stats: ["120 DMG", "180°", "7 s CD"],
     starter: false,
-    image: null,
+    image: ACT + "nova-burst.jpeg",
   },
   {
     name: "Shadow Blade",
@@ -160,7 +160,7 @@ const CARDS = [
     description: "Dashing grants 22 shield.",
     stats: ["+22 SHIELD", "On Dash"],
     starter: false,
-    image: null,
+    image: AUT + "phantom-step.jpeg",
   },
   {
     name: "Soul Siphon",
@@ -193,7 +193,7 @@ const CARDS = [
     description: "Dashing releases a shockwave dealing 40 damage to enemies within 180 px.",
     stats: ["40 DMG", "180 px", "On Dash"],
     starter: false,
-    image: null,
+    image: AUT + "after-shock.jpeg",
   },
   // ── AUTOMATIC · LEGENDARY ─────────────────────────────────────────────────
   {
@@ -202,7 +202,7 @@ const CARDS = [
     description: "Killing an enemy triggers a massive explosion dealing 70 damage within 280 px.",
     stats: ["70 DMG", "280 px", "On Kill"],
     starter: false,
-    image: null,
+    image: AUT + "decimator.jpeg",
   },
 ];
 
