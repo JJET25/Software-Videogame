@@ -75,13 +75,21 @@ export default class AudioManager {
   // Plays a one-shot SFX from the preloaded buffer — safe to call repeatedly
   playSFX(name, loop = false) {
     const buffer = this._sfxBuffers.get(name);
-    if (!buffer) return;
+    if (!buffer) return null;
 
-    const src = this.#getAudioCtx().createBufferSource();
+    const ctx = this.#getAudioCtx();
+    const src = ctx.createBufferSource();
     src.buffer = buffer;
-    src.loop = loop; 
-    src.connect(this.#getSFXGain()); 
-    src.start(0);
+    src.loop = loop;
+    src.connect(this.#getSFXGain());
+
+    // Browser suspends AudioContext before the first user interaction.
+    // Scheduling start(0) on a suspended context schedules it at time=0,
+    // which is already in the past when the context resumes — so it never plays.
+    // Resume first, then start.
+    if (ctx.state === "suspended") ctx.resume().then(() => src.start(0));
+    else src.start(0);
+
     return src;
   }
 
