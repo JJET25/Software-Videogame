@@ -52,7 +52,7 @@ tutPlayBtn?.addEventListener("click", (e) => {
   e.preventDefault();
   const token = localStorage.getItem("token");
   if (token) {
-    window.location.href = "game.html";
+    window.location.href = "/frontend/HTML/game.html";
   } else {
     localStorage.setItem("redirectAfter", "/frontend/HTML/game.html");
     window.location.href = "/frontend/HTML/login.html";
