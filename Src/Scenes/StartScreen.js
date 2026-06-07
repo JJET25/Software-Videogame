@@ -2,32 +2,39 @@ import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 import GameplayScreen from "./GameplayScreen.js";
 import Screen from "./Screen.js";
 
+// --------------------- PALETTE ---------------------
 const P = {
-  bg:        "#0d0520",
-  btnNorm:   "#1e0850",
-  btnHover:  "#3d1a70",
-  btnTop:    "#36145c",
+  bg: "#0d0520",
+  btnNorm: "#1e0850",
+  btnHover: "#3d1a70",
+  btnTop: "#36145c",
   btnTopHov: "#6a30b0",
-  btnBot:    "#0a0320",
-  border:    "#7c4dff",
+  btnBot: "#0a0320",
+  border: "#7c4dff",
   borderHov: "#aa88ff",
-  corner:    "#0d0520",
-  txtNorm:   "#d0b8ff",
-  txtHover:  "#00ffb9",
-  overlay:   "rgba(5,0,18,0.82)",
-  boxBg:     "#130838",
-  divider:   "#2a1050",
-  muted:     "#4a2870",
-  accent:    "#7c4dff",
+  corner: "#0d0520",
+  txtNorm: "#d0b8ff",
+  txtHover: "#00ffb9",
+  overlay: "rgba(5,0,18,0.82)",
+  boxBg: "#130838",
+  divider: "#2a1050",
+  muted: "#4a2870",
+  accent: "#7c4dff",
 };
 
 const BTN_W = 84;
 const BTN_H = 13;
 
+const TEAM_NAMES = ["Jesus Espinoza", "Gonzalo Zamarron", "Vladimir Reyes"];
+
+const SFX_BASE = "../../Assets/Audios/SFX/";
+
 export default class StartScreen extends Screen {
   enter() {
     this.btnX = (ROOM_WIDTH - BTN_W) / 2;
+
     this._showCredits = false;
+    this._lastHovered = null;
 
     this.buttons = [
       {
@@ -40,14 +47,18 @@ export default class StartScreen extends Screen {
         label: "CREDITS",
         y: 118,
         hovered: false,
-        action: () => { this._showCredits = true; },
+        action: () => {
+          this._showCredits = true;
+        },
       },
       {
         label: "EXIT",
         y: 136,
         hovered: false,
         // Navigate to root so npx serve always finds index.html with its CSS
-        action: () => { window.location.href = "/"; },
+        action: () => {
+          window.location.href = "/";
+        },
       },
     ];
 
@@ -61,141 +72,200 @@ export default class StartScreen extends Screen {
     this._logo = new Image();
     this._logo.src = "/Assets/Website/DimensionDeck_Logo.png";
 
+    // Load pixel font — falls back to monospace until ready
     this._font = "monospace";
     document.fonts.load("5px 'Press Start 2P'").then(() => {
       this._font = "'Press Start 2P', monospace";
     });
+
+    this.audio?.loadSFX("hoverUI", SFX_BASE + "HoverUI.wav");
+    this.audio?.loadSFX("confirmUI", SFX_BASE + "ConfirmUI.wav");
   }
 
   update(deltaTime) {
+    this.#updateHoverSFX();
+
     const clicked = this.mouse.consumeClick();
-    const mx = this.mouse.position.x;
-    const my = this.mouse.position.y;
 
     if (this._showCredits) {
-      const b = this._backBtn;
-      b.hovered = mx >= b.x && mx <= b.x + BTN_W
-               && my >= b.y && my <= b.y + BTN_H;
-      if (clicked && b.hovered) this._showCredits = false;
+      this.#updateCreditsOverlay(clicked);
       return;
     }
 
     for (const btn of this.buttons) {
       btn.hovered = this.#isHovered(btn);
-      if (clicked && btn.hovered) btn.action();
+      if (clicked && btn.hovered) {
+        this.audio?.playSFX("confirmUI");
+        btn.action();
+      }
     }
   }
 
   draw(renderer) {
     renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, P.bg);
-
-    // Logo
-    if (this._logo.complete && this._logo.naturalWidth > 0) {
-      const lh = 60;
-      const lw = Math.round(lh * (this._logo.naturalWidth / this._logo.naturalHeight));
-      renderer.drawImage(this._logo, (ROOM_WIDTH - lw) / 2, 14, lw, lh);
-    } else {
-      renderer.drawText("DIMENSION DECK", ROOM_WIDTH / 2, 38, 10, "#d0b8ff",
-        { font: this._font });
-    }
-
+    this.#drawLogo(renderer);
     renderer.drawRect((ROOM_WIDTH - 90) / 2, 84, 90, 1, P.divider);
 
     for (const btn of this.buttons) {
       this.#drawButton(renderer, this.btnX, btn.y, btn.hovered, btn.label);
     }
 
-    renderer.drawText("v1.0", ROOM_WIDTH - 4, ROOM_HEIGHT - 5, 3, P.muted,
-      { align: "right", baseline: "bottom", font: this._font });
+    renderer.drawText("v1.0", ROOM_WIDTH - 4, ROOM_HEIGHT - 5, 3, P.muted, {
+      align: "right",
+      baseline: "bottom",
+      font: this._font,
+    });
 
     if (this._showCredits) this.#drawCredits(renderer);
   }
 
-  // ── Credits overlay ───────────────────────────────────────────────────────
+  // --------------------- PRIVATE: update ---------------------
+  // Play hover SFX when the mouse moves onto a new button
+  #updateHoverSFX() {
+    const nowHovered =
+      this.buttons.find((b) => this.#isHovered(b))?.label ??
+      (this._showCredits && this.#isHovered(this._backBtn) ? "BACK" : null);
+
+    if (nowHovered !== this._lastHovered) {
+      if (nowHovered) this.audio?.playSFX("hoverUI");
+      this._lastHovered = nowHovered;
+    }
+  }
+
+  // Handle hover and click while the credits overlay is open
+  #updateCreditsOverlay(clicked) {
+    const b = this._backBtn;
+    const mx = this.mouse.position.x;
+    const my = this.mouse.position.y;
+    b.hovered =
+      mx >= b.x && mx <= b.x + BTN_W && my >= b.y && my <= b.y + BTN_H;
+
+    if (clicked && b.hovered) {
+      this.audio?.playSFX("confirmUI");
+      this._showCredits = false;
+    }
+  }
+
+  // --------------------- PRIVATE: draw ---------------------
+  // Draws the logo image, or a text fallback if it hasn't loaded yet
+  #drawLogo(renderer) {
+    if (this._logo.complete && this._logo.naturalWidth > 0) {
+      const lh = 60;
+      const lw = Math.round(
+        lh * (this._logo.naturalWidth / this._logo.naturalHeight),
+      );
+      renderer.drawImage(this._logo, (ROOM_WIDTH - lw) / 2, 14, lw, lh);
+    } else {
+      renderer.drawText("DIMENSION DECK", ROOM_WIDTH / 2, 38, 10, "#d0b8ff", {
+        font: this._font,
+      });
+    }
+  }
+
+  // Full-screen credits overlay with panel, names, and back button
   #drawCredits(renderer) {
-    // Dim the background
+    // Dim background
     const ctx = renderer.context;
-    const s   = renderer.scale;
     ctx.fillStyle = P.overlay;
-    ctx.fillRect(0, 0, ROOM_WIDTH * s, ROOM_HEIGHT * s);
+    ctx.fillRect(
+      0,
+      0,
+      ROOM_WIDTH * renderer.scale,
+      ROOM_HEIGHT * renderer.scale,
+    );
 
-    // Panel
-    const pw = 220;
-    const ph = 138;
-    const px = (ROOM_WIDTH  - pw) / 2;
+    const pw = 220,
+      ph = 138;
+    const px = (ROOM_WIDTH - pw) / 2;
     const py = (ROOM_HEIGHT - ph) / 2 - 6;
+    const cx = ROOM_WIDTH / 2;
 
-    renderer.drawRect(px, py, pw, ph, P.boxBg);
-
-    // Panel border (2 px violet)
-    renderer.drawRect(px,          py,          pw, 2,  P.accent);
-    renderer.drawRect(px,          py + ph - 2, pw, 2,  P.accent);
-    renderer.drawRect(px,          py,          2,  ph, P.accent);
-    renderer.drawRect(px + pw - 2, py,          2,  ph, P.accent);
-
-    // Corner cuts
-    renderer.drawRect(px,          py,          1, 1, P.bg);
-    renderer.drawRect(px + pw - 1, py,          1, 1, P.bg);
-    renderer.drawRect(px,          py + ph - 1, 1, 1, P.bg);
-    renderer.drawRect(px + pw - 1, py + ph - 1, 1, 1, P.bg);
+    this.#drawCreditsPanel(renderer, px, py, pw, ph);
 
     // Title
-    renderer.drawText("CREDITS", ROOM_WIDTH / 2, py + 14, 7, P.accent,
-      { align: "center", font: this._font });
-
-    // Thin divider
+    renderer.drawText("CREDITS", cx, py + 14, 7, P.accent, {
+      align: "center",
+      font: this._font,
+    });
     renderer.drawRect(px + 10, py + 22, pw - 20, 1, P.divider);
 
-    // Names
-    const names = ["Jesus Espinoza", "Gonzalo Zamarron", "Vladimir Reyes"];
-    names.forEach((name, i) => {
-      renderer.drawText(name, ROOM_WIDTH / 2, py + 32 + i * 13, 4.5, P.txtNorm,
-        { align: "center", font: this._font });
+    // Team names
+    TEAM_NAMES.forEach((name, i) => {
+      renderer.drawText(name, cx, py + 32 + i * 13, 4.5, P.txtNorm, {
+        align: "center",
+        font: this._font,
+      });
     });
 
-    // Class
+    // Course info
     renderer.drawRect(px + 10, py + 74, pw - 20, 1, P.divider);
-    renderer.drawText("TC2005B", ROOM_WIDTH / 2, py + 82, 5, P.accent,
-      { align: "center", font: this._font });
-    renderer.drawText("Construccion de Software", ROOM_WIDTH / 2, py + 94, 3.5, P.muted,
-      { align: "center", font: this._font });
-    renderer.drawText("Tec de Monterrey  2026", ROOM_WIDTH / 2, py + 104, 3.5, P.muted,
-      { align: "center", font: this._font });
+    renderer.drawText("TC2005B", cx, py + 82, 5, P.accent, {
+      align: "center",
+      font: this._font,
+    });
+    renderer.drawText("Construccion de Software", cx, py + 94, 3.5, P.muted, {
+      align: "center",
+      font: this._font,
+    });
+    renderer.drawText("Tec de Monterrey  2026", cx, py + 104, 3.5, P.muted, {
+      align: "center",
+      font: this._font,
+    });
 
     // Back button
     const b = this._backBtn;
     this.#drawButton(renderer, b.x, b.y, b.hovered, "BACK");
   }
 
-  // ── Pixel-art RPG button ─────────────────────────────────────────────────
+  // Panel background + 2px border + corner cuts
+  #drawCreditsPanel(renderer, px, py, pw, ph) {
+    renderer.drawRect(px, py, pw, ph, P.boxBg);
+    renderer.drawRect(px, py, pw, 2, P.accent);
+    renderer.drawRect(px, py + ph - 2, pw, 2, P.accent);
+    renderer.drawRect(px, py, 2, ph, P.accent);
+    renderer.drawRect(px + pw - 2, py, 2, ph, P.accent);
+    // 1px corner cuts to give a beveled look
+    renderer.drawRect(px, py, 1, 1, P.bg);
+    renderer.drawRect(px + pw - 1, py, 1, 1, P.bg);
+    renderer.drawRect(px, py + ph - 1, 1, 1, P.bg);
+    renderer.drawRect(px + pw - 1, py + ph - 1, 1, 1, P.bg);
+  }
+
+  // Pixel-art RPG button with top highlight, bottom shadow and corner cuts
   #drawButton(renderer, x, y, hovered, label) {
-    const w   = BTN_W;
-    const h   = BTN_H;
-    const bg  = hovered ? P.btnHover  : P.btnNorm;
+    const bg = hovered ? P.btnHover : P.btnNorm;
     const top = hovered ? P.btnTopHov : P.btnTop;
     const bdr = hovered ? P.borderHov : P.border;
 
-    renderer.drawRect(x, y, w, h, bg);
-    renderer.drawRect(x + 1, y + 1,     w - 2, 1, top);
-    renderer.drawRect(x + 1, y + h - 2, w - 2, 1, P.btnBot);
+    renderer.drawRect(x, y, BTN_W, BTN_H, bg);
+    renderer.drawRect(x + 1, y + 1, BTN_W - 2, 1, top); // top highlight
+    renderer.drawRect(x + 1, y + BTN_H - 2, BTN_W - 2, 1, P.btnBot); // bottom shadow
+    renderer.drawRect(x, y, 2, BTN_H, bdr); // left border
+    renderer.drawRect(x + BTN_W - 2, y, 2, BTN_H, bdr); // right border
+    // Corner cuts
+    renderer.drawRect(x, y, 1, 1, P.corner);
+    renderer.drawRect(x + BTN_W - 1, y, 1, 1, P.corner);
+    renderer.drawRect(x, y + BTN_H - 1, 1, 1, P.corner);
+    renderer.drawRect(x + BTN_W - 1, y + BTN_H - 1, 1, 1, P.corner);
 
-    renderer.drawRect(x,         y, 2, h, bdr);
-    renderer.drawRect(x + w - 2, y, 2, h, bdr);
-
-    renderer.drawRect(x,         y,         1, 1, P.corner);
-    renderer.drawRect(x + w - 1, y,         1, 1, P.corner);
-    renderer.drawRect(x,         y + h - 1, 1, 1, P.corner);
-    renderer.drawRect(x + w - 1, y + h - 1, 1, 1, P.corner);
-
-    renderer.drawText(label, x + w / 2, y + h / 2, 5,
+    renderer.drawText(
+      label,
+      x + BTN_W / 2,
+      y + BTN_H / 2,
+      5,
       hovered ? P.txtHover : P.txtNorm,
-      { align: "center", font: this._font });
+      { align: "center", font: this._font },
+    );
   }
 
+  // Returns true if the mouse is inside a button's bounds
   #isHovered(btn) {
-    const mx = this.mouse.position.x;
-    const my = this.mouse.position.y;
-    return mx >= this.btnX && mx <= this.btnX + BTN_W
-        && my >= btn.y    && my <= btn.y  + BTN_H;
+    const { x: mx, y: my } = this.mouse.position;
+    return (
+      mx >= this.btnX &&
+      mx <= this.btnX + BTN_W &&
+      my >= btn.y &&
+      my <= btn.y + BTN_H
+    );
   }
 }

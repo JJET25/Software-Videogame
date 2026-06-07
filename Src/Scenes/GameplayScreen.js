@@ -53,9 +53,12 @@ export default class GameplayScreen extends Screen {
     this.dimManager = new DimensionManager(
       this.player,
       () => this.onVictory(),
-      (levelNum, dimName, phase, done) => this.#showLevelOverlay(levelNum, dimName, phase, done),
-      (fromName, toName, done) => this.#showDimensionTransitionOverlay(fromName, toName, done),
-      (bossType, dimName, nextLabel, done) => this.#showBossKillOverlay(bossType, dimName, nextLabel, done),
+      (levelNum, dimName, phase, done) =>
+        this.#showLevelOverlay(levelNum, dimName, phase, done),
+      (fromName, toName, done) =>
+        this.#showDimensionTransitionOverlay(fromName, toName, done),
+      (bossType, dimName, nextLabel, done) =>
+        this.#showBossKillOverlay(bossType, dimName, nextLabel, done),
     );
     this.dimManager.startRun();
 
@@ -70,7 +73,12 @@ export default class GameplayScreen extends Screen {
     this.runId = null;
     this._runPromise = null;
     this.cardCatalog = [];
-    this.stats = { roomsCleared: 0, enemiesKilled: 0, damageTaken: 0, damageDealt: 0 };
+    this.stats = {
+      roomsCleared: 0,
+      enemiesKilled: 0,
+      damageTaken: 0,
+      damageDealt: 0,
+    };
     this._enemyHealthSnap = new Map();
 
     // Track room state for stat counting
@@ -141,7 +149,8 @@ export default class GameplayScreen extends Screen {
     const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
 
     // ESC or ENTER toggles pause when shop and deck are closed
-    const wantsPause = this.input.wasKeyPressed("ESCAPE") || this.input.wasKeyPressed("ENTER");
+    const wantsPause =
+      this.input.wasKeyPressed("ESCAPE") || this.input.wasKeyPressed("ENTER");
     if (wantsPause && !shopOpen && !this.deckScreen.isOpen) {
       this._paused = !this._paused;
       this.audio?.playSFX(this._paused ? "pause" : "unpause");
@@ -159,7 +168,12 @@ export default class GameplayScreen extends Screen {
     // DeckScreen consumes clicks before the player does
     if (!shopOpen) {
       const wasOpen = this.deckScreen.isOpen;
-      this.deckScreen.update(this.input, this.mouse, this.cardManager);
+      this.deckScreen.update(
+        this.input,
+        this.mouse,
+        this.cardManager,
+        this.audio,
+      );
       if (this.deckScreen.isOpen !== wasOpen) {
         this.audio?.playSFX(this.deckScreen.isOpen ? "pause" : "unpause");
       }
@@ -168,20 +182,25 @@ export default class GameplayScreen extends Screen {
     const prevHealth = this.player.health;
     if (!shopOpen && !this.deckScreen.isOpen) this.player.update(deltaTime);
 
-    this.cardManager.update(deltaTime);
+    if (!this.deckScreen.isOpen) {
+      this.cardManager.update(deltaTime);
+      const enemies = room?.enemies ?? [];
+      const enemySnap = new Map(enemies.map((e) => [e, e.health]));
+      rm.update(deltaTime);
+      this.#trackStats(room, prevHealth, enemySnap);
+    }
 
-    // Snapshot enemy health BEFORE room update so we can measure damage dealt this frame
-    const enemies = room?.enemies ?? [];
-    const enemySnap = new Map(enemies.map(e => [e, e.health]));
-
-    rm.update(deltaTime);
-
-    this.#trackStats(room, prevHealth, enemySnap);
     this.hud.update(deltaTime);
     this.#updateInteractables(room, shopOpen);
 
     if (room?.isShopRoom)
-      room.storeUI?.update(this.input, this.player, this.cardManager, this.mouse);
+      room.storeUI?.update(
+        this.input,
+        this.player,
+        this.cardManager,
+        this.mouse,
+        this.audio,
+      );
 
     this.#updateBGM();
   }
@@ -363,8 +382,17 @@ export default class GameplayScreen extends Screen {
   // Draws a dark banner at the bottom with a message and a hint to continue
   #drawNotification(renderer, message) {
     renderer.drawRect(0, ROOM_HEIGHT - 40, ROOM_WIDTH, 40, "rgba(0,0,0,0.85)");
-    renderer.drawText(message, ROOM_WIDTH / 2, ROOM_HEIGHT - 24, 7, "#ffffff", { align: "center" });
-    renderer.drawText("Press ENTER to continue", ROOM_WIDTH / 2, ROOM_HEIGHT - 10, 5, "#888888", { align: "center" });
+    renderer.drawText(message, ROOM_WIDTH / 2, ROOM_HEIGHT - 24, 7, "#ffffff", {
+      align: "center",
+    });
+    renderer.drawText(
+      "Press ENTER to continue",
+      ROOM_WIDTH / 2,
+      ROOM_HEIGHT - 10,
+      5,
+      "#888888",
+      { align: "center" },
+    );
   }
 
   // --------------------- BGM ---------------------
@@ -382,7 +410,7 @@ export default class GameplayScreen extends Screen {
     const room = this.dimManager?.getRoomManager()?.currentRoom;
     const dim = this.dimManager?.getCurrentDimension();
 
-    const nodeType = room?.nodeType ?? null; 
+    const nodeType = room?.nodeType ?? null;
     const inBoss = nodeType === "miniBoss" || nodeType === "finalBoss";
     const inCombat = room?.enemies?.length > 0 && !room?.isCleared && !inBoss;
 
@@ -403,18 +431,29 @@ export default class GameplayScreen extends Screen {
       ["playerDeath", "PlayerLose.wav"],
       ["dash", "PlayerDash.wav"],
       ["enemyHit", "EnemyHit.wav"],
+      ["enemyDeath", "EnemyDeath.wav"],
       ["cardMelee", "MeleeCardEffect.wav"],
       ["cardHeal", "HealCardEffect.wav"],
+      ["cardDefense", "DefenseCardEffect.wav"],
       ["creditPickup", "Coin.wav"],
       ["chestOpen", "ChestReward.wav"],
       ["boxBreak", "BoxBreak.mp3"],
       ["cardSelect", "CardChange.wav"],
       ["teleport", "Teleport.wav"],
+      ["roomOpen", "RoomOpen.mp3"],
+      ["spikes", "Spikes.wav"],
+      ["hoverUI", "HoverUI.wav"],
+      ["confirmUI", "ConfirmUI.wav"],
+      ["buySell", "BuySell.wav"],
+      ["deniedUI", "DeniedUI.wav"],
+      ["declineUI", "DeclineUI.wav"],
+      ["equip", "Equip.wav"],
+      ["unequip", "Unequip.wav"],
       ["pause", "Pause.wav"],
       ["unpause", "Unpause.wav"],
+      ["stepsStone", "PlayerStoneSteps.wav"],
+      ["stepsWood", "PlayerWoodSteps.wav"],
     ];
-    for (const [name, file] of sfx) {
-      this.audio.loadSFX(name, BASE + file);
-    }
+    for (const [name, file] of sfx) this.audio.loadSFX(name, BASE + file);
   }
 }
