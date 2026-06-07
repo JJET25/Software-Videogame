@@ -50,18 +50,27 @@ export default class CardManager {
     }
   }
 
-  // Adds a card to the first empty slot; overflows to storage when all slots are full
+  // Adds a card to the first empty slot; overflows to storage when all slots are full.
+  // If a copy of the card already exists anywhere (slots or storage), upgrades it instead.
   addCard(card) {
     const isActive = card.type === CardType.ACTIVE;
     const slots    = isActive ? this.activeSlots : this.autoSlots;
     const limit    = isActive ? this.activeSlotCount : this.autoSlotCount;
 
-    for (let i = 0; i < limit; i++) {
-      if (slots[i]?.name === card.name && slots[i].isMaxLevel) {
+    // Search slots (within limit) and storage for an existing copy
+    const candidates = [...slots.slice(0, limit), ...this.storage];
+    for (const existing of candidates) {
+      if (!existing || existing.name !== card.name) continue;
+      if (existing.isMaxLevel) {
+        // Already maxed — convert duplicate to credits
         return { added: false, creditsAwarded: CREDIT_VALUE[card.rarity] };
       }
+      // Upgrade the existing copy
+      existing.level++;
+      return { added: true, creditsAwarded: 0, upgraded: true };
     }
 
+    // No duplicate — place in first empty slot
     for (let i = 0; i < limit; i++) {
       if (slots[i] === null) {
         slots[i] = card;
@@ -69,7 +78,7 @@ export default class CardManager {
       }
     }
 
-    // Active/auto slots full — send to storage instead of discarding
+    // All slots full — send to storage
     this.storage.push(card);
     return { added: true, creditsAwarded: 0 };
   }
@@ -134,6 +143,16 @@ export default class CardManager {
     }
     const si = this.storage.indexOf(card);
     if (si !== -1) this.storage.splice(si, 1);
+  }
+
+  // Linear difficulty multiplier: +8% per card beyond the starting 3.
+  // Read by rooms at spawn time to scale enemy health and damage.
+  get difficultyMultiplier() {
+    const BASE  = 3;
+    const total = this.activeSlots.filter(Boolean).length
+                + this.autoSlots.filter(Boolean).length
+                + this.storage.length;
+    return 1.0 + Math.max(0, total - BASE) * 0.08;
   }
 
   update(deltaTime) {
