@@ -72,7 +72,7 @@ export default class GameplayScreen extends Screen {
     this._deadEnemies = new Set();
     this._roomCounted = false;
 
-    this.pauseMenu = new PauseMenu();
+    this.pauseMenu = new PauseMenu(this.audio);
     window.testingMode = false;
 
     // Load starter cards from DB; fall back to hardcoded deck if API is down
@@ -134,12 +134,9 @@ export default class GameplayScreen extends Screen {
     const room = rm.currentRoom;
     const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
 
-    // ENTER toggles pause when shop and deck are closed
-    if (
-      this.input.wasKeyPressed("ENTER") &&
-      !shopOpen &&
-      !this.deckScreen.isOpen
-    ) {
+    // ESC or ENTER toggles pause when shop and deck are closed
+    const wantsPause = this.input.wasKeyPressed("ESCAPE") || this.input.wasKeyPressed("ENTER");
+    if (wantsPause && !shopOpen && !this.deckScreen.isOpen) {
       this._paused = !this._paused;
     }
 
