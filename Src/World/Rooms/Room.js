@@ -181,6 +181,8 @@ export default class Room {
       const obj = this.objects[i];
       if (!obj.isDead) continue;
 
+      if (obj.type === "box") this.player?.audio?.playSFX("boxBreak");
+
       // Some objects can drop loot
       obj.dropLoot?.(this.credits);
       this.objects.splice(i, 1);

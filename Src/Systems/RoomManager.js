@@ -212,6 +212,7 @@ export default class RoomManager {
     this.#setDoorsLocked(false);
 
     const type = this.graph.getNode(this.currentNodeId).type;
+    if (type === "combat") this.player.audio?.playSFX("roomOpen");
     if (type === "miniBoss") this.callbacks.onMiniBossDefeated?.();
     if (type === "finalBoss") this.callbacks.onFinalBossDefeated?.();
   }

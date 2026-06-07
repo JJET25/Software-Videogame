@@ -18,8 +18,8 @@ export default class ActiveDefenseCard extends ActiveCard {
 
   effect({ player }) {
     player.shield += this.shieldAmount;
+    player.audio?.playSFX("cardDefense");
     player._defenseTimer = 0.4;
-
     if (this.invincibility > 0) player.grantInvincibility(this.invincibility);
   }
 }

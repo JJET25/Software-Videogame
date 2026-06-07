@@ -122,9 +122,14 @@ export default class StartScreen extends Screen {
   // --------------------- PRIVATE: update ---------------------
   // Play hover SFX when the mouse moves onto a new button
   #updateHoverSFX() {
-    const nowHovered =
-      this.buttons.find((b) => this.#isHovered(b))?.label ??
-      (this._showCredits && this.#isHovered(this._backBtn) ? "BACK" : null);
+    const mainHovered = this._showCredits
+      ? null
+      : (this.buttons.find((b) => this.#isHovered(b))?.label ?? null);
+
+    const backHovered =
+      this._showCredits && this.#isHovered(this._backBtn) ? "BACK" : null;
+
+    const nowHovered = mainHovered ?? backHovered;
 
     if (nowHovered !== this._lastHovered) {
       if (nowHovered) this.audio?.playSFX("hoverUI");

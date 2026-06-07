@@ -29,6 +29,7 @@ export default class Spike extends GameObject {
       return;
     }
     player.takeDamage(SPIKE_DAMAGE);
+    player.audio?.playSFX("spikes");
     player._slowTimer = SLOW_DURATION;
     this._damageCooldown = SPIKE_COOLDOWN;
   }

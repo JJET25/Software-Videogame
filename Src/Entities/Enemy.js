@@ -102,6 +102,13 @@ export default class Enemy extends Entity {
     }
   }
 
+  takeDamage(amount) {
+    const prev = this.health;
+    super.takeDamage(amount);
+    if (this.health < prev) this.player?.audio?.playSFX("enemyHit");
+    if (this.isDead) this.player?.audio?.playSFX("enemyDeath");
+  }
+
   // subclasses override this to define their movement and attacks
   onUpdate(deltaTime) {}
 }

@@ -18,7 +18,7 @@ export default class Chest extends GameObject {
   interact(player, context = {}) {
     if (this.isOpen) return;
     this.isOpen = true;
-
+    player.audio?.playSFX("chestOpen");
     const loot = LootTable.roll();
 
     if (loot.type === "credits") {

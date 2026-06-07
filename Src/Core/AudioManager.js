@@ -20,6 +20,7 @@ export default class AudioManager {
   loadBGM(name, path) {
     const audio = new Audio(path);
     audio.loop = true;
+    audio.volume = 0.8;
     this._bgmTracks[name] = audio;
   }
 
@@ -79,8 +80,8 @@ export default class AudioManager {
 
     const src = this.#getAudioCtx().createBufferSource();
     src.buffer = buffer;
-    src.loop = loop; 
-    src.connect(this.#getSFXGain()); 
+    src.loop = loop;
+    src.connect(this.#getSFXGain());
     src.start(0);
     return src;
   }
