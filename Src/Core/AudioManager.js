@@ -74,7 +74,8 @@ export default class AudioManager {
   }
 
   // Plays a one-shot SFX from the preloaded buffer — safe to call repeatedly
-  playSFX(name, loop = false) {
+  // volume: per-clip multiplier (0–1) applied on top of the global SFX gain
+  playSFX(name, loop = false, volume = 1.0) {
     const buffer = this._sfxBuffers.get(name);
     if (!buffer) return null;
 
@@ -82,7 +83,15 @@ export default class AudioManager {
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     src.loop = loop;
-    src.connect(this.#getSFXGain());
+
+    if (volume !== 1.0) {
+      const clipGain = ctx.createGain();
+      clipGain.gain.value = volume;
+      src.connect(clipGain);
+      clipGain.connect(this.#getSFXGain());
+    } else {
+      src.connect(this.#getSFXGain());
+    }
 
     if (ctx.state === "suspended") ctx.resume().then(() => src.start(0));
     else src.start(0);

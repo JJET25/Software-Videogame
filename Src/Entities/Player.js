@@ -380,7 +380,7 @@ export default class Player extends Entity {
     // Steps: only to walk with cooldown for no overflow the bus
     if (this._actionState === "walk" && this._stepTimer <= 0) {
       const sfx = this.floorType === "wood" ? "stepsWood" : "stepsStone";
-      this.audio?.playSFX(sfx);
+      this.audio?.playSFX(sfx, false, 0.15);
       this._stepTimer = 0.35; // Seconds between steps
     }
   }
