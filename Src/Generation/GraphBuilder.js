@@ -129,7 +129,7 @@ export default class GraphBuilder {
       if (
         node.id !== bossNode.id &&
         node.type === "combat" &&
-        node.depth >= 2
+        node.depth >= 4
       ) {
         node.type = "shop";
         break;
