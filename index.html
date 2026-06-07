@@ -31,10 +31,6 @@
     <main>
       <!-- HERO -->
       <section class="hero__container">
-        <video class="hero__bg" autoplay muted loop playsinline>
-          <source src="#" type="video/mp4" />
-        </video>
-
         <div class="hero__overlay"></div>
 
         <div class="hero__content">
@@ -54,7 +50,7 @@
       <!-- FEATURES -->
       <section class="features__container">
         <article class="feature">
-          <img src="#" alt="Roguelite icon" />
+          <div class="feature-icon">&#9876;</div>
           <h2>Roguelite</h2>
           <ul>
             <li>Branching room maps every run</li>
@@ -62,7 +58,7 @@
           </ul>
         </article>
         <article class="feature">
-          <img src="#" alt="Deck building icon" />
+          <div class="feature-icon">&#9830;</div>
           <h2>Deck Building</h2>
           <ul>
             <li>Active cards for attacks, heals and shields</li>
@@ -70,7 +66,7 @@
           </ul>
         </article>
         <article class="feature">
-          <img src="#" alt="Combat icon" />
+          <div class="feature-icon">&#9760;</div>
           <h2>Real-time Combat</h2>
           <ul>
             <li>Top-down movement and mouse aiming</li>
@@ -87,15 +83,17 @@
           identity
         </p>
         <figure class="dimension">
-          <img src="#" alt="Old West dimension room" />
+          <img src="./Assets/Sprites/room/roomOldWest.png" alt="Old West dimension room" />
           <div class="dimension__info">
             <h3>OLD WEST</h3>
+            <p>Outlaws, bandits and a legendary marshal await in the desert.</p>
           </div>
         </figure>
         <figure class="dimension">
-          <img src="#" alt="Dark Ages dimension room" />
+          <img src="./Assets/Sprites/room/roomDungeon.png" alt="Dark Ages dimension room" />
           <div class="dimension__info">
             <h3>DARK AGES</h3>
+            <p>Skeletons and a fallen knight guard the depths of the dungeon.</p>
           </div>
         </figure>
       </section>
@@ -107,18 +105,7 @@
           <li>
             <article class="card">
               <img
-                src="./Assets/Sprites/action cards/action-card.png"
-                alt="Quick Strike card"
-              />
-              <h3>Quick Strike</h3>
-              <span class="card__type">Active &mdash; Common</span>
-              <p>Deal 20 damage to enemies within range in a forward cone.</p>
-            </article>
-          </li>
-          <li>
-            <article class="card">
-              <img
-                src="./Assets/Sprites/action cards/heal-card.png"
+                src="./Assets/Sprites/cards/action cards/healing-potion.png"
                 alt="Heal Pulse card"
               />
               <h3>Heal Pulse</h3>
@@ -129,7 +116,7 @@
           <li>
             <article class="card">
               <img
-                src="./Assets/Sprites/action cards/wood-shield.png"
+                src="./Assets/Sprites/cards/action cards/wood-shield.png"
                 alt="Wood Shield card"
               />
               <h3>Wood Shield</h3>
@@ -139,7 +126,21 @@
           </li>
           <li>
             <article class="card">
-              <img src="#" alt="Lifetap card" />
+              <img
+                src="./Assets/Sprites/cards/action cards/blood-siphon.jpeg"
+                alt="Blood Siphon card"
+              />
+              <h3>Blood Siphon</h3>
+              <span class="card__type">Active &mdash; Rare</span>
+              <p>Drain the nearest enemy for 45 damage and restore 20 HP.</p>
+            </article>
+          </li>
+          <li>
+            <article class="card">
+              <img
+                src="./Assets/Sprites/cards/automatic cards/life-tap.jpeg"
+                alt="Lifetap card"
+              />
               <h3>Lifetap</h3>
               <span class="card__type">Automatic &mdash; Common</span>
               <p>Restore 20 HP every time you kill an enemy.</p>

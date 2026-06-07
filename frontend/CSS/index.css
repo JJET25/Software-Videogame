@@ -306,6 +306,25 @@ nav a:hover::after {
   line-height: 1.2rem;
 }
 
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  font-size: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 255, 185, 0.08);
+  border: 2px solid var(--acent);
+  border-radius: 1.2rem;
+  color: var(--acent);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.feature:hover .feature-icon {
+  background: rgba(0, 255, 185, 0.18);
+  transform: scale(1.08);
+}
+
 /* ==== DIMENSIONS ==== */
 .dimensions__container {
   padding: 3rem;
@@ -352,15 +371,32 @@ nav a:hover::after {
   flex-direction: row-reverse;
 }
 .dimension img {
-  width: 50%;
-  max-width: 700px;
+  width: 30%;
+  max-width: 320px;
   object-fit: cover;
+  border-radius: 1rem;
+  image-rendering: pixelated;
 }
 
 .dimension__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 2rem;
+}
+
+.dimension__info h3 {
   letter-spacing: 4px;
   font-size: 2rem;
   color: var(--highlight-text);
+}
+
+.dimension__info p {
+  color: var(--secondary-text);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  line-height: 1.6;
 }
 
 /* ==== CARDS ==== */
@@ -400,7 +436,8 @@ nav a:hover::after {
 .card img {
   width: 100%;
   object-fit: cover;
-  aspect-ratio: 3/4;
+  aspect-ratio: 1/1;
+  max-height: 160px;
 }
 
 .card h3 {
