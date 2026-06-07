@@ -36,7 +36,12 @@ export default class GameplayScreen extends Screen {
     this.deckScreen = new DeckScreen();
     this.interaction = new InteractionManager(this.input);
 
-    this.player = new Player(new Vector(0, 0), this.input, this.mouse);
+    this.player = new Player(
+      new Vector(0, 0),
+      this.input,
+      this.mouse,
+      this.audio,
+    );
     this.player.cardManager = this.cardManager;
     this.player.getEnemies = () =>
       this.dimManager?.getRoomManager()?.currentRoom?.enemies ?? [];
@@ -55,6 +60,7 @@ export default class GameplayScreen extends Screen {
     this.dimManager.startRun();
 
     this.#loadAndPlayBGM();
+    this.#loadSFX();
 
     this.minimap = new MiniMap(this.dimManager);
 
@@ -138,6 +144,7 @@ export default class GameplayScreen extends Screen {
     const wantsPause = this.input.wasKeyPressed("ESCAPE") || this.input.wasKeyPressed("ENTER");
     if (wantsPause && !shopOpen && !this.deckScreen.isOpen) {
       this._paused = !this._paused;
+      this.audio?.playSFX(this._paused ? "pause" : "unpause");
     }
 
     if (this._paused) {
@@ -150,8 +157,13 @@ export default class GameplayScreen extends Screen {
     }
 
     // DeckScreen consumes clicks before the player does
-    if (!shopOpen)
+    if (!shopOpen) {
+      const wasOpen = this.deckScreen.isOpen;
       this.deckScreen.update(this.input, this.mouse, this.cardManager);
+      if (this.deckScreen.isOpen !== wasOpen) {
+        this.audio?.playSFX(this.deckScreen.isOpen ? "pause" : "unpause");
+      }
+    }
 
     const prevHealth = this.player.health;
     if (!shopOpen && !this.deckScreen.isOpen) this.player.update(deltaTime);
@@ -355,12 +367,14 @@ export default class GameplayScreen extends Screen {
     renderer.drawText("Press ENTER to continue", ROOM_WIDTH / 2, ROOM_HEIGHT - 10, 5, "#888888", { align: "center" });
   }
 
+  // --------------------- BGM ---------------------
   #loadAndPlayBGM() {
     const BASE = "../../Assets/Audios/BGM/";
     this.audio.loadBGM("darkAges", BASE + "DarkAgesTheme.mp3");
     this.audio.loadBGM("oldWest", BASE + "OldWestTheme.mp3");
     this.audio.loadBGM("combat", BASE + "CombatRoomTheme.mp3");
-
+    this.audio.loadBGM("miniBoss", BASE + "MiniBossTheme.mp3");
+    this.audio.loadBGM("finalBoss", BASE + "FinalBossTheme.mp3");
     this.#updateBGM();
   }
 
@@ -368,12 +382,39 @@ export default class GameplayScreen extends Screen {
     const room = this.dimManager?.getRoomManager()?.currentRoom;
     const dim = this.dimManager?.getCurrentDimension();
 
-    const inCombat = room?.enemies?.length > 0 && !room?.isCleared;
+    const nodeType = room?.nodeType ?? null; 
+    const inBoss = nodeType === "miniBoss" || nodeType === "finalBoss";
+    const inCombat = room?.enemies?.length > 0 && !room?.isCleared && !inBoss;
 
-    if (inCombat) this.audio.playBGM("combat");
+    if (nodeType === "finalBoss") this.audio.playBGM("finalBoss");
+    else if (nodeType === "miniBoss") this.audio.playBGM("miniBoss");
+    else if (inCombat) this.audio.playBGM("combat");
     else {
       const dimKey = dim?.id === "oldWest" ? "oldWest" : "darkAges";
       this.audio.playBGM(dimKey);
+    }
+  }
+
+  // --------------------- SFX ---------------------
+  #loadSFX() {
+    const BASE = "../../Assets/Audios/SFX/";
+    const sfx = [
+      ["playerHit", "PlayerHit.wav"],
+      ["playerDeath", "PlayerLose.wav"],
+      ["dash", "PlayerDash.wav"],
+      ["enemyHit", "EnemyHit.wav"],
+      ["cardMelee", "MeleeCardEffect.wav"],
+      ["cardHeal", "HealCardEffect.wav"],
+      ["creditPickup", "Coin.wav"],
+      ["chestOpen", "ChestReward.wav"],
+      ["boxBreak", "BoxBreak.mp3"],
+      ["cardSelect", "CardChange.wav"],
+      ["teleport", "Teleport.wav"],
+      ["pause", "Pause.wav"],
+      ["unpause", "Unpause.wav"],
+    ];
+    for (const [name, file] of sfx) {
+      this.audio.loadSFX(name, BASE + file);
     }
   }
 }

@@ -46,6 +46,8 @@ export default class ActiveMeleeCard extends ActiveCard {
       )
         obj.takeDamage(this.damage);
     }
+
+    player.audio?.playSFX("cardMelee");
   }
 
   // --------------------- PRIVATE ---------------------

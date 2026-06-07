@@ -234,6 +234,7 @@ export default class RoomManager {
       const dy = Math.abs(this.player.position.y - credit.position.y);
       if (dx < 28 && dy < 28) {
         this.player.addCredits(credit.value);
+        this.player.audio?.playSFX("creditPickup");
         credit.isDead = true;
       }
     }

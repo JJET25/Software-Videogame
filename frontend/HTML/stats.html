@@ -3,12 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="../CSS/index.css" />
-    <link rel="stylesheet" href="../CSS/stats.css" />
+    <link rel="stylesheet" href="/frontend/CSS/index.css" />
+    <link rel="stylesheet" href="/frontend/CSS/stats.css" />
     <title>Dimension Deck — Stats</title>
   </head>
   <body>
-
     <header>
       <nav>
         <a href="../../index.html" id="navPlay">PLAY</a>
@@ -31,7 +30,6 @@
     </header>
 
     <main>
-
       <!-- ===== PAGE HERO ===== -->
       <section class="stats-hero">
         <h1 class="stats-hero__title">STATS</h1>
@@ -71,13 +69,18 @@
 
         <!-- Bento grid -->
         <div class="bento-grid">
-
           <!-- Win-rate ring -->
           <div class="bento-cell cell-ring">
             <div class="ring-wrapper">
               <svg class="ring-svg" viewBox="0 0 100 100" aria-hidden="true">
                 <circle class="ring-track" cx="50" cy="50" r="40" />
-                <circle class="ring-fill" id="winRateRing" cx="50" cy="50" r="40" />
+                <circle
+                  class="ring-fill"
+                  id="winRateRing"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                />
               </svg>
               <div class="ring-center">
                 <span class="ring-pct" id="ringPct">–</span>
@@ -99,7 +102,11 @@
             <div class="score-sep"></div>
             <div class="score-block">
               <span class="score-block__label">AVG SCORE</span>
-              <span class="score-block__val score-block__val--muted" id="avgScore">–</span>
+              <span
+                class="score-block__val score-block__val--muted"
+                id="avgScore"
+                >–</span
+              >
             </div>
           </div>
 
@@ -156,8 +163,8 @@
 
             <p class="dmg-ratio" id="dmgRatio">&nbsp;</p>
           </div>
-
-        </div><!-- /bento-grid -->
+        </div>
+        <!-- /bento-grid -->
 
         <!-- Score history chart -->
         <div class="subsection">
@@ -165,7 +172,9 @@
           <div class="chart-wrap chart-wrap--history">
             <canvas id="scoreHistoryChart"></canvas>
           </div>
-          <p class="chart-empty" id="scoreHistoryEmpty">Play some runs to see your score history.</p>
+          <p class="chart-empty" id="scoreHistoryEmpty">
+            Play some runs to see your score history.
+          </p>
         </div>
 
         <!-- Radar + Doughnut row -->
@@ -198,8 +207,8 @@
             <!-- Populated by JS -->
           </div>
         </div>
-
-      </section><!-- /myStatsZone -->
+      </section>
+      <!-- /myStatsZone -->
 
       <!-- ===== GLOBAL STATS ===== -->
       <section class="stats-zone stats-zone--global" id="globalStatsZone">
@@ -252,15 +261,19 @@
               </thead>
               <tbody id="lbBody">
                 <tr class="lb-row lb-skeleton">
-                  <td colspan="5"><div class="skeleton" style="height:18px;border-radius:6px;"></div></td>
+                  <td colspan="5">
+                    <div
+                      class="skeleton"
+                      style="height: 18px; border-radius: 6px"
+                    ></div>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-
-      </section><!-- /globalStatsZone -->
-
+      </section>
+      <!-- /globalStatsZone -->
     </main>
 
     <!-- ===== FOOTER ===== -->
@@ -276,7 +289,10 @@
         <p>Jesus Espinoza, Gonzalo Zamarrón, Vladimir Reyes</p>
       </div>
       <div class="footer__copyright">
-        <p>© <time datetime="2026">2026</time><br />Dimension Deck<br />All Rights Reserved</p>
+        <p>
+          © <time datetime="2026">2026</time><br />Dimension Deck<br />All
+          Rights Reserved
+        </p>
       </div>
     </footer>
 

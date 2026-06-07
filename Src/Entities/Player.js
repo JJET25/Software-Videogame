@@ -16,37 +16,38 @@ const SLOW_FACTOR = 0.4; // Speed multiplier when slowed by spikes
 const DEFENSE_DURATION = 2;
 
 // --------------------- SPRITE SHEET ---------------------
-const PLAYER_SHEET = "../../Assets/Sprites/player/knight/knight-Sheet.png";
+const PLAYER_SHEET =
+  "../../Assets/Sprites/player/knight/Knight-Spritesheet.png";
 
 // All direction, action combinations, loaded once at module level
 const ANIMATIONS = {
   down: {
     idle: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 1,
       row: 0,
     }),
     walk: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 7,
       row: 0,
     }),
     attack: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 0,
       startCol: 8,
     }),
     defense: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 0,
       startCol: 12,
@@ -55,30 +56,30 @@ const ANIMATIONS = {
   left: {
     idle: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 1,
       row: 1,
     }),
     walk: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 1,
     }),
     attack: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 1,
       startCol: 5,
     }),
     defense: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 3,
       row: 1,
       startCol: 9,
@@ -87,30 +88,30 @@ const ANIMATIONS = {
   right: {
     idle: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 1,
       row: 2,
     }),
     walk: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 2,
     }),
     attack: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 2,
       startCol: 5,
     }),
     defense: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 3,
       row: 2,
       startCol: 9,
@@ -119,30 +120,30 @@ const ANIMATIONS = {
   up: {
     idle: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 1,
       row: 3,
     }),
     walk: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 2,
       row: 3,
     }),
     attack: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 3,
       startCol: 3,
     }),
     defense: new SpriteSheet({
       src: PLAYER_SHEET,
-      frameWidth: 64,
-      frameHeight: 52,
+      frameWidth: 40,
+      frameHeight: 40,
       frameCount: 4,
       row: 3,
       startCol: 7,
@@ -152,15 +153,16 @@ const ANIMATIONS = {
 
 // Player entity: handles movement, dashing, aiming, card activation and trigger firing
 export default class Player extends Entity {
-  constructor(position, input, mouse) {
-    super(position, 64, 64, "#4488ff", {
-      hitboxHeight: 16,
-      hitboxWidth: 16,
+  constructor(position, input, mouse, audio) {
+    super(position, 40, 40, "#4488ff", {
+      hitboxHeight: 14,
+      hitboxWidth: 14,
       hitboxOffset: new Vector(0, 8),
     });
 
     this.input = input;
     this.mouse = mouse;
+    this.audio = audio;
 
     // Movement
     this.speed = BASE_SPEED;
@@ -215,7 +217,14 @@ export default class Player extends Entity {
   takeDamage(amount) {
     if (window.testingMode) return;
     const prev = this.health;
+    const prevShield = this.shield;
     super.takeDamage(amount);
+
+    // Plays if health or shild reduce
+    const tookDamage = this.health < prev || this.shield < prevShield;
+    if (tookDamage) this.audio?.playSFX("playerHit");
+    if (this.isDead) this.audio?.playSFX("playerDeath");
+
     if (this.cardManager && this.health < prev) {
       this.cardManager.fireTrigger(Trigger.ON_DAMAGE, {
         player: this,
@@ -342,8 +351,10 @@ export default class Player extends Entity {
   #updateCards() {
     if (!this.cardManager) return;
     for (let i = 0; i < 5; i++) {
-      if (this.input.wasKeyPressed(String(i + 1)))
+      if (this.input.wasKeyPressed(String(i + 1))) {
         this.cardManager.selectSlot(i);
+        this.audio?.playSFX("cardSelect");
+      }
     }
     if (this.mouse?.consumeClick())
       this.#playCardAtSlot(this.cardManager.selectedIndex);
@@ -374,6 +385,7 @@ export default class Player extends Entity {
 
   // Start a dash: set timers, grant iframes, fire ON_DASH trigger
   #startDash(dir) {
+    this.audio?.playSFX("dash");
     this._dashDir = dir;
     this._dashTimer = DASH_DURATION;
     this._dashCooldownTimer = DASH_COOLDOWN;
