@@ -1,9 +1,10 @@
-import SkeletonKing from "../../Entities/Enemies/DarkAgesEnemies/SkeletonKing.js";
-import Bandit from "../../Entities/Enemies/OldWestEnemies/Bandit.js";
-import CactusThung from "../../Entities/Enemies/OldWestEnemies/CactusThug.js";
 import DesertRat from "../../Entities/Enemies/OldWestEnemies/DesertRat.js";
+import CactusThug from "../../Entities/Enemies/OldWestEnemies/CactusThug.js";
+import Bandit from "../../Entities/Enemies/OldWestEnemies/Bandit.js";
 import { ROOM_WEIGHTS } from "../../Utils/Constants.js";
 import Dimension from "./Dimension.js";
+import TheIronMarshal from "../../Entities/Enemies/OldWestEnemies/TheIronMarshal.js";
+import DeadEye from "../../Entities/Enemies/OldWestEnemies/DeadEye.js";
 
 const OBJECT_CONFIG = {
   rocks: { min: 0, max: 2 },
@@ -17,7 +18,7 @@ const DECORATIONS = {
     blood_2: { srcX: 80, srcY: 0, srcW: 16, srcH: 16 },
     blood_3: { srcX: 96, srcY: 0, srcW: 16, srcH: 16 },
   },
-  frequency: 0.12, // 12% of the floor are decor tiles
+  frequency: 0.12,
 };
 
 export default class OldWestDimension extends Dimension {
@@ -29,11 +30,11 @@ export default class OldWestDimension extends Dimension {
       tileSetId: "tilesOldWest",
       enemyPool: {
         swarm: [DesertRat],
-        tank: [CactusThung],
+        tank: [CactusThug],
         ranged: [Bandit],
       },
-      miniBoss: SkeletonKing,
-      finalBoss: SkeletonKing,
+      miniBoss: DeadEye,
+      finalBoss: TheIronMarshal,
       objectConfig: OBJECT_CONFIG,
       decorations: DECORATIONS,
     });

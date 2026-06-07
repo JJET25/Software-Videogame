@@ -1,23 +1,22 @@
-import BossEnemy from "../archetypes/BossEnemy.js";
+import FinalBossEnemy from "../archetypes/FinalBossEnemy.js";
 import DungeonRat from "./DungeonRat.js";
+import Skeleton from "./Skeleton.js";
 
-export default class SkeletonKing extends BossEnemy {
+// Dark Ages finalBoss — Skeleton King
+// The undead lord of the dungeon, 5000 HP, 3 phases
+export default class SkeletonKing extends FinalBossEnemy {
+  constructor(position, deps) {
+    super(position, deps);
 
-    constructor(position, deps) {
-        super(position, deps);
+    this.color = "#aaaaff";
+    this.originalColor = "#aaaaff";
+  }
 
-        this.health = 900;
-        this.maxHealth = 900;
-        this.color = "#aaaaff";
-        this.originalColor = "#aaaaff";
+  // Phase 3 enraged: glows bright violet
+  onUpdate(deltaTime) {
+    super.onUpdate(deltaTime);
+    if (this.isEnraged) {
+      this.color = "#cc88ff";
     }
-
-    enterPhase2() {
-        super.enterPhase2();
-        this.color = "#4444ff";
-    }
-
-    getMinionClass() {
-        return DungeonRat; 
-    }
+  }
 }

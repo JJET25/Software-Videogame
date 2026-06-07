@@ -15,6 +15,7 @@ export default class ShrinePortal extends GameObject {
     }
     this.isUsed = true;
     this.isDead = true;
+    player.audio?.playSFX("teleport");  
     context.advanceLevel?.();
     context.showNotification?.("Advancing to next level...");
   }

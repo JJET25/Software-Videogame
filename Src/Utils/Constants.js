@@ -15,9 +15,9 @@ export const DIRECTIONS = [
 
 // Room Probability Weights
 export const ROOM_WEIGHTS = {
-  combat: 70, // % chance for combat room
+  combat: 1, // % chance for combat room
   chest: 15, // % chance for chest room
-  shrine: 1, // % chance for shrine room
+  shrine: 70, // % chance for shrine room
   glitch: 4, // % chance for glitch room
   shop: 10, // % chance for store room
 };

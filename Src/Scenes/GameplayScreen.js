@@ -403,6 +403,7 @@ export default class GameplayScreen extends Screen {
     this.audio.loadBGM("combat", BASE + "CombatRoomTheme.mp3");
     this.audio.loadBGM("miniBoss", BASE + "MiniBossTheme.mp3");
     this.audio.loadBGM("finalBoss", BASE + "FinalBossTheme.mp3");
+    this.audio.loadBGM("finalBossTheme_2", BASE + "FinalBossTheme_2.mp3");
     this.#updateBGM();
   }
 
@@ -410,12 +411,25 @@ export default class GameplayScreen extends Screen {
     const room = this.dimManager?.getRoomManager()?.currentRoom;
     const dim = this.dimManager?.getCurrentDimension();
 
+    this.player.floorType = dim?.id === "oldWest" ? "wood" : "stone";
+
     const nodeType = room?.nodeType ?? null;
     const inBoss = nodeType === "miniBoss" || nodeType === "finalBoss";
     const inCombat = room?.enemies?.length > 0 && !room?.isCleared && !inBoss;
 
-    if (nodeType === "finalBoss") this.audio.playBGM("finalBoss");
-    else if (nodeType === "miniBoss") this.audio.playBGM("miniBoss");
+    if (nodeType === "finalBoss") {
+      const boss = room?.enemies?.[0];
+      if (boss && !boss._phase3Hooked) {
+        boss._phase3Hooked = true;
+        boss.onPhase3Enter = () => this.audio.playBGM("finalBossTheme_2");
+      }
+
+      if (
+        this.audio._currentBGMName !== "finalBoss" &&
+        this.audio._currentBGMName !== "finalBossTheme_2"
+      )
+        this.audio.playBGM("finalBoss"); 
+    } else if (nodeType === "miniBoss") this.audio.playBGM("miniBoss");
     else if (inCombat) this.audio.playBGM("combat");
     else {
       const dimKey = dim?.id === "oldWest" ? "oldWest" : "darkAges";
@@ -453,6 +467,7 @@ export default class GameplayScreen extends Screen {
       ["unpause", "Unpause.wav"],
       ["stepsStone", "PlayerStoneSteps.wav"],
       ["stepsWood", "PlayerWoodSteps.wav"],
+      ["bullet", "Bullet.wav"],
     ];
     for (const [name, file] of sfx) this.audio.loadSFX(name, BASE + file);
   }

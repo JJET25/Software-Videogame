@@ -20,7 +20,7 @@ export default class AudioManager {
   loadBGM(name, path) {
     const audio = new Audio(path);
     audio.loop = true;
-    audio.volume = 0.8;
+    audio.volume = 0.9;
     this._bgmTracks[name] = audio;
   }
 

@@ -39,6 +39,7 @@ export default class RoomManager {
     this.doors = [];
     this.doorBlockers = [];
     this.bullets = [];
+    this._knownBullets = new Set();
     this.credits = [];
     this.roomCache = new Map();
   }
@@ -246,11 +247,18 @@ export default class RoomManager {
 
   #updateBullets(deltaTime) {
     for (const bullet of this.bullets) {
+      if (!this._knownBullets.has(bullet)) {
+        this._knownBullets.add(bullet);
+        this.player.audio?.playSFX("bullet");
+      }
       bullet.update(deltaTime);
       this.#resolveBulletCollisions(bullet);
     }
     for (let i = this.bullets.length - 1; i >= 0; i--) {
-      if (this.bullets[i].isDead) this.bullets.splice(i, 1);
+      if (this.bullets[i].isDead) {
+        this._knownBullets.delete(this.bullets[i]);
+        this.bullets.splice(i, 1);
+      }
     }
   }
 
