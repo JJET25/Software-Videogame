@@ -8,8 +8,8 @@ export default class DeadEye extends BossEnemy {
   constructor(position, deps) {
     super(position, deps);
 
-    this.health = 2500;
-    this.maxHealth = 2500;
+    this.health = 1000;
+    this.maxHealth = 1000;
     this.color = "#cc8844";
     this.originalColor = "#cc8844";
   }

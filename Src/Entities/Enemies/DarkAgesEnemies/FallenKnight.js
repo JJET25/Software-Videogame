@@ -8,8 +8,8 @@ export default class FallenKnight extends BossEnemy {
   constructor(position, deps) {
     super(position, deps);
 
-    this.health = 2500;
-    this.maxHealth = 2500;
+    this.health = 1000;
+    this.maxHealth = 1000;
     this.color = "#8899aa"; 
     this.originalColor = "#8899aa";
   }

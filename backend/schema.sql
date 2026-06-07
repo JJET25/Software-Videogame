@@ -155,24 +155,27 @@ INSERT INTO card_subtypes (card_type, subtype) VALUES
 ('automatic', 'defense');
 
 INSERT INTO cards (card_name, subtype_id, rarity_id, base_damage, base_heal, cooldown_seconds, shop_cost, description) VALUES
-('Quick Strike',     1, 1,   20,  0,  3,   0, 'Deal damage to enemies within 120px.'),
-('Iron Fist',        1, 3,   55,  0,  5,  50, 'A powerful close-range blow dealing 55 damage within 90px.'),
-('Nova Burst',       1, 4,  110,  0,  9,  80, 'Unleash an explosion dealing 110 damage to all enemies within 200px.'),
-('Shadow Blade',     1, 5,  180,  0, 15, 130, 'A devastating strike dealing 180 damage to enemies within 160px.'),
-('Heal Pulse',       2, 1,    0, 25, 10,   0, 'Restore 25 HP.'),
-('Mending Wave',     2, 4,    0, 70, 15,  85, 'Release a healing wave that restores 70 HP.'),
-('Phoenix Elixir',   2, 5,    0,  0, 30, 150, 'Consume a legendary elixir to fully restore all HP.'),
-('Blood Siphon',     4, 3,   40, 20, 12,  65, 'Drain the nearest enemy for 40 damage and restore 20 HP.'),
-('Wood Shield',      3, 1,    0,  0,  8,   0, 'Absorb the next 20 damage.'),
-('Stone Wall',       3, 3,    0,  0, 12,  60, 'Erect a wall of stone that absorbs the next 50 damage.'),
-('Mirror Guard',     3, 4,    0,  0, 14,  90, 'Gain 35 shield and 1.5s of invincibility.'),
-('Diamond Fortress', 3, 5,    0,  0, 18, 140, 'Crystallize your body, absorbing the next 100 damage.'),
+('Quick Strike',     1, 1,   25,  0,  2,    0, 'Deal damage to enemies within 80px.'),
+('Iron Fist',        1, 3,   65,  0,  2.5, 50, 'A brutal close-range blow dealing 65 damage within 28px.'),
+('Nova Burst',       1, 4,  120,  0,  7,   80, 'Unleash an explosion dealing 120 damage to all enemies within 72px.'),
+('Shadow Blade',     1, 5,  250,  0, 10,  130, 'A devastating strike dealing 250 damage to enemies within 48px.'),
+('Heal Pulse',       2, 1,    0, 25,  5,    0, 'Restore 25 HP.'),
+('Mending Wave',     2, 4,    0, 85, 12,   85, 'Release a healing wave that restores 85 HP.'),
+('Phoenix Elixir',   2, 5,    0,  0, 25,  150, 'Consume a legendary elixir to fully restore all HP.'),
+('Blood Siphon',     4, 3,   45, 20, 10,   65, 'Drain the nearest enemy for 45 damage and restore 20 HP.'),
+('Wood Shield',      3, 1,    0,  0,  6,    0, 'Absorb the next 20 damage.'),
+('Stone Wall',       3, 3,    0,  0, 10,   60, 'Erect a wall of stone that absorbs the next 50 damage.'),
+('Mirror Guard',     3, 4,    0,  0, 14,   90, 'Gain 35 shield and 1.5s of invincibility.'),
+('Diamond Fortress', 3, 5,    0,  0, 15,  140, 'Crystallize your body, absorbing the next 100 damage.'),
 ('Lifetap',          6, 1,    0, 20,  0,  40, 'Restore 20 HP each time you kill an enemy.'),
 ('Iron Skin',        7, 1,    0,  0,  0,  45, 'Gain 8 shield each time you hit an enemy.'),
 ('Rebound',          5, 3,   15,  0,  0,  65, 'When hit, deal 15 damage to enemies within 150px.'),
 ('Berserker Rush',   5, 3,   20,  0,  0,  70, 'Dashing deals 20 damage to enemies within 100px.'),
 ('Last Stand',       7, 4,    0,  0,  0,  95, 'When hit below 30% HP, gain 2s of invincibility.'),
-('Chain Kill',       5, 4,   25,  0,  0, 100, 'Killing an enemy deals 25 damage to all others within 200px.');
+('Chain Kill',       5, 4,   25,  0,  0, 100, 'Killing an enemy deals 25 damage to all others within 200px.'),
+('Quick Recovery',   6, 1,    0,  8,  0,  40, 'When hit, instantly recover 8 HP.'),
+('Soul Siphon',      6, 3,    0, 18,  0,  75, 'Killing an enemy restores 18 HP and grants 10 shield.'),
+('Wound Echo',       5, 1,   10,  0,  0,  45, 'Each hit deals 10 bonus damage to the struck enemy.');
 
 INSERT INTO enemies (name, archetype, dimension, hp, speed, contact_dmg, width_px, height_px, shoot_rate, preferred_distance) VALUES
 ('Skeleton',     'tank',   'dark_ages',  90,  38, 18, 28, 28, NULL, NULL),
@@ -198,7 +201,10 @@ INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibi
 (15,   48,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),
 (16,   32,  NULL, NULL, NULL, 'on_dash',         NULL, NULL, 0, 0),
 (17, NULL,  NULL, NULL,    2, 'on_hit_received',  0.3, NULL, 0, 0),
-(18,   64,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 1);
+(18,   64,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 1),
+(19, NULL,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),
+(20, NULL,  NULL,   10, NULL, 'on_kill',         NULL, NULL, 0, 0),
+(21, NULL,  NULL, NULL, NULL, 'on_attack',       NULL, NULL, 0, 0);
 
 CREATE OR REPLACE VIEW v_leaderboard AS
 SELECT

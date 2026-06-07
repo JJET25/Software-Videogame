@@ -58,8 +58,8 @@ export default class FinalBossEnemy extends Enemy {
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
-    this.health = 5000;
-    this.maxHealth = 5000;
+    this.health = 2000;
+    this.maxHealth = 2000;
     this.contactDamage = 50;
 
     // Phase state

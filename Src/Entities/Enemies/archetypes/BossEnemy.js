@@ -33,8 +33,8 @@ export default class BossEnemy extends Enemy {
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
-    this.health = 2500;
-    this.maxHealth = 2500;
+    this.health = 1000;
+    this.maxHealth = 1000;
     this.contactDamage = 35;
 
     // Phase state
