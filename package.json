@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npx serve .",
-    "dev": "node SRC/Main.js",
+    "start": "concurrently -n frontend,backend -c cyan,green \"http-server . -p 3000 -o -c-1\" \"node backend/app.js\"",
+    "dev": "concurrently -n frontend,backend -c cyan,green \"http-server . -p 3000 -o -c-1\" \"node --watch backend/app.js\"",
     "test": "vitest",
     "test:run": "vitest run"
   },
@@ -14,6 +14,8 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "concurrently": "^10.0.3",
+    "http-server": "^14.1.1",
     "vitest": "^4.1.6"
   }
 }

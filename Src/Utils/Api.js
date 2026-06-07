@@ -39,16 +39,25 @@ export async function createRun() {
 export async function endRun(runId, data) {
   const token = getToken();
   if (!token || !runId) return null;
-  const res = await fetch(`${BASE_URL}/runs/${runId}/end`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/runs/${runId}/end`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error(`[endRun] HTTP ${res.status}:`, err);
+      return null;
+    }
+    return res.json();
+  } catch (err) {
+    console.error("[endRun] Network error:", err.message);
+    return null;
+  }
 }
 
 export async function fetchAllCards() {

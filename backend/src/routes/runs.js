@@ -71,7 +71,8 @@ router.post('/:id/end', requireAuth, async (req, res) => {
         }
 
         res.json({ score });
-    } catch {
+    } catch (err) {
+        console.error('POST /runs/:id/end error:', err.message);
         res.status(500).json({ error: 'Failed to end run' });
     }
 });

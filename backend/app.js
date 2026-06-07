@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: new URL('.env', import.meta.url).pathname });
 
 import authRoutes        from './src/routes/auth.js';
 import cardsRoutes       from './src/routes/cards.js';

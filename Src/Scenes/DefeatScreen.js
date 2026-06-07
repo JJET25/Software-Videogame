@@ -51,15 +51,15 @@ export default class DefeatScreen extends Screen {
   _saveRun(runId, ctx) {
     endRun(runId, {
       status:          ctx.status,
-      rooms_cleared:   ctx.roomsCleared,
-      enemies_killed:  ctx.enemiesKilled,
-      damage_dealt:    ctx.damageDealt,
-      damage_taken:    ctx.damageTaken,
-      credits_earned:  ctx.creditsEarned,
-      cards_collected: ctx.cardsCollected,
+      rooms_cleared:   Math.round(ctx.roomsCleared   ?? 0),
+      enemies_killed:  Math.round(ctx.enemiesKilled  ?? 0),
+      damage_dealt:    Math.round(ctx.damageDealt    ?? 0),
+      damage_taken:    Math.round(ctx.damageTaken    ?? 0),
+      credits_earned:  Math.round(ctx.creditsEarned  ?? 0),
+      cards_collected: Math.round(ctx.cardsCollected ?? 0),
     })
-      .then(data  => { this.score = data?.score ?? 0; })
-      .catch(()   => { this.score = 0; });
+      .then(data => { this.score = data?.score ?? 0; })
+      .catch(err => { console.error("[saveRun] Failed:", err); this.score = 0; });
   }
 
   update(deltaTime) {

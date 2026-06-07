@@ -1,13 +1,4 @@
 import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
-import SpriteSheet from "../Animation/SpriteSheet.js";
-import Animation from "../Animation/Animation.js";
-
-// ── Coin sprite (shared, loaded once) ────────────────────────────────────────
-const COIN_SHEET = new SpriteSheet({
-  src: "../../Assets/Sprites/drops/coin-Sheet.png",
-  frameWidth: 24, frameHeight: 24, frameCount: 4, row: 0,
-});
-const COIN_ANIM = new Animation({ sheet: COIN_SHEET, fps: 6, loop: true });
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const RARITY_COLOR = {
@@ -56,7 +47,6 @@ export default class HUD {
 
   update(deltaTime) {
     if (this._screenFlashTimer > 0) this._screenFlashTimer -= deltaTime;
-    COIN_ANIM.update(deltaTime);
   }
 
   draw(renderer, player, cardManager = null) {
@@ -100,7 +90,7 @@ export default class HUD {
     }
 
     // ── Credits (coin + number)
-    renderer.drawAnimation(COIN_ANIM, CX, ROW_CREDITS - 3, 8, 8);
+    this._drawCoin(renderer, CX, ROW_CREDITS - 2, 1);
     ctx.shadowColor = "rgba(255,200,50,0.45)";
     ctx.shadowBlur  = Math.round(4 * sc);
     renderer.drawText(String(player.credits), CX + 11, ROW_CREDITS + 1, 5, "#ffcc33", { align: "left", font: f });
@@ -203,6 +193,37 @@ export default class HUD {
         3, sel ? "#cccccc" : "#555555",
         { align: "center", font: f });
     }
+  }
+
+  // ── Coin helper ───────────────────────────────────────────────────────────
+
+  _drawCoin(renderer, x, y, sz) {
+    // 5×5 pixel-art coin:
+    //  . G G G .
+    //  G S S G D
+    //  G S G G D
+    //  G G G D D
+    //  . G G G .
+    // G = gold, S = shine, D = dark rim
+    const gold  = "#ffcc00";
+    const shine = "#fff5a0";
+    const dark  = "#b38500";
+
+    // Body
+    renderer.drawRect(x + sz,     y,        sz * 3, sz,     gold);  // row 0
+    renderer.drawRect(x,          y + sz,   sz * 5, sz,     gold);  // row 1
+    renderer.drawRect(x,          y + sz*2, sz * 5, sz,     gold);  // row 2
+    renderer.drawRect(x,          y + sz*3, sz * 5, sz,     gold);  // row 3
+    renderer.drawRect(x + sz,     y + sz*4, sz * 3, sz,     gold);  // row 4
+
+    // Shine (top-left)
+    renderer.drawRect(x + sz,     y + sz,   sz * 2, sz,     shine);
+    renderer.drawRect(x + sz,     y + sz*2, sz,     sz,     shine);
+
+    // Dark rim (right + bottom for depth)
+    renderer.drawRect(x + sz*4,   y + sz,   sz,     sz * 2, dark);
+    renderer.drawRect(x + sz*3,   y + sz*3, sz * 2, sz,     dark);
+    renderer.drawRect(x + sz*3,   y + sz*4, sz,     sz,     dark);
   }
 
   // ── Heart helpers ─────────────────────────────────────────────────────────
