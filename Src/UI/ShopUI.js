@@ -482,6 +482,59 @@ export default class StoreUI {
   }
 
   // --------------------- PRIVATE: data ---------------------
+  static #SLOT_RARITIES = [
+    ["common", "rare"],
+    ["rare"],
+    ["rare", "epic"],
+    ["epic", "legendary"],
+    ["common", "rare", "epic", "legendary"],
+  ];
+
+  _generateOfferings() {
+    // Group pool entries by rarity — no card instances created yet
+    const byRarity = { common: [], rare: [], epic: [], legendary: [] };
+    for (const entry of SHOP_CARD_POOL) {
+      byRarity[entry.rarity]?.push(entry);
+    }
+
+    // Fisher-Yates shuffle each bucket so picks within a tier are random
+    for (const bucket of Object.values(byRarity)) {
+      for (let i = bucket.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [bucket[i], bucket[j]] = [bucket[j], bucket[i]];
+      }
+    }
+
+    // Track names already added this shop to prevent duplicate cards
+    const usedNames = new Set();
+
+    for (const rarities of StoreUI.#SLOT_RARITIES) {
+      let picked = null;
+
+      // Try each allowed rarity in priority order
+      for (const rarity of rarities) {
+        const entry = byRarity[rarity].find((e) => !usedNames.has(e.name));
+        if (entry) {
+          picked = entry;
+          break;
+        }
+      }
+
+      // Catch-all: any unused card from the whole pool
+      if (!picked) {
+        picked = SHOP_CARD_POOL.find((e) => !usedNames.has(e.name)) ?? null;
+      }
+
+      if (picked) {
+        usedNames.add(picked.name);
+        this.offerings.push({
+          card: picked.factory(),
+          cost: picked.cost,
+          sold: false,
+        });
+      }
+    }
+  }
 
   _carouselItems(cardManager) {
     if (this.tab === 0) return this.offerings.filter((o) => !o.sold);
@@ -582,16 +635,6 @@ export default class StoreUI {
   _setTab(t) {
     this.tab = t;
     this.cursor = 0;
-  }
-
-  // Picks 5 random cards from the pool without repeats
-  _generateOfferings() {
-    const pool = [...SHOP_CARD_POOL];
-    while (this.offerings.length < 5 && pool.length > 0) {
-      const i = randInt(0, pool.length - 1);
-      const { factory, cost } = pool.splice(i, 1)[0];
-      this.offerings.push({ card: factory(), cost, sold: false });
-    }
   }
 
   // Returns a readable subtype label for a card
