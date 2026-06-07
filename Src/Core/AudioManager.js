@@ -57,15 +57,16 @@ export default class AudioManager {
   }
 
   // Plays a one-shot SFX from the preloaded buffer — safe to call repeatedly
-  playSFX(name) {
+  playSFX(name, loop = false) {
     const buffer = this._sfxBuffers.get(name);
     if (!buffer) return;
 
-    const ctx = this.#getAudioCtx();
-    const src = ctx.createBufferSource();
+    const src = this.#getAudioCtx().createBufferSource();
     src.buffer = buffer;
-    src.connect(ctx.destination);
+    src.loop = loop;
+    src.connect(this.#getAudioCtx().destination);
     src.start(0);
+    return src;
   }
 
   // Stops BGM and resets the SFX bus — use on scene changes

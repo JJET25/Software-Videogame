@@ -152,8 +152,8 @@ const ANIMATIONS = {
 
 // Player entity: handles movement, dashing, aiming, card activation and trigger firing
 export default class Player extends Entity {
-  constructor(position, input, mouse) {
-    super(position, 64, 64, "#4488ff", {
+  constructor(position, input, mouse, audio) {
+    super(position, 64, 52, "#4488ff", {
       hitboxHeight: 16,
       hitboxWidth: 16,
       hitboxOffset: new Vector(0, 8),
@@ -161,6 +161,7 @@ export default class Player extends Entity {
 
     this.input = input;
     this.mouse = mouse;
+    this.audio = audio;
 
     // Movement
     this.speed = BASE_SPEED;
@@ -215,7 +216,14 @@ export default class Player extends Entity {
   takeDamage(amount) {
     if (window.testingMode) return;
     const prev = this.health;
+    const prevShield = this.shield;
     super.takeDamage(amount);
+
+    // Plays if health or shild reduce
+    const tookDamage = this.health < prev || this.shield < prevShield;
+    if (tookDamage) this.audio?.playSFX("playerHit");
+    if (this.isDead) this.audio?.playSFX("playerDeath");
+
     if (this.cardManager && this.health < prev) {
       this.cardManager.fireTrigger(Trigger.ON_DAMAGE, {
         player: this,
@@ -336,8 +344,10 @@ export default class Player extends Entity {
   #updateCards() {
     if (!this.cardManager) return;
     for (let i = 0; i < 5; i++) {
-      if (this.input.wasKeyPressed(String(i + 1)))
+      if (this.input.wasKeyPressed(String(i + 1))) {
         this.cardManager.selectSlot(i);
+        this.audio?.playSFX("cardSelect");
+      }
     }
     if (this.mouse?.consumeClick())
       this.#playCardAtSlot(this.cardManager.selectedIndex);
@@ -368,6 +378,7 @@ export default class Player extends Entity {
 
   // Start a dash: set timers, grant iframes, fire ON_DASH trigger
   #startDash(dir) {
+    this.audio?.playSFX("dash");
     this._dashDir = dir;
     this._dashTimer = DASH_DURATION;
     this._dashCooldownTimer = DASH_COOLDOWN;

@@ -291,10 +291,10 @@ npm -v    # 11.x.x
 
 - **MySQL 8+** — must be running locally before starting the backend.
 
-### Install dependencies
+### 1 — Install dependencies
 
 ```bash
-# Frontend (game + serve tool)
+# From project root
 npm install
 
 # Backend
@@ -302,53 +302,72 @@ cd backend
 npm install
 ```
 
-### Configure the backend environment
+### 2 — Configure the backend environment
 
-Create `backend/.env` (a template is already present):
+Create `backend/.env` (a template is already present).
+
+> ⚠️ Use **exactly** these variable names — they must match `database.js`:
 
 ```env
 PORT=3001
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=dimension_deck
+MYSQL_HOST=localhost
+MYSQL_USER=root
+MYSQL_PASSWORD=your_password
+MYSQL_DATABASE=dimension_deck
+JWT_SECRET=any_long_random_string_here
 ```
 
-### Initialise the database
+> `JWT_SECRET` can be any string (e.g. `dimension_deck_secret_key`). Without it the login endpoint returns 500.
+
+### 3 — Initialise the database (first time only)
 
 ```bash
+# Create the database if it doesn't exist yet
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS dimension_deck;"
+
+# Load the schema
 mysql -u root -p dimension_deck < backend/schema.sql
+
+# Verify — you should see ~16 tables and views
+mysql -u root -p dimension_deck -e "SHOW TABLES;"
 ```
 
 ---
 
 ## Running the Project
 
-The game requires both servers to be running at the same time.
+Two terminals must be running at the same time on every session.
 
-**Terminal 1 — Frontend (game engine + static files):**
-
-```bash
-npm start          # serves the project at http://localhost:3000
-```
-
-**Terminal 2 — Backend API:**
+**Terminal 1 — Frontend on `:3000`:**
 
 ```bash
-cd backend
-npm start          # Express API at http://localhost:3001
+# From project root
+npm start
 ```
 
-Then open `http://localhost:3000` in your browser and click **Play** from the landing page.
-
-For backend development with auto-restart on file change:
+**Terminal 2 — Backend API on `:3001`:**
 
 ```bash
 cd backend
-npm run dev        # uses node --watch
+npm start          # production
+npm run dev        # development (auto-restart on file change)
 ```
+
+Open `http://localhost:3000` in your browser and click **Play**.
 
 ---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| Backend starts but login returns `500` | `JWT_SECRET` missing from `.env` | Add `JWT_SECRET=any_secret` to `backend/.env` and restart |
+| `Error: connect ECONNREFUSED 127.0.0.1:3306` | MySQL not running | Start MySQL before the backend |
+| `Unknown database 'dimension_deck'` | DB not created yet | Run `CREATE DATABASE IF NOT EXISTS dimension_deck;` |
+| Login/register always fails silently | Wrong `.env` variable names | Use `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE` — not `DB_HOST` etc. |
+| Blank screen when opening the game | JS error in game engine | Open DevTools (F12) → Console tab and report the error |
+| Stats page shows all zeros | No completed runs saved yet | Stats populate automatically once runs are saved via `POST /runs` |
+| `409 Conflict` on register | Username or email already taken | Use a different username/email |---
 
 ## Backend API
 
