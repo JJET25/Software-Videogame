@@ -1,5 +1,13 @@
 USE dimension_deck;
 
+-- Procedures must be dropped before tables (they're not dropped automatically)
+DROP PROCEDURE IF EXISTS sp_start_run;
+DROP PROCEDURE IF EXISTS sp_end_run;
+DROP PROCEDURE IF EXISTS sp_add_card_to_run;
+DROP PROCEDURE IF EXISTS sp_get_shop_offerings;
+DROP PROCEDURE IF EXISTS sp_buy_card;
+DROP PROCEDURE IF EXISTS sp_log_event;
+
 SET foreign_key_checks = 0;
 DROP TABLE IF EXISTS run_log;
 DROP TABLE IF EXISTS shop_offerings;
@@ -276,3 +284,336 @@ SELECT
     MAX(score)                              AS record_score
 FROM runs
 WHERE status != 'active';
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- VIEWS — 5 new (total: 10)
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- All purchasable cards with full stats — source for sp_get_shop_offerings
+CREATE OR REPLACE VIEW v_shop_catalog AS
+SELECT
+    c.id,
+    c.card_name,
+    cs.card_type,
+    cs.subtype,
+    r.name             AS rarity,
+    r.display_order    AS rarity_order,
+    c.base_damage,
+    c.base_heal,
+    c.cooldown_seconds,
+    c.shop_cost,
+    c.description,
+    ep.effect_range,
+    ep.spread,
+    ep.shield,
+    ep.invincibility,
+    ep.trigger_event,
+    ep.threshold,
+    ep.heal_pct,
+    ep.full_heal,
+    ep.from_enemy
+FROM cards c
+JOIN card_subtypes cs ON cs.id = c.subtype_id
+JOIN rarities      r  ON r.id  = c.rarity_id
+LEFT JOIN card_effect_params ep ON ep.card_id = c.id
+WHERE c.shop_cost > 0;
+
+-- Per-run summary with card list — useful for a run history endpoint
+CREATE OR REPLACE VIEW v_run_detail AS
+SELECT
+    r.id        AS run_id,
+    r.user_id,
+    u.username,
+    r.status,
+    r.started_at,
+    r.ended_at,
+    TIMESTAMPDIFF(SECOND, r.started_at, COALESCE(r.ended_at, NOW())) AS duration_seconds,
+    r.score,
+    r.rooms_cleared,
+    r.enemies_killed,
+    r.damage_dealt,
+    r.damage_taken,
+    r.credits_earned,
+    r.cards_collected,
+    GROUP_CONCAT(c.card_name ORDER BY c.card_name SEPARATOR ', ') AS cards_used
+FROM runs r
+JOIN users u ON u.id = r.user_id
+LEFT JOIN run_cards rc ON rc.run_id = r.id
+LEFT JOIN cards    c  ON c.id  = rc.card_id
+GROUP BY r.id, r.user_id, u.username, r.status, r.started_at,
+         r.ended_at, r.score, r.rooms_cleared, r.enemies_killed,
+         r.damage_dealt, r.damage_taken, r.credits_earned, r.cards_collected;
+
+-- Cards each player uses most in winning runs
+CREATE OR REPLACE VIEW v_player_best_deck AS
+SELECT
+    ru.user_id,
+    u.username,
+    c.id        AS card_id,
+    c.card_name,
+    cs.card_type,
+    ra.name     AS rarity,
+    COUNT(*)    AS times_in_victory
+FROM run_cards rc
+JOIN runs          ru ON ru.id  = rc.run_id
+JOIN users         u  ON u.id   = ru.user_id
+JOIN cards         c  ON c.id   = rc.card_id
+JOIN card_subtypes cs ON cs.id  = c.subtype_id
+JOIN rarities      ra ON ra.id  = c.rarity_id
+WHERE ru.status = 'victory'
+GROUP BY ru.user_id, u.username, c.id, c.card_name, cs.card_type, ra.name;
+
+-- Win rate per card — shows how powerful each card actually is
+CREATE OR REPLACE VIEW v_card_win_rate AS
+SELECT
+    c.id        AS card_id,
+    c.card_name,
+    ra.name     AS rarity,
+    cs.card_type,
+    COUNT(*)                                  AS total_uses,
+    SUM(r.status = 'victory')                 AS wins,
+    ROUND(AVG(r.status = 'victory') * 100, 1) AS win_rate_pct
+FROM run_cards rc
+JOIN runs          r  ON r.id  = rc.run_id
+JOIN cards         c  ON c.id  = rc.card_id
+JOIN rarities      ra ON ra.id = c.rarity_id
+JOIN card_subtypes cs ON cs.id = c.subtype_id
+WHERE r.status != 'active'
+GROUP BY c.id, c.card_name, ra.name, cs.card_type;
+
+-- Currently active runs with elapsed time and player state
+CREATE OR REPLACE VIEW v_active_runs AS
+SELECT
+    r.id        AS run_id,
+    r.user_id,
+    u.username,
+    r.started_at,
+    TIMESTAMPDIFF(SECOND, r.started_at, NOW()) AS elapsed_seconds,
+    r.rooms_cleared,
+    r.enemies_killed,
+    rps.credits,
+    rps.active_slots,
+    rps.auto_slots
+FROM runs r
+JOIN users u ON u.id = r.user_id
+LEFT JOIN run_player_state rps ON rps.run_id = r.id
+WHERE r.status = 'active';
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- TRIGGERS (6)
+-- Note: triggers on a table are dropped automatically when the table is dropped,
+-- so no explicit DROP TRIGGER is needed here.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+DELIMITER $$
+
+-- 1. After a new run is inserted: cancel any other active run for this user
+--    and auto-create the run_player_state record.
+CREATE TRIGGER trg_after_run_insert
+    AFTER INSERT ON runs
+    FOR EACH ROW
+BEGIN
+    UPDATE runs
+    SET    status = 'defeat', ended_at = NOW()
+    WHERE  user_id = NEW.user_id AND status = 'active' AND id != NEW.id;
+
+    INSERT IGNORE INTO run_player_state (run_id) VALUES (NEW.id);
+END$$
+
+-- 2. Before updating a run: prevent the score from ever decreasing.
+CREATE TRIGGER trg_run_score_guard
+    BEFORE UPDATE ON runs
+    FOR EACH ROW
+BEGIN
+    IF NEW.score < OLD.score THEN
+        SET NEW.score = OLD.score;
+    END IF;
+END$$
+
+-- 3. Before updating a run: block reopening a finished run and auto-set ended_at.
+CREATE TRIGGER trg_run_status_guard
+    BEFORE UPDATE ON runs
+    FOR EACH ROW FOLLOWS trg_run_score_guard
+BEGIN
+    IF OLD.status != 'active' AND NEW.status = 'active' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cannot reopen a finished run';
+    END IF;
+    IF OLD.status = 'active' AND NEW.status != 'active' AND NEW.ended_at IS NULL THEN
+        SET NEW.ended_at = NOW();
+    END IF;
+END$$
+
+-- 4. After a card is added to a run: increment cards_collected and log the event.
+CREATE TRIGGER trg_cards_collected_count
+    AFTER INSERT ON run_cards
+    FOR EACH ROW
+BEGIN
+    UPDATE runs SET cards_collected = cards_collected + 1 WHERE id = NEW.run_id;
+    INSERT INTO run_log (run_id, event_type, card_id, value)
+    VALUES (NEW.run_id, 'card_acquired', NEW.card_id, 1);
+END$$
+
+-- 5. After a shop offering is marked sold: log the purchase event.
+CREATE TRIGGER trg_shop_offering_sold
+    AFTER UPDATE ON shop_offerings
+    FOR EACH ROW
+BEGIN
+    IF NEW.sold = 1 AND OLD.sold = 0 THEN
+        INSERT INTO run_log (run_id, event_type, card_id, value)
+        VALUES (NEW.run_id, 'shop_purchase', NEW.card_id, NEW.price);
+    END IF;
+END$$
+
+-- 6. Before updating run_player_state: clamp credits to 0 (never go negative).
+CREATE TRIGGER trg_prevent_negative_credits
+    BEFORE UPDATE ON run_player_state
+    FOR EACH ROW
+BEGIN
+    IF NEW.credits < 0 THEN
+        SET NEW.credits = 0;
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- STORED PROCEDURES (6)
+-- ═══════════════════════════════════════════════════════════════════════════
+
+DELIMITER $$
+
+-- 1. Start a new run.
+--    trg_after_run_insert handles: cancelling old active run + creating run_player_state.
+CREATE PROCEDURE sp_start_run(IN p_user_id INT)
+BEGIN
+    INSERT INTO runs (user_id) VALUES (p_user_id);
+    SELECT LAST_INSERT_ID() AS run_id;
+END$$
+
+-- 2. Finalise a run: compute score server-side and persist all stats.
+CREATE PROCEDURE sp_end_run(
+    IN p_run_id         INT,
+    IN p_user_id        INT,
+    IN p_status         VARCHAR(10),
+    IN p_rooms_cleared  INT,
+    IN p_enemies_killed INT,
+    IN p_damage_dealt   INT,
+    IN p_damage_taken   INT,
+    IN p_credits_earned INT
+)
+BEGIN
+    DECLARE v_score INT;
+
+    SET v_score = (CASE WHEN p_status = 'victory' THEN 1000 ELSE 0 END)
+               + (COALESCE(p_rooms_cleared,  0) * 50)
+               + (COALESCE(p_enemies_killed, 0) * 20)
+               + FLOOR(COALESCE(p_damage_dealt, 0) / 10);
+
+    UPDATE runs
+    SET
+        status         = p_status,
+        score          = v_score,
+        rooms_cleared  = COALESCE(p_rooms_cleared,  rooms_cleared),
+        enemies_killed = COALESCE(p_enemies_killed, enemies_killed),
+        damage_dealt   = COALESCE(p_damage_dealt,   damage_dealt),
+        damage_taken   = COALESCE(p_damage_taken,   damage_taken),
+        credits_earned = COALESCE(p_credits_earned, credits_earned)
+    WHERE id = p_run_id AND user_id = p_user_id AND status = 'active';
+    -- trg_run_status_guard auto-sets ended_at and blocks reopening
+
+    SELECT v_score AS score, ROW_COUNT() AS affected;
+END$$
+
+-- 3. Add a single card to a run's deck.
+--    trg_cards_collected_count increments the counter and logs the event.
+CREATE PROCEDURE sp_add_card_to_run(IN p_run_id INT, IN p_card_id INT)
+BEGIN
+    INSERT IGNORE INTO run_cards (run_id, card_id) VALUES (p_run_id, p_card_id);
+    SELECT ROW_COUNT() AS inserted;
+END$$
+
+-- 4. Generate (or retrieve) the shop offerings for a run.
+--    First call persists 5 random cards; subsequent calls return the same set.
+CREATE PROCEDURE sp_get_shop_offerings(IN p_run_id INT)
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM shop_offerings WHERE run_id = p_run_id LIMIT 1) THEN
+        INSERT INTO shop_offerings (run_id, card_id, price)
+        SELECT p_run_id, sc.id, sc.shop_cost
+        FROM   v_shop_catalog sc
+        WHERE  sc.id NOT IN (SELECT card_id FROM run_cards WHERE run_id = p_run_id)
+        ORDER BY RAND()
+        LIMIT 5;
+    END IF;
+
+    SELECT
+        so.id           AS offering_id,
+        so.sold,
+        sc.id           AS card_id,
+        sc.card_name,
+        sc.card_type,
+        sc.subtype,
+        sc.rarity,
+        sc.base_damage,
+        sc.base_heal,
+        sc.cooldown_seconds,
+        so.price        AS shop_cost,
+        sc.description,
+        sc.effect_range,
+        sc.spread,
+        sc.shield,
+        sc.invincibility,
+        sc.trigger_event,
+        sc.threshold,
+        sc.heal_pct,
+        sc.full_heal,
+        sc.from_enemy
+    FROM shop_offerings so
+    JOIN v_shop_catalog sc ON sc.id = so.card_id
+    WHERE so.run_id = p_run_id
+    ORDER BY so.offered_at;
+END$$
+
+-- 5. Process a card purchase: validate offering, mark sold, add to deck.
+CREATE PROCEDURE sp_buy_card(IN p_run_id INT, IN p_card_id INT)
+BEGIN
+    DECLARE v_sold   TINYINT DEFAULT 0;
+    DECLARE v_exists INT     DEFAULT 0;
+
+    SELECT COUNT(*), COALESCE(MAX(sold), 0)
+    INTO   v_exists, v_sold
+    FROM   shop_offerings
+    WHERE  run_id = p_run_id AND card_id = p_card_id;
+
+    IF v_exists = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Offering not found';
+    END IF;
+    IF v_sold = 1 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card already sold';
+    END IF;
+
+    -- trg_shop_offering_sold logs the shop_purchase event automatically
+    UPDATE shop_offerings SET sold = 1
+    WHERE  run_id = p_run_id AND card_id = p_card_id;
+
+    -- trg_cards_collected_count increments counter + logs card_acquired
+    INSERT IGNORE INTO run_cards (run_id, card_id) VALUES (p_run_id, p_card_id);
+
+    SELECT 'ok' AS result;
+END$$
+
+-- 6. Write an arbitrary event to the run log (utility for the API).
+CREATE PROCEDURE sp_log_event(
+    IN p_run_id     INT,
+    IN p_event_type ENUM('room_cleared','enemy_killed','card_acquired',
+                         'slot_upgraded','shop_purchase','damage_dealt',
+                         'damage_taken','heal'),
+    IN p_value      INT,
+    IN p_card_id    INT
+)
+BEGIN
+    INSERT INTO run_log (run_id, event_type, value, card_id)
+    VALUES (p_run_id, p_event_type, COALESCE(p_value, 0), p_card_id);
+END$$
+
+DELIMITER ;
