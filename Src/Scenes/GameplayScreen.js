@@ -53,9 +53,9 @@ export default class GameplayScreen extends Screen {
     this.dimManager = new DimensionManager(
       this.player,
       () => this.onVictory(),
-      (levelNum, done) => this.#showLevelOverlay(levelNum, done),
-      (fromName, toName, done) =>
-        this.#showDimensionTransitionOverlay(fromName, toName, done),
+      (levelNum, dimName, phase, done) => this.#showLevelOverlay(levelNum, dimName, phase, done),
+      (fromName, toName, done) => this.#showDimensionTransitionOverlay(fromName, toName, done),
+      (bossType, dimName, nextLabel, done) => this.#showBossKillOverlay(bossType, dimName, nextLabel, done),
     );
     this.dimManager.startRun();
 
@@ -70,18 +70,16 @@ export default class GameplayScreen extends Screen {
     this.runId = null;
     this._runPromise = null;
     this.cardCatalog = [];
-    this.stats = { roomsCleared: 0, enemiesKilled: 0, damageTaken: 0 };
+    this.stats = { roomsCleared: 0, enemiesKilled: 0, damageTaken: 0, damageDealt: 0 };
+    this._enemyHealthSnap = new Map();
 
     // Track room state for stat counting
     this._prevRoom = null;
     this._deadEnemies = new Set();
     this._roomCounted = false;
 
-    this.pauseMenu = new PauseMenu();
+    this.pauseMenu = new PauseMenu(this.audio);
     window.testingMode = false;
-
-    // Mostrar Level 1 al iniciar la run
-    this.#showLevelOverlay(1, null);
 
     // Load starter cards from DB; fall back to hardcoded deck if API is down
     this._loadStarterCards();
@@ -142,12 +140,9 @@ export default class GameplayScreen extends Screen {
     const room = rm.currentRoom;
     const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
 
-    // ENTER toggles pause when shop and deck are closed
-    if (
-      this.input.wasKeyPressed("ENTER") &&
-      !shopOpen &&
-      !this.deckScreen.isOpen
-    ) {
+    // ESC or ENTER toggles pause when shop and deck are closed
+    const wantsPause = this.input.wasKeyPressed("ESCAPE") || this.input.wasKeyPressed("ENTER");
+    if (wantsPause && !shopOpen && !this.deckScreen.isOpen) {
       this._paused = !this._paused;
       this.audio?.playSFX(this._paused ? "pause" : "unpause");
     }
@@ -174,9 +169,14 @@ export default class GameplayScreen extends Screen {
     if (!shopOpen && !this.deckScreen.isOpen) this.player.update(deltaTime);
 
     this.cardManager.update(deltaTime);
+
+    // Snapshot enemy health BEFORE room update so we can measure damage dealt this frame
+    const enemies = room?.enemies ?? [];
+    const enemySnap = new Map(enemies.map(e => [e, e.health]));
+
     rm.update(deltaTime);
 
-    this.#trackStats(room, prevHealth);
+    this.#trackStats(room, prevHealth, enemySnap);
     this.hud.update(deltaTime);
     this.#updateInteractables(room, shopOpen);
 
@@ -252,10 +252,24 @@ export default class GameplayScreen extends Screen {
     this._overlay = overlay;
   }
 
-  #showLevelOverlay(levelNumber, onDone) {
+  #showLevelOverlay(levelNumber, dimensionName, phaseName, onDone) {
     this.#mountOverlay(LevelScreen, {
       levelNumber,
+      dimensionName,
+      phaseName,
       onDone: () => {
+        this._overlay = null;
+        onDone?.();
+      },
+    });
+  }
+
+  #showBossKillOverlay(bossType, dimensionName, nextLabel, onDone) {
+    this.#mountOverlay(VictoryScreen, {
+      bossType,
+      dimensionName,
+      nextLabel,
+      onContinue: () => {
         this._overlay = null;
         onDone?.();
       },
@@ -279,14 +293,19 @@ export default class GameplayScreen extends Screen {
     if (result === "resume") this._paused = false;
     if (result === "restart")
       this.screenManager.changeTo(new this.constructor());
-    if (result === "menu") window.location.href = "../../index.html";
+    if (result === "menu") window.location.href = "/index.html";
   }
 
-  // Tracks damage taken, enemies killed, and rooms cleared each frame
-  #trackStats(room, prevHealth) {
+  // Tracks damage taken/dealt, enemies killed, and rooms cleared each frame
+  #trackStats(room, prevHealth, enemySnap = new Map()) {
     const dmgTaken = Math.max(0, prevHealth - this.player.health);
     this.stats.damageTaken += dmgTaken;
     if (dmgTaken > 0) this.hud.triggerDamageFlash();
+
+    // Accumulate damage dealt to enemies this frame
+    for (const [enemy, prevHp] of enemySnap) {
+      this.stats.damageDealt += Math.max(0, prevHp - enemy.health);
+    }
 
     // Reset counters when the player enters a new room
     if (room !== this._prevRoom) {
@@ -327,7 +346,7 @@ export default class GameplayScreen extends Screen {
     const finalStats = {
       status,
       ...this.stats,
-      damageDealt: this.player.totalDamageDealt,
+      damageDealt: this.stats.damageDealt,
       creditsEarned: this.player.credits,
       cardsCollected: [
         ...this.cardManager.activeSlots,
@@ -344,22 +363,8 @@ export default class GameplayScreen extends Screen {
   // Draws a dark banner at the bottom with a message and a hint to continue
   #drawNotification(renderer, message) {
     renderer.drawRect(0, ROOM_HEIGHT - 40, ROOM_WIDTH, 40, "rgba(0,0,0,0.85)");
-    renderer.drawText(
-      message,
-      ROOM_WIDTH / 2,
-      ROOM_HEIGHT - 24,
-      "9px monospace",
-      "#ffffff",
-      { align: "center" },
-    );
-    renderer.drawText(
-      "Press ENTER to continue",
-      ROOM_WIDTH / 2,
-      ROOM_HEIGHT - 10,
-      "6px monospace",
-      "#888888",
-      { align: "center" },
-    );
+    renderer.drawText(message, ROOM_WIDTH / 2, ROOM_HEIGHT - 24, 7, "#ffffff", { align: "center" });
+    renderer.drawText("Press ENTER to continue", ROOM_WIDTH / 2, ROOM_HEIGHT - 10, 5, "#888888", { align: "center" });
   }
 
   // --------------------- BGM ---------------------

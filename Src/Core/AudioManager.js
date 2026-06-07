@@ -7,10 +7,13 @@ export default class AudioManager {
     this._currentBGM = null;
     this._currentBGMName = null;
     this._bgmTracks = {};
+    this._bgmVolume = 1.0;
 
     // SFX bus
     this._audioCtx = null;
     this._sfxBuffers = new Map();
+    this._sfxGain = null;
+    this._sfxVolume = 1.0;
   }
 
   // Registers a BGM track: call once during asset loading
@@ -36,6 +39,7 @@ export default class AudioManager {
     const track = this._bgmTracks[name];
     if (!track) return;
 
+    track.volume = this._bgmVolume;
     track.currentTime = 0;
     this._currentBGM = track;
     this._currentBGMName = name;
@@ -56,6 +60,18 @@ export default class AudioManager {
     this._currentBGMName = null;
   }
 
+  // Sets BGM volume (0–1); applies immediately to all loaded tracks
+  setBGMVolume(v) {
+    this._bgmVolume = v;
+    for (const track of Object.values(this._bgmTracks)) track.volume = v;
+  }
+
+  // Sets SFX volume (0–1) via the shared GainNode
+  setSFXVolume(v) {
+    this._sfxVolume = v;
+    if (this._sfxGain) this._sfxGain.gain.value = v;
+  }
+
   // Plays a one-shot SFX from the preloaded buffer — safe to call repeatedly
   playSFX(name, loop = false) {
     const buffer = this._sfxBuffers.get(name);
@@ -63,8 +79,8 @@ export default class AudioManager {
 
     const src = this.#getAudioCtx().createBufferSource();
     src.buffer = buffer;
-    src.loop = loop;
-    src.connect(this.#getAudioCtx().destination);
+    src.loop = loop; 
+    src.connect(this.#getSFXGain()); 
     src.start(0);
     return src;
   }
@@ -73,13 +89,23 @@ export default class AudioManager {
   stopAll() {
     this.stopBGM();
     this._audioCtx = null;
+    this._sfxGain = null;
     this._sfxBuffers.clear();
   }
 
   // --------------------- PRIVATE ---------------------
-  // Creates the AudioContext on first use (required by browser autoplay policy)
   #getAudioCtx() {
     if (!this._audioCtx) this._audioCtx = new AudioContext();
     return this._audioCtx;
+  }
+
+  #getSFXGain() {
+    if (!this._sfxGain) {
+      const ctx = this.#getAudioCtx();
+      this._sfxGain = ctx.createGain();
+      this._sfxGain.gain.value = this._sfxVolume;
+      this._sfxGain.connect(ctx.destination);
+    }
+    return this._sfxGain;
   }
 }

@@ -3,11 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/frontend/CSS/game.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/frontend/CSS/game.css" />
     <title>Dimension Deck</title>
   </head>
   <body>
+
+    <div id="dd-loader">
+      <img class="ld-logo" src="/Assets/Website/DimensionDeck_Logo.png" alt="Dimension Deck" />
+      <p class="ld-text" id="ldText">LOADING...</p>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
     <script type="module" src="/Src/Main.js"></script>
+
+    <script>
+      const canvas = document.getElementById('gameCanvas');
+      const loader = document.getElementById('dd-loader');
+      const text   = document.getElementById('ldText');
+      let done = false;
+
+      function hide() {
+        if (done) return;
+        done = true;
+        text.textContent = 'READY!';
+        setTimeout(() => { loader.style.opacity = '0'; }, 300);
+        setTimeout(() => loader.remove(), 900);
+      }
+
+      const obs = new MutationObserver(() => {
+        if (canvas.width > 0) { obs.disconnect(); hide(); }
+      });
+      obs.observe(canvas, { attributes: true, attributeFilter: ['width'] });
+      setTimeout(hide, 5000);
+    </script>
+
   </body>
 </html>
