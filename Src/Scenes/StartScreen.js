@@ -56,9 +56,7 @@ export default class StartScreen extends Screen {
         y: 136,
         hovered: false,
         // Navigate to root so npx serve always finds index.html with its CSS
-        action: () => {
-          window.location.href = "/";
-        },
+        action: () => { window.location.href = "/index.html"; },
       },
     ];
 

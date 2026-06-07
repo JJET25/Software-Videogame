@@ -43,6 +43,14 @@ export default class BossRoom extends Room {
     const deps = { player: this.player, bullets: this.bullets };
     const boss = new BossClass(new Vector(centerX, centerY), deps);
 
+    // Scale boss stats by difficulty multiplier
+    const mult = this.player?.cardManager?.difficultyMultiplier ?? 1;
+    if (mult > 1) {
+      boss.health      = Math.round(boss.health      * mult);
+      boss.maxHealth   = Math.round(boss.maxHealth   * mult);
+      boss.contactDamage = Math.round(boss.contactDamage * mult);
+    }
+
     boss.enemyList = this.enemies;
     this.enemies.push(boss);
 

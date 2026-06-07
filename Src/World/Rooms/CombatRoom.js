@@ -23,34 +23,42 @@ export default class CombatRoom extends Room {
     const pool = this.dimension.enemyPool;
     const templete =
       ENCOUNTER_TEMPLATES[randInt(0, ENCOUNTER_TEMPLATES.length - 1)];
+    const mult = this.player?.cardManager?.difficultyMultiplier ?? 1;
 
     // Spawn swarm enemies
     for (let i = 0; i < templete.swarm; i++) {
       const EnemyClass = pool.swarm[randInt(0, pool.swarm.length - 1)];
-      this.enemies.push(
-        new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps),
-      );
+      const enemy = new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps);
+      this.#applyDifficulty(enemy, mult);
+      this.enemies.push(enemy);
     }
 
     // Spawn tank enemies
     for (let i = 0; i < templete.tank; i++) {
       const EnemyClass = pool.tank[randInt(0, pool.tank.length - 1)];
-      this.enemies.push(
-        new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps),
-      );
+      const enemy = new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps);
+      this.#applyDifficulty(enemy, mult);
+      this.enemies.push(enemy);
     }
 
     // Spawn ranged enemies
     for (let i = 0; i < templete.ranged; i++) {
       const EnemyClass = pool.ranged[randInt(0, pool.ranged.length - 1)];
-      this.enemies.push(
-        new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps),
-      );
+      const enemy = new EnemyClass(this.#getSafeSpawnPosition(this.tileGrid), deps);
+      this.#applyDifficulty(enemy, mult);
+      this.enemies.push(enemy);
     }
 
     // Add room objects after enemies
     this.#populateObjects();
     this.buildDecorGrid();
+  }
+
+  #applyDifficulty(enemy, mult) {
+    if (mult <= 1) return;
+    enemy.health      = Math.round(enemy.health      * mult);
+    enemy.maxHealth   = Math.round(enemy.maxHealth   * mult);
+    enemy.contactDamage = Math.round(enemy.contactDamage * mult);
   }
 
   #getSafeSpawnPosition(tileGrid) {
