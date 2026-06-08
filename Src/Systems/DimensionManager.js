@@ -109,6 +109,9 @@ export default class DimensionManager {
   // --------------------- PRIVATE HELPERS ---------------------
   // Generates the room graph for the current phase and creates a fresh RoomManager
   #loadCurrentPhase() {
+    const dim = this.getCurrentDimension();
+    this.player.setDimension(dim.id);
+
     this.currentGenerator = new DimensionGenerator(
       this.runDimensions[this.currentDimIndex],
     );

@@ -15,29 +15,33 @@ const SLOW_FACTOR = 0.4; // Speed multiplier when slowed by spikes
 
 const DEFENSE_DURATION = 2;
 
-// --------------------- SPRITE SHEET ---------------------
-const PLAYER_SHEET =
-  "../../Assets/Sprites/player/knight/Knight-Spritesheet.png";
+// --------------------- SPRITE SHEETS ---------------------
+// Single Image per sprite file — shared by all SpriteSheets so it loads once
+const _knightImg = new Image();
+_knightImg.src = "../../Assets/Sprites/player/knight/Knight-Spritesheet.png";
 
-// All direction, action combinations, loaded once at module level
-const ANIMATIONS = {
+const _cowboyImg = new Image();
+_cowboyImg.src = "../../Assets/Sprites/player/cowboy/cowboy-Sheet.png";
+
+// Knight: 640x160, frame 40x40, 16 cols x 4 rows
+const KNIGHT_ANIMATIONS = {
   down: {
     idle: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 1,
       row: 0,
     }),
     walk: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 7,
       row: 0,
     }),
     attack: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
@@ -45,7 +49,7 @@ const ANIMATIONS = {
       startCol: 8,
     }),
     defense: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
@@ -55,21 +59,21 @@ const ANIMATIONS = {
   },
   left: {
     idle: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 1,
       row: 1,
     }),
     walk: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
       row: 1,
     }),
     attack: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
@@ -77,7 +81,7 @@ const ANIMATIONS = {
       startCol: 5,
     }),
     defense: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 3,
@@ -87,21 +91,21 @@ const ANIMATIONS = {
   },
   right: {
     idle: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 1,
       row: 2,
     }),
     walk: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
       row: 2,
     }),
     attack: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
@@ -109,7 +113,7 @@ const ANIMATIONS = {
       startCol: 5,
     }),
     defense: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 3,
@@ -119,21 +123,21 @@ const ANIMATIONS = {
   },
   up: {
     idle: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 1,
       row: 3,
     }),
     walk: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 2,
       row: 3,
     }),
     attack: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
@@ -141,12 +145,149 @@ const ANIMATIONS = {
       startCol: 3,
     }),
     defense: new SpriteSheet({
-      src: PLAYER_SHEET,
+      image: _knightImg,
       frameWidth: 40,
       frameHeight: 40,
       frameCount: 4,
       row: 3,
       startCol: 7,
+    }),
+  },
+};
+
+// Cowboy: 608x240, frame 48x60, 13 frames per row
+// Layout per row: col0=idle(1), cols1-4=walk(4), cols5-8=attack(4), cols9-12=defense(4)
+const COWBOY_ANIMATIONS = {
+  down: {
+    idle: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 1,
+      row: 0,
+    }),
+    walk: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 0,
+      startCol: 1,
+    }),
+    attack: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 0,
+      startCol: 5,
+    }),
+    defense: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 0,
+      startCol: 9,
+    }),
+  },
+  left: {
+    idle: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 1,
+      row: 1,
+    }),
+    walk: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 1,
+      startCol: 1,
+    }),
+    attack: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 1,
+      startCol: 5,
+    }),
+    defense: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 1,
+      startCol: 9,
+    }),
+  },
+  right: {
+    idle: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 1,
+      row: 2,
+    }),
+    walk: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 2,
+      startCol: 1,
+    }),
+    attack: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 2,
+      startCol: 5,
+    }),
+    defense: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 2,
+      startCol: 9,
+    }),
+  },
+  up: {
+    idle: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 1,
+      row: 3,
+    }),
+    walk: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 3,
+      startCol: 1,
+    }),
+    attack: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 3,
+      startCol: 5,
+    }),
+    defense: new SpriteSheet({
+      image: _cowboyImg,
+      frameWidth: 48,
+      frameHeight: 60,
+      frameCount: 4,
+      row: 3,
+      startCol: 9,
     }),
   },
 };
@@ -172,8 +313,11 @@ export default class Player extends Entity {
     // Animation state
     this._facingDir = "down";
     this._actionState = "idle";
+    this._currentAnimations = KNIGHT_ANIMATIONS;
+    this._spriteW = 40;
+    this._spriteH = 40;
     this._animation = new Animation({
-      sheet: ANIMATIONS.down.idle,
+      sheet: KNIGHT_ANIMATIONS.down.idle,
       fps: 1,
       loop: true,
     });
@@ -270,16 +414,33 @@ export default class Player extends Entity {
     super.update(deltaTime);
   }
 
+  setDimension(dimensionId) {
+    if (dimensionId === "oldWest") {
+      this._currentAnimations = COWBOY_ANIMATIONS;
+      this._spriteW = 48;
+      this._spriteH = 60;
+    } else {
+      this._currentAnimations = KNIGHT_ANIMATIONS;
+      this._spriteW = 40;
+      this._spriteH = 40;
+    }
+    this._animation = new Animation({
+      sheet: this._currentAnimations[this._facingDir].idle,
+      fps: 1,
+      loop: true,
+    });
+  }
+
   draw(renderer) {
     if (this._strikeTimer > 0) this.#drawMeleeArc(renderer);
 
     if (this._animation) {
       renderer.drawAnimation(
         this._animation,
-        this.position.x - this.width / 2,
-        this.position.y - this.height / 2,
-        this.width,
-        this.height,
+        this.position.x - this._spriteW / 2,
+        this.position.y - this._spriteH / 2,
+        this._spriteW,
+        this._spriteH,
       );
     }
   }
@@ -445,7 +606,7 @@ export default class Player extends Entity {
 
   // Swap to the correct SpriteSheet when direction or action changes
   #selectAnimation() {
-    const sheet = ANIMATIONS[this._facingDir][this._actionState];
+    const sheet = this._currentAnimations[this._facingDir][this._actionState];
     if (this._animation.sheet !== sheet) {
       this._animation = new Animation({ sheet, fps: 8, loop: true });
     }

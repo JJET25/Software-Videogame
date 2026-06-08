@@ -2,6 +2,7 @@
 export default class SpriteSheet {
   constructor({
     src,
+    image,
     frameWidth,
     frameHeight,
     frameCount,
@@ -14,8 +15,12 @@ export default class SpriteSheet {
     this.row = row;
     this.startCol = startCol;
 
-    this.image = new Image();
-    this.image.src = src;
+    if (image) {
+      this.image = image;
+    } else {
+      this.image = new Image();
+      this.image.src = src;
+    }
   }
 
   // True once the image is fully loaded and has valid dimensions
