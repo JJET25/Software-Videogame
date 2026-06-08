@@ -23,7 +23,7 @@ const PHASE = {
   },
   2: {
     speed: 34,
-    dashSpeed: 440,
+    dashSpeed: 300,
     dashCooldown: 3.5,
     attackRate: 1.4,
     radialCount: 12,
@@ -32,7 +32,7 @@ const PHASE = {
   },
   3: {
     speed: 44,
-    dashSpeed: 600,
+    dashSpeed: 300,
     dashCooldown: 2.5,
     attackRate: 0.9,
     radialCount: 16,
@@ -53,8 +53,8 @@ export default class FinalBossEnemy extends Enemy {
   constructor(position, { player, bullets = [], enemyList = null } = {}) {
     super(position, { player, bullets, enemyList });
 
-    this.width = 46;
-    this.height = 46;
+    this.width = 40;
+    this.height = 40;
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
