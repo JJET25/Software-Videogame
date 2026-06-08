@@ -56,8 +56,9 @@ export default class Chest extends GameObject {
         "[E] Open Chest",
         this.position.x,
         this.position.y - 16,
-        5,
-        "#000000",
+        4,
+        "#ffffff",
+        { font: "'Press Start 2P', monospace" },
       );
     }
   }

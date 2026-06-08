@@ -381,18 +381,10 @@ export default class GameplayScreen extends Screen {
 
   // Draws a dark banner at the bottom with a message and a hint to continue
   #drawNotification(renderer, message) {
+    const PIXEL = { font: "'Press Start 2P', monospace", align: "center" };
     renderer.drawRect(0, ROOM_HEIGHT - 40, ROOM_WIDTH, 40, "rgba(0,0,0,0.85)");
-    renderer.drawText(message, ROOM_WIDTH / 2, ROOM_HEIGHT - 24, 7, "#ffffff", {
-      align: "center",
-    });
-    renderer.drawText(
-      "Press ENTER to continue",
-      ROOM_WIDTH / 2,
-      ROOM_HEIGHT - 10,
-      5,
-      "#888888",
-      { align: "center" },
-    );
+    renderer.drawText(message, ROOM_WIDTH / 2, ROOM_HEIGHT - 25, 5, "#ffffff", PIXEL);
+    renderer.drawText("Press ENTER to continue", ROOM_WIDTH / 2, ROOM_HEIGHT - 10, 4, "#888888", PIXEL);
   }
 
   // --------------------- BGM ---------------------
