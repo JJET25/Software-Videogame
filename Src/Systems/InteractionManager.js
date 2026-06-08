@@ -28,8 +28,9 @@ export default class InteractionManager {
     let closestDist = Infinity;
 
     for (const obj of interactables) {
+      const rangeSq = obj.interactionRange ? obj.interactionRange ** 2 : INTERACTION_RANGE_SQ;
       const dist = this.#distanceSq(origin, obj.position);
-      if (dist <= INTERACTION_RANGE_SQ && dist < closestDist) {
+      if (dist <= rangeSq && dist < closestDist) {
         closest = obj;
         closestDist = dist;
       }
@@ -46,8 +47,9 @@ export default class InteractionManager {
 
   #updateProximity(player, interactables) {
     for (const obj of interactables) {
+      const rangeSq = obj.interactionRange ? obj.interactionRange ** 2 : INTERACTION_RANGE_SQ;
       obj.isPlayerNear =
-        this.#distanceSq(player.position, obj.position) <= INTERACTION_RANGE_SQ;
+        this.#distanceSq(player.position, obj.position) <= rangeSq;
     }
   }
 }

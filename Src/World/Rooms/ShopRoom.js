@@ -14,10 +14,14 @@ export default class ShopRoom extends Room {
     this.storeUI = new StoreUI();
 
     this.merchant = new Merchant({
-      x: ROOM_WIDTH / 2,
-      y: ROOM_HEIGHT / 2 - 30,
+      x: ROOM_WIDTH  / 2,
+      y: ROOM_HEIGHT / 2,
+      dimensionId: dimension?.id,
     });
     this.merchant.storeUI = this.storeUI;
+
+    // Añadir al array de objects para que Room aplique colisiones automáticamente
+    this.objects.push(this.merchant);
   }
 
   populate() {
@@ -30,8 +34,7 @@ export default class ShopRoom extends Room {
   }
 
   draw(renderer) {
-    super.draw(renderer);
-    this.merchant.draw(renderer);
+    super.draw(renderer); // dibuja fondo, decor, paredes y objects (incluye merchant)
 
     // Show interaction prompt when the player is nearby and the shop is closed
     if (!this.storeUI.isOpen) {
@@ -40,10 +43,11 @@ export default class ShopRoom extends Room {
       if (dx * dx + dy * dy <= 70 * 70) {
         renderer.drawText(
           "[E] Open Shop",
-          this.merchant.position.x - 28,
-          this.merchant.position.y - 26,
-          "7px monospace",
-          "#ffcc33",
+          this.merchant.position.x,
+          this.merchant.position.y - 46,
+          4,
+          "#ffffff",
+          { font: "'Press Start 2P', monospace" },
         );
       }
     }
