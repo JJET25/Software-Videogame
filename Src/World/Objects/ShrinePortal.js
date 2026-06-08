@@ -1,10 +1,37 @@
 import GameObject from "./GameObject.js";
 
+const SPRITE_URL = new URL(
+  '../../../Assets/Sprites/objects/portal-Sheet.png',
+  import.meta.url,
+).href;
+
+const FRAME_W     = 32;
+const FRAME_H     = 64;
+const TOTAL_FRAMES = 5;
+const SPRITE_W     = 32; // native frame width — no horizontal stretch
+const SPRITE_H     = 64;
+const FRAME_DURATION = 0.12; // seconds per frame
+
 export default class ShrinePortal extends GameObject {
   constructor(position) {
     super(position, 16, 16, "#b02a2a", "shrinePortal");
     this.isSolid = true;
     this.isUsed = false;
+    this.interactionRange = 48;
+
+    this._frame      = 0;
+    this._frameTimer = 0;
+
+    this._img = new Image();
+    this._img.src = SPRITE_URL;
+  }
+
+  update(deltaTime) {
+    this._frameTimer += deltaTime;
+    if (this._frameTimer >= FRAME_DURATION) {
+      this._frameTimer -= FRAME_DURATION;
+      this._frame = (this._frame + 1) % TOTAL_FRAMES;
+    }
   }
 
   interact(player, context) {
@@ -15,27 +42,34 @@ export default class ShrinePortal extends GameObject {
     }
     this.isUsed = true;
     this.isDead = true;
-    player.audio?.playSFX("teleport");  
+    player.audio?.playSFX("teleport");
     context.advanceLevel?.();
     context.showNotification?.("Advancing to next level...");
   }
 
   draw(renderer) {
-    renderer.drawRect(
-      this.position.x - this.width / 2,
-      this.position.y - this.height / 2,
-      this.width,
-      this.height,
-      this.color,
-    );
+    const sx = this.position.x - SPRITE_W / 2;
+    const sy = this.position.y - SPRITE_H / 2;
+
+    if (this._img?.complete && this._img.naturalWidth > 0) {
+      renderer.drawSprite(
+        this._img,
+        this._frame * FRAME_W, 0,
+        FRAME_W, FRAME_H,
+        sx, sy, SPRITE_W, SPRITE_H,
+      );
+    } else {
+      renderer.drawRect(sx, sy, SPRITE_W, SPRITE_H, this.color);
+    }
 
     if (this.isPlayerNear && !this.isUsed) {
       renderer.drawText(
         "[E] Enter Portal",
         this.position.x,
-        this.position.y - 16,
-        5,
-        "#000000",
+        sy - 6,
+        4,
+        "#ffffff",
+        { font: "'Press Start 2P', monospace" },
       );
     }
   }
