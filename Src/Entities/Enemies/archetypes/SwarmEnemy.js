@@ -1,3 +1,5 @@
+import SpriteSheet from "../../../Animation/SpriteSheet.js";
+import Animation from "../../../Animation/Animation.js";
 import { randInt, randFloat } from "../../../Utils/Random.js";
 import Vector from "../../../Utils/Vector.js";
 import Enemy from "../../Enemy.js";
@@ -10,7 +12,7 @@ const DIVE_DURATION = 0.55;
 const DIVE_END_OFFSET = -0.2;
 
 export default class SwarmEnemy extends Enemy {
-  constructor(position, deps) {
+  constructor(position, deps, animations = null) {
     super(position, deps);
 
     this.speed = 82;
@@ -19,8 +21,8 @@ export default class SwarmEnemy extends Enemy {
     this.contactDamage = 6;
     this.activationDelay = 0.5;
 
-    this.width = 12;
-    this.height = 12;
+    this.width = 20;
+    this.height = 20;
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
@@ -32,6 +34,20 @@ export default class SwarmEnemy extends Enemy {
     this.attackTimer = randFloat(0, 1.5);
     this._orbitFlipTimer = randInt(3, 5);
     this.isDiving = false;
+
+    // Sprite sheets configs
+    this._facingDir = "left";
+    this._animations = null;
+
+    this._animations = animations ?? null;
+
+    this._animation = animations
+      ? new Animation({ sheet: animations.left.idle, fps: 8, loop: true })
+      : null;
+  }
+
+  get spriteSheetSrc() {
+    return null;
   }
 
   onUpdate(deltaTime) {
@@ -58,6 +74,8 @@ export default class SwarmEnemy extends Enemy {
 
     if (this.isDiving) this.#stateDiving(normDir);
     else this.#stateOrbiting(deltaTime, normDir, distance);
+
+    this.#updateAnimation();
   }
 
   // --------------------- PRIVATE ---------------------
@@ -88,5 +106,19 @@ export default class SwarmEnemy extends Enemy {
       .plus(normDir.times(radialForce))
       .normalize()
       .times(this.speed);
+  }
+
+  #updateAnimation() {
+    if (!this._animations) return;
+
+    if (this.velocity.x < 0) this._facingDir = "left";
+    else if (this.velocity.x > 0) this._facingDir = "right";
+
+    const action = this.velocity.squareLength() > 0.1 ? "walk" : "idle";
+    const sheet = this._animations[this._facingDir][action];
+
+    if (this._animation.sheet !== sheet) {
+      this._animation = new Animation({ sheet, fps: 8, loop: true });
+    }
   }
 }
