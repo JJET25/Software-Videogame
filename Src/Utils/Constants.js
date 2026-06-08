@@ -48,7 +48,7 @@ export const MINIMAP_CONFIG = {
     current: "#7b7bff",
     boss: "#c20c0c",
     shop: "#FFD700",
-    mrBombastic: "#1e1e1e",
+    mrBombastic: "#C0C0C0",
     connection: "#ffffff",
   },
   lineWidth: 3,

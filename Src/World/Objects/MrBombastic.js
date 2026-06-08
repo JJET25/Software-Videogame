@@ -46,7 +46,6 @@ export default class MrBombastic {
         if (this.isDancing) return;
         this.isDancing = true;
         this._frame = 1;
-        player.audio?.playBGM('mrBombastic');
         context?.showNotification?.(
             'CHEAT CODE: SHIFT + T — activa el modo testing',
         );

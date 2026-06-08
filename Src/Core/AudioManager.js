@@ -34,7 +34,13 @@ export default class AudioManager {
 
   // Starts a BGM track; does nothing if that track is already playing
   async playBGM(name) {
-    if (name === this._currentBGMName) return;
+    if (name === this._currentBGMName) {
+      // Retry if autoplay was blocked and the track is still paused
+      if (this._currentBGM && this._currentBGM.paused) {
+        try { await this._currentBGM.play(); } catch { /* still blocked */ }
+      }
+      return;
+    }
     this.stopBGM();
 
     const track = this._bgmTracks[name];
@@ -48,7 +54,7 @@ export default class AudioManager {
     try {
       await this._currentBGM.play();
     } catch {
-      // Blocked by browser autoplay policy
+      // Blocked by browser autoplay policy — will retry next time playBGM is called
     }
   }
 

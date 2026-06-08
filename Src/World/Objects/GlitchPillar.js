@@ -46,8 +46,9 @@ export default class GlitchPillar extends GameObject {
         "[E] ???",
         this.position.x,
         this.position.y - 22,
-        5,
-        "#000000",
+        4,
+        "#ffffff",
+        { font: "'Press Start 2P', monospace" },
       );
     }
   }
