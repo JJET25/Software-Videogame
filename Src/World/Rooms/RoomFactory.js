@@ -5,6 +5,7 @@ import ShopRoom from "./ShopRoom.js";
 import Room from "./Room.js";
 import GlitchRoom from "./GlitchRoom.js";
 import ShrineRoom from "./ShrineRoom.js";
+import BombasticRoom from "./BombasticRoom.js";
 
 export default class RoomFactory {
   static create(node, doorDirections, player, bullets, credits, dimension) {
@@ -40,6 +41,10 @@ export default class RoomFactory {
 
     if (node.type === "shop") {
       return new ShopRoom(doorDirections, player, bullets, credits, dimension);
+    }
+
+    if (node.type === "mrBombastic") {
+      return new BombasticRoom(doorDirections, player, bullets, credits, dimension);
     }
 
     if (node.type === "chest") {

@@ -82,6 +82,7 @@ export default class MiniMap {
 
   #getState(node, currentNodeId) {
     // SHOP FIRST
+    if (node.type === "mrBombastic") return "mrBombastic";
     if (node.type === "shop") return "shop";
 
     // BOSS

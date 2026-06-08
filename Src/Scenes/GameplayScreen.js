@@ -404,6 +404,7 @@ export default class GameplayScreen extends Screen {
     this.audio.loadBGM("miniBoss", BASE + "MiniBossTheme.mp3");
     this.audio.loadBGM("finalBoss", BASE + "FinalBossTheme.mp3");
     this.audio.loadBGM("finalBossTheme_2", BASE + "FinalBossTheme_2.mp3");
+    this.audio.loadBGM("mrBombastic", BASE + "MrBombasticTheme.mp3");
     this.#updateBGM();
   }
 
@@ -416,6 +417,11 @@ export default class GameplayScreen extends Screen {
     const nodeType = room?.nodeType ?? null;
     const inBoss = nodeType === "miniBoss" || nodeType === "finalBoss";
     const inCombat = room?.enemies?.length > 0 && !room?.isCleared && !inBoss;
+
+    if (room?.isBombasticRoom && room.mrBombastic?.isDancing) {
+      this.audio.playBGM("mrBombastic");
+      return;
+    }
 
     if (nodeType === "finalBoss") {
       const boss = room?.enemies?.[0];
