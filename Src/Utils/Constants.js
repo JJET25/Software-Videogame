@@ -15,12 +15,12 @@ export const DIRECTIONS = [
 
 // Room Probability Weights
 export const ROOM_WEIGHTS = {
-  combat: 54,       // % chance for combat room
-  chest: 20,        // % chance for chest room
-  shrine: 5,        // % chance for shrine room (portal — rarest)
-  glitch: 10,       // % chance for glitch room
-  shop: 10,         // % chance for store room
-  mrBombastic: 1,   // 1/100 — sala secreta de Mr. Bombastic
+  combat: 1,       // % chance for combat room
+  chest: 1,        // % chance for chest room
+  shrine: 1,        // % chance for shrine room (portal — rarest)
+  glitch: 1,       // % chance for glitch room
+  shop: 1,         // % chance for store room
+  mrBombastic: 95,   // 1/100 — sala secreta de Mr. Bombastic
 };
 
 // Room Configs
