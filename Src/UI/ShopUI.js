@@ -9,60 +9,55 @@ import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
 
 // --------------------- PALETTE ---------------------
 const P = {
-  bg: "#111111",
-  border: "#333333",
-  muted: "#3d3d3d",
-  sub: "#7a7a7a",
-  text: "#dddddd",
-  label: "#999999",
-  dim: "#4a4a4a",
-  cardBg: "#0c0c0c",
-  activeBg: "#0d1522",
-  activeFg: "#5588bb",
-  autoBg: "#1a1100",
-  autoFg: "#bb8833",
+  bg: "#0d0520",
+  border: "#2a1050",
+  muted: "#4a2870",
+  sub: "#866ea7",
+  text: "#d0b8ff",
+  label: "#a090cc",
+  dim: "#5a3878",
+  accent: "#7c4dff",
+  cardBg: "#140a28",
   gold: "#ffcc33",
-  green: "#44cc88",
-  red: "#cc4422",
+  green: "#5ce08a",
+  red: "#e0604a",
 };
 
 const RARITY_COLOR = {
-  common: "#888888",
-  rare: "#4488ff",
-  epic: "#aa44ff",
-  legendary: "#ffaa00",
+  common: "#9b8fb0",
+  rare: "#4f8fff",
+  epic: "#b65cff",
+  legendary: "#ffb43c",
 };
 
 // --------------------- PANEL GEOMETRY ---------------------
-const PW = 262,
-  PH = 154;
+const PW = 240,
+  PH = 170;
 const PX = Math.floor((ROOM_WIDTH - PW) / 2);
 const PY = Math.floor((ROOM_HEIGHT - PH) / 2);
 
-const HDR_H = 16;
+const HDR_H = 15;
 const TAB_Y = PY + HDR_H;
-const TAB_H = 14;
-const CARD_TOP = TAB_Y + TAB_H + 1;
-const CARD_H = 88;
+const TAB_H = 13;
+const CARD_TOP = TAB_Y + TAB_H + 2;
 
-// Center card
-const CW = 72,
-  CH = 84;
+// Center card (8:11)
+const CW = 64,
+  CH = 88;
 const CX = PX + 2 + Math.floor((PW - 4 - CW) / 2);
-const CY = CARD_TOP + Math.floor((CARD_H - CH) / 2);
+const CY = CARD_TOP;
 
-// Side cards (smaller, dimmed)
-const SW = 56,
-  SH = 68;
-const SY = CARD_TOP + Math.floor((CARD_H - SH) / 2);
+// Side cards (8:11, dimmed)
+const SW = 40,
+  SH = 55;
+const SY = CY + Math.floor((CH - SH) / 2);
 const GAP = 8;
 const LX = CX - GAP - SW;
 const RX = CX + CW + GAP;
 
-// Info / footer
-const INFO_Y = CARD_TOP + CARD_H + 2;
-const INFO_H = 14;
-const FOOTER_Y = INFO_Y + INFO_H;
+// Info + footer
+const INFO_Y = CY + CH + 3;
+const FOOTER_Y = PY + PH - 12;
 
 const TAB_NAMES = ["BUY", "SELL", "UPGRADE"];
 
@@ -74,8 +69,8 @@ export default class StoreUI {
     this.cursor = 0;
     this.offerings = [];
     this._justOpened = false;
+    this._lastHovered = null;
 
-    // Load pixel font — falls back to monospace until ready
     this._font = "monospace";
     document.fonts.load("5px 'Press Start 2P'").then(() => {
       this._font = "'Press Start 2P', monospace";
@@ -92,11 +87,8 @@ export default class StoreUI {
   }
 
   // --------------------- UPDATE ---------------------
-
   update(input, player, cardManager, mouse = null, audio = null) {
     if (!this.isOpen) return;
-
-    // Skip the first frame to avoid consuming the E that opened the shop
     if (this._justOpened) {
       this._justOpened = false;
       return;
@@ -108,77 +100,30 @@ export default class StoreUI {
       return;
     }
 
-    // Tab shortcuts
-    if (input.wasKeyPressed("1")) {
-      this._setTab(0);
-      audio?.playSFX("hoverUI");
-    }
-    if (input.wasKeyPressed("2")) {
-      this._setTab(1);
-      audio?.playSFX("hoverUI");
-    }
-    if (input.wasKeyPressed("3")) {
-      this._setTab(2);
-      audio?.playSFX("hoverUI");
+    for (let i = 0; i < 3; i++) {
+      if (input.wasKeyPressed(String(i + 1))) {
+        this._setTab(i);
+        audio?.playSFX("hoverUI");
+      }
     }
 
-    if (this.tab === 2) {
-      this.#updateUpgradeInput(input, cardManager, player);
-    } else {
-      this.#updateCarouselInput(input, cardManager, player, audio);
-    }
+    if (this.tab === 2)
+      this.#updateUpgradeInput(input, cardManager, player, audio);
+    else this.#updateCarouselInput(input, cardManager, player, audio);
 
     if (mouse?.consumeClick())
-      this.#handleClick(mouse.position, player, cardManager);
+      this.#handleClick(mouse.position, player, cardManager, audio);
   }
 
-  // --------------------- DRAW ---------------------
-
-  draw(renderer, player, cardManager, mouse = null) {
-    if (!this.isOpen) return;
-
-    const f = this._font;
-    const cx = ROOM_WIDTH / 2;
-
-    renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "rgba(8,8,8,0.88)");
-
-    this.#drawPanel(renderer);
-    this.#drawHeader(renderer, player, f, cx);
-    this.#drawTabs(renderer, f);
-
-    if (this.tab === 2) {
-      this._drawUpgrades(renderer, player, cardManager, f);
-    } else {
-      this._drawCarousel(renderer, player, cardManager, f, renderer.context);
-    }
-
-    // Footer hint
-    renderer.drawRect(PX, FOOTER_Y, PW, 1, P.border);
-    const hint =
-      this.tab === 0
-        ? "[A/D] BROWSE  [E] BUY  [Q] CLOSE"
-        : this.tab === 1
-          ? "[A/D] BROWSE  [E] SELL  [Q] CLOSE"
-          : "[W/S] MOVE  [E] UPGRADE  [Q] CLOSE";
-    renderer.drawText(hint, cx, FOOTER_Y + 8, 3, P.dim, {
-      align: "center",
-      font: f,
-    });
-  }
-
-  // --------------------- PRIVATE: input ---------------------
-
-  // W/S navigation + E confirm for the upgrade tab
-  #updateUpgradeInput(input, cardManager, player) {
+  #updateUpgradeInput(input, cardManager, player, audio) {
     const max = this._upgradeItems(cardManager).length - 1;
     if (input.wasKeyPressed("W") || input.wasKeyPressed("ARROWUP"))
       this.cursor = Math.max(0, this.cursor - 1);
     if (input.wasKeyPressed("S") || input.wasKeyPressed("ARROWDOWN"))
       this.cursor = Math.min(max, this.cursor + 1);
-    if (input.wasKeyPressed("E")) this._confirm(player, cardManager);
+    if (input.wasKeyPressed("E")) this._confirm(player, cardManager, audio);
   }
 
-  // A/D navigation + E confirm for buy/sell carousel
   #updateCarouselInput(input, cardManager, player, audio) {
     const max = Math.max(0, this._carouselItems(cardManager).length - 1);
     if (input.wasKeyPressed("A") || input.wasKeyPressed("ARROWLEFT")) {
@@ -196,111 +141,138 @@ export default class StoreUI {
     if (input.wasKeyPressed("E")) this._confirm(player, cardManager, audio);
   }
 
-  // Routes a mouse click to tab bar, carousel, or upgrade rows
-  #handleClick({ x: mx, y: my }, player, cardManager) {
-    // Tab bar
+  #handleClick({ x: mx, y: my }, player, cardManager, audio) {
     const tw = Math.floor((PW - 8) / 3);
     for (let i = 0; i < 3; i++) {
       const tx = PX + 4 + i * (tw + 2);
       if (mx >= tx && mx <= tx + tw && my >= TAB_Y && my <= TAB_Y + TAB_H) {
         this._setTab(i);
+        audio?.playSFX("hoverUI");
         return;
       }
     }
-
-    if (this.tab !== 2) {
-      this.#handleCarouselClick(mx, my, player, cardManager);
-    } else {
-      this.#handleUpgradeClick(mx, my, player, cardManager);
-    }
+    if (this.tab !== 2)
+      this.#handleCarouselClick(mx, my, player, cardManager, audio);
+    else this.#handleUpgradeClick(mx, my, player, cardManager, audio);
   }
 
-  #handleCarouselClick(mx, my, player, cardManager) {
+  #handleCarouselClick(mx, my, player, cardManager, audio) {
     const items = this._carouselItems(cardManager);
     const cur = Math.min(this.cursor, Math.max(0, items.length - 1));
-
-    if (cur > 0 && mx >= LX && mx <= LX + SW && my >= SY && my <= SY + SH)
+    if (cur > 0 && mx >= LX && mx <= LX + SW && my >= SY && my <= SY + SH) {
       this.cursor = cur - 1;
-    else if (
+      audio?.playSFX("hoverUI");
+    } else if (
       cur < items.length - 1 &&
       mx >= RX &&
       mx <= RX + SW &&
       my >= SY &&
       my <= SY + SH
-    )
+    ) {
       this.cursor = cur + 1;
-    else if (mx >= CX && mx <= CX + CW && my >= CY && my <= CY + CH)
-      this._confirm(player, cardManager);
+      audio?.playSFX("hoverUI");
+    } else if (mx >= CX && mx <= CX + CW && my >= CY && my <= CY + CH) {
+      this._confirm(player, cardManager, audio);
+    }
   }
 
-  #handleUpgradeClick(mx, my, player, cardManager) {
+  #handleUpgradeClick(mx, my, player, cardManager, audio) {
     const upItems = this._upgradeItems(cardManager);
     const ROW_H = 30;
     for (let i = 0; i < upItems.length; i++) {
-      const ry = CARD_TOP + 14 + i * (ROW_H + 8);
+      const ry = CARD_TOP + 22 + i * (ROW_H + 8);
       if (mx >= PX + 4 && mx <= PX + PW - 4 && my >= ry && my <= ry + ROW_H) {
         this.cursor = i;
-        this._confirm(player, cardManager);
+        this._confirm(player, cardManager, audio);
         return;
       }
     }
   }
 
-  // --------------------- PRIVATE: draw ---------------------
+  // --------------------- DRAW ---------------------
+  draw(renderer, player, cardManager, mouse = null) {
+    if (!this.isOpen) return;
+    const f = this._font;
+    const ctx = renderer.context;
+    const sc = renderer.scale;
+    const cx = ROOM_WIDTH / 2;
 
-  // Draws the panel background and its 4 border edges
-  #drawPanel(renderer) {
-    renderer.drawRect(PX, PY, PW, PH, P.bg);
-    renderer.drawRect(PX, PY, PW, 2, P.border);
-    renderer.drawRect(PX, PY + PH - 2, PW, 2, P.border);
-    renderer.drawRect(PX, PY, 2, PH, P.border);
-    renderer.drawRect(PX + PW - 2, PY, 2, PH, P.border);
+    renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "rgba(13,5,32,0.88)");
+    this.#drawPanel(renderer, ctx, sc, cx, f, player);
+    this.#drawTabs(renderer, f);
+
+    if (this.tab === 2) this._drawUpgrades(renderer, player, cardManager, f);
+    else this._drawCarousel(renderer, player, cardManager, ctx, sc, f);
+
+    renderer.drawRect(PX, FOOTER_Y, PW, 1, P.border);
+    const hint =
+      this.tab === 0
+        ? "[A/D] BROWSE  [E] BUY  [Q] CLOSE"
+        : this.tab === 1
+          ? "[A/D] BROWSE  [E] SELL  [Q] CLOSE"
+          : "[W/S] MOVE  [E] UPGRADE  [Q] CLOSE";
+    renderer.drawText(hint, cx, FOOTER_Y + 7, 3, P.dim, {
+      align: "center",
+      font: f,
+    });
   }
 
-  // Draws credits, title and close hint in the header row
-  #drawHeader(renderer, player, f, cx) {
-    renderer.drawText(`${player.credits} CR`, PX + 6, PY + 11, 5, P.gold, {
+  #drawPanel(renderer, ctx, sc, cx, f, player) {
+    renderer.drawRect(PX, PY, PW, PH, P.bg);
+    this.#frame2px(renderer, PX, PY, PW, PH, P.border);
+
+    renderer.drawText(`${player.credits} CR`, PX + 6, PY + 10, 5, P.gold, {
       align: "left",
       font: f,
     });
 
-    const ctx = renderer.context;
-    ctx.shadowColor = "rgba(200,200,200,0.3)";
-    ctx.shadowBlur = Math.round(6 * renderer.scale);
-    renderer.drawText("MERCHANT", cx, PY + 11, 6, P.text, {
+    ctx.shadowColor = "rgba(180,100,255,0.85)";
+    ctx.shadowBlur = Math.round(9 * sc);
+    renderer.drawText("MERCHANT", cx, PY + 10, 6, P.text, {
       align: "center",
       font: f,
     });
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
 
-    renderer.drawText("[Q]", PX + PW - 6, PY + 11, 4, P.dim, {
+    renderer.drawText("[Q]", PX + PW - 6, PY + 10, 4, P.dim, {
       align: "right",
       font: f,
     });
     renderer.drawRect(PX, PY + HDR_H, PW, 1, P.border);
   }
 
-  // Draws the three BUY / SELL / UPGRADE tab buttons
+  #frame2px(renderer, x, y, w, h, color) {
+    renderer.drawRect(x, y, w, 2, color);
+    renderer.drawRect(x, y + h - 2, w, 2, color);
+    renderer.drawRect(x, y, 2, h, color);
+    renderer.drawRect(x + w - 2, y, 2, h, color);
+    renderer.drawRect(x, y, 1, 1, P.bg);
+    renderer.drawRect(x + w - 1, y, 1, 1, P.bg);
+    renderer.drawRect(x, y + h - 1, 1, 1, P.bg);
+    renderer.drawRect(x + w - 1, y + h - 1, 1, 1, P.bg);
+  }
+
   #drawTabs(renderer, f) {
     const tw = Math.floor((PW - 8) / 3);
     for (let i = 0; i < 3; i++) {
       const tx = PX + 4 + i * (tw + 2);
       const on = i === this.tab;
-      renderer.drawRect(tx, TAB_Y, tw, TAB_H, on ? "#252525" : "#0d0d0d");
+      renderer.drawRect(tx, TAB_Y, tw, TAB_H, on ? P.muted : "#0e0622");
+      if (on) renderer.drawRect(tx, TAB_Y + TAB_H - 1, tw, 1, P.accent);
       renderer.drawText(
         TAB_NAMES[i],
         tx + Math.floor(tw / 2),
-        TAB_Y + 9,
-        5,
-        on ? P.text : P.muted,
+        TAB_Y + 7,
+        4,
+        on ? P.text : P.dim,
         { align: "center", font: f },
       );
     }
     renderer.drawRect(PX, TAB_Y + TAB_H, PW, 1, P.border);
   }
 
-  _drawCarousel(renderer, player, cardManager, f, ctx) {
+  _drawCarousel(renderer, player, cardManager, ctx, sc, f) {
     const items = this._carouselItems(cardManager);
     const count = items.length;
     const cur = Math.min(this.cursor, Math.max(0, count - 1));
@@ -309,7 +281,7 @@ export default class StoreUI {
       renderer.drawText(
         this.tab === 0 ? "NO CARDS FOR SALE" : "NO CARDS TO SELL",
         ROOM_WIDTH / 2,
-        CARD_TOP + 44,
+        CY + 44,
         5,
         P.muted,
         { align: "center", font: f },
@@ -317,116 +289,75 @@ export default class StoreUI {
       return;
     }
 
-    // Navigation arrows
     if (cur > 0)
-      renderer.drawText("◀", LX - 12, CARD_TOP + 44, 7, P.label, {
+      renderer.drawText("◀", LX - 10, CY + 44, 7, P.label, {
         align: "center",
         font: f,
       });
     if (cur < count - 1)
-      renderer.drawText("▶", RX + SW + 12, CARD_TOP + 44, 7, P.label, {
+      renderer.drawText("▶", RX + SW + 10, CY + 44, 7, P.label, {
         align: "center",
         font: f,
       });
 
-    // Dimmed side cards
     if (cur > 0) {
-      ctx.globalAlpha = 0.55;
-      this._drawCard(renderer, items[cur - 1].card, LX, SY, SW, SH, false, f);
+      ctx.globalAlpha = 0.5;
+      this.#drawCardArt(renderer, items[cur - 1].card, LX, SY, SW, SH);
       ctx.globalAlpha = 1;
     }
     if (cur < count - 1) {
-      ctx.globalAlpha = 0.55;
-      this._drawCard(renderer, items[cur + 1].card, RX, SY, SW, SH, false, f);
+      ctx.globalAlpha = 0.5;
+      this.#drawCardArt(renderer, items[cur + 1].card, RX, SY, SW, SH);
       ctx.globalAlpha = 1;
     }
 
-    // Center card + cost strip + description
-    const centerItem = items[cur];
-    this._drawCard(renderer, centerItem.card, CX, CY, CW, CH, true, f);
-    this._drawCostStrip(renderer, centerItem, player, f);
+    const item = items[cur];
+    const rc = RARITY_COLOR[item.card.rarity] ?? P.sub;
 
-    renderer.drawRect(PX, INFO_Y, PW, 1, P.border);
-    renderer.drawText(
-      (centerItem.card.description ?? "").slice(0, 82),
-      ROOM_WIDTH / 2,
-      INFO_Y + 9,
-      3,
-      P.label,
-      { align: "center", font: f },
-    );
+    ctx.shadowColor = rc + "99";
+    ctx.shadowBlur = Math.round(6 * sc);
+    this.#drawCardArt(renderer, item.card, CX, CY, CW, CH, rc);
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+
+    this.#drawCostStrip(renderer, item, player, f);
+    this.#drawInfo(renderer, item.card, f);
   }
 
-  _drawCard(renderer, card, x, y, w, h, isCenter, f) {
-    const rColor = RARITY_COLOR[card.rarity] ?? "#888888";
-    const isAuto = card.type === "automatic";
-    const badgeH = isCenter ? 12 : 10;
-    const midX = x + 3 + Math.floor((w - 3) / 2);
-
-    // Background + rarity strips
+  // Card image inside a 1px rarity contour. `contour` defaults to rarity colour.
+  #drawCardArt(renderer, card, x, y, w, h, contour = null) {
+    const rc = contour ?? RARITY_COLOR[card.rarity] ?? P.sub;
     renderer.drawRect(x, y, w, h, P.cardBg);
-    renderer.drawRect(x, y, 3, h, rColor);
-    renderer.drawRect(x + 3, y, w - 3, 2, rColor);
-    renderer.drawRect(x, y + h - 2, w, 2, rColor);
-
-    // Type badge
-    renderer.drawRect(
-      x + 3,
-      y + 2,
-      w - 3,
-      badgeH,
-      isAuto ? P.autoBg : P.activeBg,
-    );
-    renderer.drawText(
-      isAuto ? "⟳ AUTO" : "⚡ ACTIVE",
-      midX,
-      y + 2 + Math.floor(badgeH / 2),
-      isCenter ? 4 : 3,
-      isAuto ? P.autoFg : P.activeFg,
-      { align: "center", font: f },
-    );
-
-    // Separator
-    const sep1Y = y + 2 + badgeH;
-    renderer.drawRect(x + 3, sep1Y, w - 3, 1, P.border);
-
-    // Name
-    const nameY = sep1Y + 1 + (isCenter ? 10 : 7);
-    const nameStr =
-      card.name.length > 12 ? card.name.slice(0, 11) + "…" : card.name;
-    renderer.drawText(nameStr, midX, nameY, isCenter ? 4 : 3, P.text, {
-      align: "center",
-      font: f,
-    });
-
-    // Subtype
-    const subY = nameY + (isCenter ? 11 : 9);
-    renderer.drawText(this._subtype(card), midX, subY, 3, P.sub, {
-      align: "center",
-      font: f,
-    });
-
-    // Stat line
-    renderer.drawText(
-      this._statLine(card),
-      midX,
-      subY + (isCenter ? 10 : 9),
-      3,
-      P.label,
-      { align: "center", font: f },
-    );
+    if (card._img?.complete && card._img.naturalWidth > 0) {
+      renderer.drawImage(card._img, x + 1, y + 1, w - 2, h - 2);
+    } else {
+      const name =
+        card.name.length > 9 ? card.name.slice(0, 8) + "…" : card.name;
+      renderer.drawText(
+        name.toUpperCase(),
+        x + Math.floor(w / 2),
+        y + Math.floor(h / 2),
+        3,
+        P.label,
+        { align: "center", font: this._font },
+      );
+    }
+    renderer.drawRect(x, y, w, 1, rc);
+    renderer.drawRect(x, y + h - 1, w, 1, rc);
+    renderer.drawRect(x, y, 1, h, rc);
+    renderer.drawRect(x + w - 1, y, 1, h, rc);
   }
 
-  // Cost strip overlaid on the bottom of the center card
-  _drawCostStrip(renderer, item, player, f) {
+  // Single price strip over the bottom of the center card
+  #drawCostStrip(renderer, item, player, f) {
     const { cost, sold } = item;
-    const stripY = CY + CH - 18;
+    const stripH = 12;
+    const stripY = CY + CH - stripH - 1;
 
-    renderer.drawRect(CX, stripY, CW, 18, "rgba(10,10,10,0.92)");
-    renderer.drawRect(CX + 3, stripY, CW - 3, 1, P.border);
+    renderer.drawRect(CX + 1, stripY, CW - 2, stripH, "rgba(8,4,18,0.94)");
+    renderer.drawRect(CX + 1, stripY, CW - 2, 1, P.border);
 
     const label = sold ? "SOLD" : this.tab === 1 ? `+${cost} CR` : `${cost} CR`;
-
     const color = sold
       ? P.muted
       : this.tab === 1
@@ -435,10 +366,42 @@ export default class StoreUI {
           ? P.gold
           : P.red;
 
-    renderer.drawText(label, CX + Math.floor(CW / 2), stripY + 10, 4, color, {
+    renderer.drawText(
+      label,
+      CX + Math.floor(CW / 2),
+      stripY + Math.floor(stripH / 2),
+      4,
+      color,
+      { align: "center", font: f },
+    );
+  }
+
+  // Subtype tag + stat line + description below the card
+  #drawInfo(renderer, card, f) {
+    const cx = ROOM_WIDTH / 2;
+    renderer.drawRect(PX, INFO_Y, PW, 1, P.border);
+
+    const lvl = card.level ?? 1;
+    renderer.drawText(
+      `${this._subtype(card)}  •  LV ${lvl}`,
+      cx,
+      INFO_Y + 7,
+      3,
+      P.sub,
+      { align: "center", font: f },
+    );
+    renderer.drawText(this._statLine(card), cx, INFO_Y + 15, 3, P.label, {
       align: "center",
       font: f,
     });
+    renderer.drawText(
+      (card.description ?? "").slice(0, 46),
+      cx,
+      INFO_Y + 23,
+      3,
+      P.dim,
+      { align: "center", font: f },
+    );
   }
 
   _drawUpgrades(renderer, player, cardManager, f) {
@@ -461,10 +424,9 @@ export default class StoreUI {
         ry,
         PW - 8,
         ROW_H,
-        selected ? "#222222" : "#0e0e0e",
+        selected ? P.muted : "#0e0622",
       );
-      renderer.drawRect(PX + 4, ry, PW - 8, 1, P.border);
-      renderer.drawRect(PX + 4, ry + ROW_H - 1, PW - 8, 1, P.border);
+      if (selected) renderer.drawRect(PX + 4, ry, 2, ROW_H, P.accent);
 
       renderer.drawText(label, cx, ry + 11, 4, selected ? P.text : P.label, {
         align: "center",
@@ -481,7 +443,7 @@ export default class StoreUI {
     }
   }
 
-  // --------------------- PRIVATE: data ---------------------
+  // --------------------- DATA ---------------------
   static #SLOT_RARITIES = [
     ["common", "rare"],
     ["rare"],
@@ -491,13 +453,9 @@ export default class StoreUI {
   ];
 
   _generateOfferings() {
-    // Group pool entries by rarity — no card instances created yet
     const byRarity = { common: [], rare: [], epic: [], legendary: [] };
-    for (const entry of SHOP_CARD_POOL) {
-      byRarity[entry.rarity]?.push(entry);
-    }
+    for (const entry of SHOP_CARD_POOL) byRarity[entry.rarity]?.push(entry);
 
-    // Fisher-Yates shuffle each bucket so picks within a tier are random
     for (const bucket of Object.values(byRarity)) {
       for (let i = bucket.length - 1; i > 0; i--) {
         const j = randInt(0, i);
@@ -505,13 +463,9 @@ export default class StoreUI {
       }
     }
 
-    // Track names already added this shop to prevent duplicate cards
     const usedNames = new Set();
-
     for (const rarities of StoreUI.#SLOT_RARITIES) {
       let picked = null;
-
-      // Try each allowed rarity in priority order
       for (const rarity of rarities) {
         const entry = byRarity[rarity].find((e) => !usedNames.has(e.name));
         if (entry) {
@@ -519,12 +473,8 @@ export default class StoreUI {
           break;
         }
       }
-
-      // Catch-all: any unused card from the whole pool
-      if (!picked) {
+      if (!picked)
         picked = SHOP_CARD_POOL.find((e) => !usedNames.has(e.name)) ?? null;
-      }
-
       if (picked) {
         usedNames.add(picked.name);
         this.offerings.push({
@@ -572,16 +522,12 @@ export default class StoreUI {
   }
 
   _confirm(player, cardManager, audio = null) {
-    // ----- UPGRADE tab -----
     if (this.tab === 2) {
       const item = this._upgradeItems(cardManager)[this.cursor];
-
-      // Can't upgrade: no action, already maxed, or not enough credits
       if (!item?.action || item.cost === null || player.credits < item.cost) {
         audio?.playSFX("deniedUI");
         return;
       }
-
       player.credits -= item.cost;
       if (item.action === "upgradeActive") cardManager.activeSlotCount++;
       else cardManager.autoSlotCount++;
@@ -589,29 +535,20 @@ export default class StoreUI {
       return;
     }
 
-    // ----- BUY / SELL tab -----
     const items = this._carouselItems(cardManager);
     if (!items.length) return;
     const item = items[Math.min(this.cursor, items.length - 1)];
 
     if (this.tab === 0) {
-      // BUY: reject if already sold or player can't afford it
       if (item.sold || player.credits < item.cost) {
         audio?.playSFX("deniedUI");
         return;
       }
-
       const result = cardManager.addCard(item.card);
-
-      // Purchase succeeds only if the card was added or converted to credits
       if (result.added || result.creditsAwarded > 0) {
         player.credits -= item.cost;
         item.sold = true;
-
-        // Full deck: card was converted to bonus credits instead
         if (result.creditsAwarded > 0) player.addCredits(result.creditsAwarded);
-
-        // Keep cursor in bounds after removing the sold item from the list
         this.cursor = Math.min(
           this.cursor,
           Math.max(0, this.offerings.filter((o) => !o.sold).length - 1),
@@ -619,11 +556,8 @@ export default class StoreUI {
         audio?.playSFX("buySell");
       }
     } else if (this.tab === 1) {
-      // SELL: remove card from deck and refund its rarity value
       cardManager.removeCard(item.card);
       player.addCredits(item.cost);
-
-      // Keep cursor in bounds after the sold card disappears from the list
       this.cursor = Math.min(
         this.cursor,
         Math.max(0, this._carouselItems(cardManager).length - 1),
@@ -637,7 +571,6 @@ export default class StoreUI {
     this.cursor = 0;
   }
 
-  // Returns a readable subtype label for a card
   _subtype(card) {
     if (card.type === "automatic") {
       const map = {
@@ -654,13 +587,12 @@ export default class StoreUI {
     return "MELEE";
   }
 
-  // Builds a short stat summary string for a card
   _statLine(card) {
     const parts = [];
-    if (card.damage > 0) parts.push(`${card.damage}DMG`);
-    if (card.healAmount > 0) parts.push(`+${card.healAmount}HP`);
-    if (card.shieldAmount > 0) parts.push(`+${card.shieldAmount}DEF`);
-    if (card.baseCooldown > 0) parts.push(`${card.baseCooldown}sCD`);
-    return parts.join("  ") || "—";
+    if (card.damage > 0) parts.push(`${card.damage} DMG`);
+    if (card.healAmount > 0) parts.push(`+${card.healAmount} HP`);
+    if (card.shieldAmount > 0) parts.push(`+${card.shieldAmount} DEF`);
+    if (card.baseCooldown > 0) parts.push(`${card.baseCooldown}s CD`);
+    return parts.join("   ") || "—";
   }
 }

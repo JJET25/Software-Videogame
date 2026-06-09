@@ -3,62 +3,74 @@ import { CardType } from "../cards/Card.js";
 
 // --------------------- PALETTE ---------------------
 const P = {
-  bg: "#111111",
-  border: "#333333",
-  muted: "#3d3d3d",
-  sub: "#7a7a7a",
-  text: "#dddddd",
-  label: "#999999",
-  dim: "#4a4a4a",
+  bg: "#0d0520",
+  border: "#2a1050",
+  muted: "#4a2870",
+  sub: "#866ea7",
+  text: "#d0b8ff",
+  label: "#a090cc",
+  dim: "#5a3878",
+  accent: "#7c4dff",
+  cardBg: "#140a28",
 };
 
 const RARITY_COLOR = {
-  common: "#888888",
-  uncommon: "#55aa55",
-  rare: "#4488ff",
-  epic: "#aa44ff",
-  legendary: "#ffaa00",
+  common: "#9b8fb0",
+  rare: "#4f8fff",
+  epic: "#b65cff",
+  legendary: "#ffb43c",
 };
+
+const LEVEL_CD_REDUCTION = { 1: 0, 2: 30, 3: 51 };
 
 // --------------------- PANEL ---------------------
 const PX = 2,
   PY = 2,
   PW = 268,
   PH = 172;
+const TITLE_Y = 11;
+const DIV1_Y = 18;
 
-// --------------------- CARD DIMENSIONS ---------------------
-const CARD_W = 38,
-  CARD_H = 34,
-  CARD_GAP = 4; // active + auto slots
-const STORE_W = 22,
-  STORE_H = 24,
-  STORE_GAP = 3; // storage row (compact)
+// --------------------- COLUMN SPLIT ---------------------
+const LEFT_W = 92;
+const SPLIT_X = PX + LEFT_W; // 94
+const LEFT_CX = PX + Math.floor(LEFT_W / 2);
+const RX0 = SPLIT_X + 3; // right area left edge
+const RW = PX + PW - 2 - RX0; // right area width
+
+// --------------------- PREVIEW (left) ---------------------
+const PV_W = 50,
+  PV_H = 69; // ~8:11
+const PV_X = LEFT_CX - Math.floor(PV_W / 2);
+const PV_CARD_Y = 30;
+const PV_RAR_Y = PV_CARD_Y + PV_H + 5; // 104
+const PV_DESC_Y = PV_RAR_Y + 8; // 112
+const PV_LEVEL_Y = 152;
+const PV_CD_Y = 162;
+
+// --------------------- GRID CARDS (right) ---------------------
+const G_W = 18,
+  G_H = 25,
+  G_GAP = 3; // ~8:11
 const STORE_PAGE_SIZE = 8;
 
-// --------------------- LAYOUT ---------------------
-// All Y values verified to fit inside ROOM_HEIGHT = 176
-const TITLE_Y = 12;
-const DIV1_Y = 18;
-const ACT_LABEL_Y = 23;
-const ACT_ROW_Y = 29; // cards: 29..63
-const ACT_HINT_Y = ACT_ROW_Y + CARD_H + 3; // 66
-const DIV2_Y = ACT_HINT_Y + 4; // 70
-const AUTO_LABEL_Y = DIV2_Y + 5; // 75
-const AUTO_ROW_Y = AUTO_LABEL_Y + 7; // 82 → cards: 82..116
-const DIV3_Y = AUTO_ROW_Y + CARD_H + 3; // 119
-const STORE_LABEL_Y = DIV3_Y + 5; // 124
-const STORE_ROW_Y = STORE_LABEL_Y + 7; // 131 → cards: 131..155
-const FOOTER_Y = 171; // ≤ PY + PH = 174 ✓
+const R_ACT_LABEL = 24;
+const R_ACT_ROW = 28; // 28..53
+const R_ACT_HINT = R_ACT_ROW + G_H + 1;
+const R_AUTO_LABEL = R_ACT_HINT + 6; // 60
+const R_AUTO_ROW = R_AUTO_LABEL + 5; // 65..90
+const R_STORE_LABEL = R_AUTO_ROW + G_H + 6; // 96
+const R_STORE_ROW = R_STORE_LABEL + 5; // 101..126
+const R_HINT_Y = 140;
 
 // --------------------- CLASS ---------------------
 export default class DeckScreen {
   constructor() {
     this._open = false;
-    this._selected = null; // { card, fromType, fromIndex } — card being moved
-    this._inspected = null; // { card } — card shown in info bar on first click
+    this._selected = null;
+    this._inspected = null;
     this._storePage = 0;
 
-    // Load pixel font — falls back to monospace until ready
     this._font = "monospace";
     document.fonts.load("5px 'Press Start 2P'").then(() => {
       this._font = "'Press Start 2P', monospace";
@@ -79,11 +91,7 @@ export default class DeckScreen {
     }
     if (!this._open) return;
 
-    // Storage pagination with arrow keys
-    const totalPages = Math.max(
-      1,
-      Math.ceil(cardManager.storage.length / STORE_PAGE_SIZE),
-    );
+    const totalPages = this.#totalPages(cardManager);
     if (input.wasKeyPressed("ARROWLEFT"))
       this._storePage = Math.max(0, this._storePage - 1);
     if (input.wasKeyPressed("ARROWRIGHT"))
@@ -95,32 +103,29 @@ export default class DeckScreen {
     const hit = this._hitTest(mouse.position, cardManager);
     const card = hit ? this._cardAt(hit, cardManager) : null;
 
-    if (!this._selected) {
-      this.#handleInspectOrPickup(card, hit, audio);
-    } else {
-      this.#handleDrop(hit, cardManager, audio);
-    }
+    if (this._selected) this.#handleDrop(hit, cardManager, audio);
+    else this.#handleInspectOrPickup(card, hit, audio);
   }
 
   draw(renderer, cardManager) {
     if (!this._open) return;
-
     const f = this._font;
     const ctx = renderer.context;
     const sc = renderer.scale;
     const cx = ROOM_WIDTH / 2;
 
-    renderer.drawFlash("rgba(13,5,32,0.93)");
+    renderer.drawFlash("rgba(13,5,32,0.92)");
     this.#drawPanel(renderer, ctx, sc, cx, f);
-    this.#drawActiveSection(renderer, cardManager, f, ctx, sc);
-    this.#drawAutoSection(renderer, cardManager, f, ctx, sc);
-    this.#drawStorageSection(renderer, cardManager, f, ctx, sc, cx);
-    this.#drawFooter(renderer, ctx, sc, cx, f);
+    this.#drawPreview(renderer, ctx, sc, f, cardManager);
+    this.#drawManagement(renderer, ctx, sc, f, cardManager);
   }
 
-  // --------------------- PRIVATE: update ---------------------
+  // --------------------- update helpers ---------------------
 
-  // First click on a card: inspect it; second click on the same card: pick it up
+  #totalPages(cardManager) {
+    return Math.max(1, Math.ceil(cardManager.storage.length / STORE_PAGE_SIZE));
+  }
+
   #handleInspectOrPickup(card, hit, audio) {
     if (!card) {
       this._inspected = null;
@@ -135,16 +140,14 @@ export default class DeckScreen {
     }
   }
 
-  // Drop the moving card into the clicked slot if the type is compatible
   #handleDrop(hit, cardManager, audio) {
     if (hit) {
       const src = this._selected.card;
-      const compatible =
+      const ok =
         hit.type === "storage" ||
         (hit.type === "active" && src.type === CardType.ACTIVE) ||
         (hit.type === "auto" && src.type === CardType.AUTOMATIC);
-
-      if (compatible) {
+      if (ok) {
         cardManager.assignToSlot(src, hit.type, hit.index);
         audio?.playSFX("equip");
       }
@@ -153,19 +156,29 @@ export default class DeckScreen {
     this._inspected = null;
   }
 
-  // --------------------- PRIVATE: draw sections ---------------------
+  // The card shown in the preview: inspected > moving > first available card
+  #previewCard(cardManager) {
+    if (this._inspected?.card) return this._inspected.card;
+    if (this._selected?.card) return this._selected.card;
+    const active = cardManager.activeSlots
+      .slice(0, cardManager.activeSlotCount)
+      .find(Boolean);
+    if (active) return active;
+    const auto = cardManager.autoSlots
+      .slice(0, cardManager.autoSlotCount)
+      .find(Boolean);
+    if (auto) return auto;
+    return cardManager.storage[0] ?? null;
+  }
 
-  // Panel background + border edges
+  // --------------------- draw: chrome ---------------------
+
   #drawPanel(renderer, ctx, sc, cx, f) {
     renderer.drawRect(PX, PY, PW, PH, P.bg);
-    renderer.drawRect(PX, PY, PW, 2, P.border);
-    renderer.drawRect(PX, PY + PH - 2, PW, 2, P.border);
-    renderer.drawRect(PX, PY, 2, PH, P.border);
-    renderer.drawRect(PX + PW - 2, PY, 2, PH, P.border);
+    this.#frame2px(renderer, PX, PY, PW, PH, P.border);
 
-    // Title with glow
-    ctx.shadowColor = "rgba(200,200,200,0.35)";
-    ctx.shadowBlur = Math.round(7 * sc);
+    ctx.shadowColor = "rgba(180,100,255,0.85)";
+    ctx.shadowBlur = Math.round(9 * sc);
     renderer.drawText("MANAGE DECK", cx, TITLE_Y, 7, P.text, {
       align: "center",
       font: f,
@@ -174,75 +187,141 @@ export default class DeckScreen {
     ctx.shadowBlur = 0;
 
     renderer.drawRect(PX, DIV1_Y, PW, 1, P.border);
+    renderer.drawRect(SPLIT_X, DIV1_Y + 1, 1, PY + PH - DIV1_Y - 3, P.border);
   }
 
-  #drawActiveSection(renderer, cardManager, f, ctx, sc) {
-    renderer.drawText("▶  ACTIVE CARDS", PX + 6, ACT_LABEL_Y, 4, P.sub, {
-      align: "left",
+  #frame2px(renderer, x, y, w, h, color) {
+    renderer.drawRect(x, y, w, 2, color);
+    renderer.drawRect(x, y + h - 2, w, 2, color);
+    renderer.drawRect(x, y, 2, h, color);
+    renderer.drawRect(x + w - 2, y, 2, h, color);
+    renderer.drawRect(x, y, 1, 1, P.bg);
+    renderer.drawRect(x + w - 1, y, 1, 1, P.bg);
+    renderer.drawRect(x, y + h - 1, 1, 1, P.bg);
+    renderer.drawRect(x + w - 1, y + h - 1, 1, 1, P.bg);
+  }
+
+  // --------------------- draw: preview (left) ---------------------
+
+  #drawPreview(renderer, ctx, sc, f, cardManager) {
+    const card = this.#previewCard(cardManager);
+
+    if (!card) {
+      renderer.drawText("NO CARDS", LEFT_CX, 80, 4, P.dim, {
+        align: "center",
+        font: f,
+      });
+      return;
+    }
+
+    const rc = RARITY_COLOR[card.rarity] ?? P.sub;
+
+    // Big card with rarity glow + contour
+    ctx.shadowColor = rc + "99";
+    ctx.shadowBlur = Math.round(6 * sc);
+    this.#drawCardArt(renderer, card, PV_X, PV_CARD_Y, PV_W, PV_H, rc, f);
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+
+    // Rarity label
+    renderer.drawText(card.rarity.toUpperCase(), LEFT_CX, PV_RAR_Y, 3, rc, {
+      align: "center",
       font: f,
     });
 
-    const rects = this._rowRects(
-      cardManager.activeSlotCount,
-      CARD_W,
-      CARD_GAP,
-      ACT_ROW_Y,
+    // Name (wrapped, max 2 lines)
+    const nameLines = this.#wrap(card.name.toUpperCase(), 13).slice(0, 2);
+    nameLines.forEach((ln, i) =>
+      renderer.drawText(ln, LEFT_CX, PV_DESC_Y + i * 7, 4, P.text, {
+        align: "center",
+        font: f,
+      }),
     );
+
+    // Description (wrapped) below the name
+    const descStart = PV_DESC_Y + nameLines.length * 7 + 3;
+    const descLines = this.#wrap(
+      card.description ?? "No description.",
+      16,
+    ).slice(0, 4);
+    descLines.forEach((ln, i) =>
+      renderer.drawText(ln, LEFT_CX, descStart + i * 7, 3, P.label, {
+        align: "center",
+        font: f,
+      }),
+    );
+
+    // Level: stars + cooldown reduction
+    const lvl = card.level ?? 1;
+    const stars = "★".repeat(lvl) + "☆".repeat(3 - lvl);
+    renderer.drawText(`LV ${lvl}`, LEFT_CX - 14, PV_LEVEL_Y, 4, P.sub, {
+      align: "center",
+      font: f,
+    });
+    renderer.drawText(stars, LEFT_CX + 12, PV_LEVEL_Y, 4, P.accent, {
+      align: "center",
+      font: f,
+    });
+
+    const cd = LEVEL_CD_REDUCTION[lvl] ?? 0;
+    renderer.drawText(
+      cd > 0 ? `COOLDOWN -${cd}%` : "BASE COOLDOWN",
+      LEFT_CX,
+      PV_CD_Y,
+      3,
+      cd > 0 ? P.accent : P.dim,
+      { align: "center", font: f },
+    );
+  }
+
+  // --------------------- draw: management (right) ---------------------
+
+  #drawManagement(renderer, ctx, sc, f, cardManager) {
+    // ACTIVE
+    renderer.drawText("ACTIVE", RX0, R_ACT_LABEL, 4, P.sub, {
+      align: "left",
+      font: f,
+    });
+    const actRects = this._rowRects(cardManager.activeSlotCount, R_ACT_ROW);
     for (let i = 0; i < cardManager.activeSlotCount; i++) {
-      this._drawCard(
+      this.#drawCard(
         renderer,
         cardManager.activeSlots[i],
-        rects[i],
-        CARD_W,
-        CARD_H,
-        f,
+        actRects[i],
         ctx,
         sc,
+        f,
       );
-      // Hotkey hint below each slot
       renderer.drawText(
         String(i + 1),
-        rects[i].x + Math.floor(CARD_W / 2),
-        ACT_HINT_Y,
+        actRects[i].x + Math.floor(G_W / 2),
+        R_ACT_HINT,
         3,
         P.dim,
         { align: "center", font: f },
       );
     }
-  }
 
-  #drawAutoSection(renderer, cardManager, f, ctx, sc) {
-    renderer.drawRect(PX, DIV2_Y, PW, 1, P.border);
-    renderer.drawText("⟳  AUTOMATIC CARDS", PX + 6, AUTO_LABEL_Y, 4, P.sub, {
+    // AUTOMATIC
+    renderer.drawText("AUTOMATIC", RX0, R_AUTO_LABEL, 4, P.sub, {
       align: "left",
       font: f,
     });
-
-    const rects = this._rowRects(
-      cardManager.autoSlotCount,
-      CARD_W,
-      CARD_GAP,
-      AUTO_ROW_Y,
-    );
+    const autoRects = this._rowRects(cardManager.autoSlotCount, R_AUTO_ROW);
     for (let i = 0; i < cardManager.autoSlotCount; i++) {
-      this._drawCard(
+      this.#drawCard(
         renderer,
         cardManager.autoSlots[i],
-        rects[i],
-        CARD_W,
-        CARD_H,
-        f,
+        autoRects[i],
         ctx,
         sc,
+        f,
       );
     }
-  }
 
-  #drawStorageSection(renderer, cardManager, f, ctx, sc, cx) {
-    renderer.drawRect(PX, DIV3_Y, PW, 1, P.border);
-
+    // STORAGE
     const total = cardManager.storage.length;
-    const totalPages = Math.max(1, Math.ceil(total / STORE_PAGE_SIZE));
+    const totalPages = this.#totalPages(cardManager);
     const pageStart = this._storePage * STORE_PAGE_SIZE;
     const pageCards = cardManager.storage.slice(
       pageStart,
@@ -250,270 +329,168 @@ export default class DeckScreen {
     );
 
     renderer.drawText(
-      total === 0 ? "STORAGE  (empty)" : `STORAGE  [${total}]`,
-      PX + 6,
-      STORE_LABEL_Y,
+      total === 0 ? "STORAGE (EMPTY)" : `STORAGE [${total}]`,
+      RX0,
+      R_STORE_LABEL,
       4,
       P.sub,
       { align: "left", font: f },
     );
     if (totalPages > 1) {
       renderer.drawText(
-        `< ${this._storePage + 1} / ${totalPages} >`,
-        PX + PW - 6,
-        STORE_LABEL_Y,
-        4,
+        `< ${this._storePage + 1}/${totalPages} >`,
+        PX + PW - 4,
+        R_STORE_LABEL,
+        3,
         P.dim,
         { align: "right", font: f },
       );
     }
 
-    const rects = this._rowRects(
-      STORE_PAGE_SIZE,
-      STORE_W,
-      STORE_GAP,
-      STORE_ROW_Y,
-    );
+    const storeRects = this._rowRects(STORE_PAGE_SIZE, R_STORE_ROW);
     for (let i = 0; i < STORE_PAGE_SIZE; i++) {
-      this._drawCard(
-        renderer,
-        pageCards[i] ?? null,
-        rects[i],
-        STORE_W,
-        STORE_H,
-        f,
-        ctx,
-        sc,
-      );
+      this.#drawCard(renderer, pageCards[i] ?? null, storeRects[i], ctx, sc, f);
     }
-  }
 
-  // Footer area: shows moving indicator, card info panel, or hint text
-  #drawFooter(renderer, ctx, sc, cx, f) {
-    renderer.drawRect(PX, DIV3_Y + 1, PW, 1, P.border);
-
-    if (this._selected) {
-      this.#drawMovingIndicator(renderer, ctx, sc, cx, f);
-    } else if (this._inspected) {
-      this.#drawInspectPanel(renderer, ctx, sc, f);
-    } else {
-      renderer.drawText(
-        "[TAB] CLOSE   [CLICK] INSPECT   [2x] MOVE",
-        cx,
-        FOOTER_Y - 2,
-        3,
-        P.dim,
-        { align: "center", font: f },
-      );
-    }
-  }
-
-  #drawMovingIndicator(renderer, ctx, sc, cx, f) {
-    renderer.drawRect(
-      PX + 2,
-      STORE_ROW_Y + STORE_H + 2,
-      PW - 4,
-      PY + PH - (STORE_ROW_Y + STORE_H + 2) - 2,
-      "#111111",
-    );
-    ctx.shadowColor = "rgba(255,200,50,0.45)";
-    ctx.shadowBlur = Math.round(4 * sc);
     renderer.drawText(
-      `MOVING: ${this._selected.card.name}`,
-      cx,
-      FOOTER_Y - 2,
-      4,
-      "#ffcc33",
-      { align: "center", font: f },
-    );
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-  }
-
-  #drawInspectPanel(renderer, ctx, sc, f) {
-    const card = this._inspected.card;
-    const rc = RARITY_COLOR[card.rarity] ?? "#888888";
-    const infoY = STORE_ROW_Y + STORE_H + 2;
-    const infoH = PY + PH - infoY - 2;
-
-    renderer.drawRect(PX + 2, infoY, PW - 4, infoH, "#0e0e0e");
-    renderer.drawRect(PX + 2, infoY, 3, infoH, rc); // left rarity accent
-
-    // Name + type badge
-    const typeLabel = card.type === CardType.AUTOMATIC ? "AUTO" : "ACT";
-    const typeColor = card.type === CardType.AUTOMATIC ? "#bb8833" : "#5588bb";
-    renderer.drawText(card.name.toUpperCase(), PX + 10, infoY + 6, 4, P.text, {
-      align: "left",
-      font: f,
-    });
-    renderer.drawText(`[${typeLabel}]`, PX + PW - 6, infoY + 6, 4, typeColor, {
-      align: "right",
-      font: f,
-    });
-
-    // Description and move hint
-    renderer.drawText(
-      (card.description ?? "No description available.").slice(0, 68),
-      PX + 10,
-      infoY + 14,
-      3,
-      P.label,
-      { align: "left", font: f },
-    );
-    renderer.drawText(
-      "click again to move",
-      PX + PW - 6,
-      infoY + 14,
+      "[CLICK] INSPECT   [2x] MOVE   [TAB] CLOSE",
+      RX0 + Math.floor(RW / 2),
+      R_HINT_Y,
       3,
       P.dim,
-      { align: "right", font: f },
+      { align: "center", font: f },
     );
   }
 
-  // --------------------- PRIVATE: draw card tile ---------------------
-
-  // Draws a filled card or an empty slot placeholder
-  _drawCard(renderer, card, rect, cw, ch, f, ctx, sc) {
+  // --------------------- draw: single grid card ---------------------
+  #drawCard(renderer, card, rect, ctx, sc, f) {
     const { x, y } = rect;
-    const sel = this._selected?.card === card && card !== null;
-    const inspected = this._inspected?.card === card && card !== null;
 
     if (!card) {
-      this.#drawEmptySlot(renderer, x, y, cw, ch);
+      renderer.drawRect(x, y, G_W, G_H, "#0a0418");
+      this.#frame1px(renderer, x, y, G_W, G_H, P.muted);
       return;
     }
 
-    const rc = RARITY_COLOR[card.rarity] ?? "#888888";
-    const bg = sel ? "#1e1e1e" : inspected ? "#181818" : "#0c0c0c";
+    const rc = RARITY_COLOR[card.rarity] ?? P.sub;
+    const sel = this._selected?.card === card;
+    const inspected = this._inspected?.card === card;
 
-    renderer.drawRect(x, y, cw, ch, bg);
-    renderer.drawRect(x, y, 3, ch, rc); // rarity left strip
-    renderer.drawRect(
-      x + 3,
-      y,
-      cw - 3,
-      2, // type top strip
-      card.type === CardType.AUTOMATIC ? "#a06010" : "#1a3060",
-    );
-
-    // Card name abbreviation
-    const maxChars = cw >= 32 ? 5 : 3;
-    renderer.drawText(
-      card.name.slice(0, maxChars).toUpperCase(),
-      x + 3 + Math.floor((cw - 3) / 2),
-      y + Math.floor(ch / 2) - 1,
-      4,
-      sel ? "#ffffff" : inspected ? "#dddddd" : P.label,
-      { align: "center", font: f },
-    );
-
-    // Level pips at the bottom
-    const pipW = cw >= 32 ? 5 : 3;
-    const pipGap = cw >= 32 ? 3 : 2;
-    const pipsW = 3 * pipW + 2 * pipGap;
-    const pipX0 = x + Math.floor((cw - pipsW) / 2);
-    for (let lv = 0; lv < 3; lv++) {
-      renderer.drawRect(
-        pipX0 + lv * (pipW + pipGap),
-        y + ch - 4,
-        pipW,
-        2,
-        lv < (card.level ?? 0) ? rc : "#111120",
-      );
+    if (sel || inspected) {
+      ctx.shadowColor = (sel ? "#ffcc33" : P.accent) + "aa";
+      ctx.shadowBlur = Math.round(5 * sc);
     }
-
-    this.#drawCardBorder(renderer, ctx, sc, x, y, cw, ch, sel, inspected);
-  }
-
-  // Draws the card border — gold when moving, white when inspected, grey otherwise
-  #drawCardBorder(renderer, ctx, sc, x, y, cw, ch, sel, inspected) {
-    let color = P.muted;
-    if (sel) {
-      color = "#ffcc33";
-      ctx.shadowColor = "rgba(255,200,50,0.65)";
-      ctx.shadowBlur = Math.round(6 * sc);
-    }
-    if (inspected) {
-      color = "#cccccc";
-      ctx.shadowColor = "rgba(255,255,255,0.4)";
-      ctx.shadowBlur = Math.round(4 * sc);
-    }
-
-    renderer.drawRect(x - 1, y - 1, cw + 2, 1, color);
-    renderer.drawRect(x - 1, y + ch, cw + 2, 1, color);
-    renderer.drawRect(x - 1, y, 1, ch, color);
-    renderer.drawRect(x + cw, y, 1, ch, color);
-
+    this.#drawCardArt(renderer, card, x, y, G_W, G_H, sel ? "#ffcc33" : rc, f);
     if (sel || inspected) {
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
     }
+
+    // Level tag (top-right) for upgraded cards
+    const lvl = card.level ?? 1;
+    if (lvl > 1) {
+      const tagW = 8;
+      renderer.drawRect(
+        x + G_W - tagW - 1,
+        y + 1,
+        tagW,
+        6,
+        "rgba(124,77,255,0.92)",
+      );
+      renderer.drawText(
+        `L${lvl}`,
+        x + G_W - Math.floor(tagW / 2) - 1,
+        y + 4,
+        3,
+        "#ffffff",
+        { align: "center", font: f },
+      );
+    }
+
+    // Level pips (bottom)
+    const pipW = 3,
+      pipGap = 1;
+    const pipsW = 3 * pipW + 2 * pipGap;
+    const pipX0 = x + Math.floor((G_W - pipsW) / 2);
+    for (let i = 0; i < 3; i++) {
+      renderer.drawRect(
+        pipX0 + i * (pipW + pipGap),
+        y + G_H - 3,
+        pipW,
+        2,
+        i < lvl ? P.accent : "#1a0e30",
+      );
+    }
   }
 
-  // Empty slot: dark box with a small dash in the center
-  #drawEmptySlot(renderer, x, y, cw, ch) {
-    renderer.drawRect(x, y, cw, ch, "#080808");
-    renderer.drawRect(x - 1, y - 1, cw + 2, 1, P.border);
-    renderer.drawRect(x - 1, y + ch, cw + 2, 1, P.border);
-    renderer.drawRect(x - 1, y, 1, ch, P.border);
-    renderer.drawRect(x + cw, y, 1, ch, P.border);
-    renderer.drawRect(
-      x + Math.floor(cw / 2) - 2,
-      y + Math.floor(ch / 2),
-      4,
-      1,
-      P.dim,
-    );
+  // --------------------- Shared card art ---------------------
+  #drawCardArt(renderer, card, x, y, w, h, contour, f) {
+    renderer.drawRect(x, y, w, h, P.cardBg);
+    if (card._img?.complete && card._img.naturalWidth > 0) {
+      renderer.drawImage(card._img, x + 1, y + 1, w - 2, h - 2);
+    } else {
+      renderer.drawText(
+        card.name.slice(0, 3).toUpperCase(),
+        x + Math.floor(w / 2),
+        y + Math.floor(h / 2),
+        3,
+        P.label,
+        { align: "center", font: f },
+      );
+    }
+    this.#frame1px(renderer, x, y, w, h, contour);
   }
 
-  // --------------------- PRIVATE: helpers ---------------------
+  #frame1px(renderer, x, y, w, h, color) {
+    renderer.drawRect(x, y, w, 1, color);
+    renderer.drawRect(x, y + h - 1, w, 1, color);
+    renderer.drawRect(x, y, 1, h, color);
+    renderer.drawRect(x + w - 1, y, 1, h, color);
+  }
 
-  // Returns screen rects for a centered row of cards
-  _rowRects(count, cardW, gap, rowY) {
-    const rowW = count * cardW + Math.max(0, count - 1) * gap;
-    const startX = Math.floor((ROOM_WIDTH - rowW) / 2);
+  // --------------------- Text wrap ---------------------
+  #wrap(text, maxChars) {
+    const words = String(text ?? "").split(/\s+/);
+    const lines = [];
+    let line = "";
+    for (const w of words) {
+      const next = line ? line + " " + w : w;
+      if (next.length > maxChars && line) {
+        lines.push(line);
+        line = w;
+      } else line = next;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // --------------------- hit testing ---------------------
+
+  // Centres a row of cards within the right management column
+  _rowRects(count, rowY) {
+    const rowW = count * G_W + Math.max(0, count - 1) * G_GAP;
+    const startX = RX0 + Math.floor((RW - rowW) / 2);
     return Array.from({ length: count }, (_, i) => ({
-      x: startX + i * (cardW + gap),
+      x: startX + i * (G_W + G_GAP),
       y: rowY,
-      w: cardW,
+      w: G_W,
     }));
   }
 
-  // Returns which slot was clicked, or null if none
   _hitTest(pos, cardManager) {
-    const activeRects = this._rowRects(
-      cardManager.activeSlotCount,
-      CARD_W,
-      CARD_GAP,
-      ACT_ROW_Y,
-    );
-    for (let i = 0; i < cardManager.activeSlotCount; i++) {
-      if (this._inRect(pos, activeRects[i], CARD_H))
-        return { type: "active", index: i };
-    }
+    const act = this._rowRects(cardManager.activeSlotCount, R_ACT_ROW);
+    for (let i = 0; i < cardManager.activeSlotCount; i++)
+      if (this._inRect(pos, act[i], G_H)) return { type: "active", index: i };
 
-    const autoRects = this._rowRects(
-      cardManager.autoSlotCount,
-      CARD_W,
-      CARD_GAP,
-      AUTO_ROW_Y,
-    );
-    for (let i = 0; i < cardManager.autoSlotCount; i++) {
-      if (this._inRect(pos, autoRects[i], CARD_H))
-        return { type: "auto", index: i };
-    }
+    const auto = this._rowRects(cardManager.autoSlotCount, R_AUTO_ROW);
+    for (let i = 0; i < cardManager.autoSlotCount; i++)
+      if (this._inRect(pos, auto[i], G_H)) return { type: "auto", index: i };
 
-    const storeRects = this._rowRects(
-      STORE_PAGE_SIZE,
-      STORE_W,
-      STORE_GAP,
-      STORE_ROW_Y,
-    );
+    const store = this._rowRects(STORE_PAGE_SIZE, R_STORE_ROW);
     const pageStart = this._storePage * STORE_PAGE_SIZE;
-    for (let i = 0; i < STORE_PAGE_SIZE; i++) {
-      if (this._inRect(pos, storeRects[i], STORE_H))
+    for (let i = 0; i < STORE_PAGE_SIZE; i++)
+      if (this._inRect(pos, store[i], G_H))
         return { type: "storage", index: pageStart + i };
-    }
 
     return null;
   }
