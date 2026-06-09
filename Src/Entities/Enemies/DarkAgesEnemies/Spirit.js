@@ -94,16 +94,11 @@ export default class Spirit extends Enemy {
       renderer.drawRect(drawX, drawY, DRAW_W, DRAW_H, this.color);
     }
 
-    // Health bar above sprite
-    const H  = 4;
-    const bx = this.position.x - DRAW_W / 2;
-    const by = this.position.y - DRAW_H / 2 - H - 2;
-    renderer.drawRect(bx, by, DRAW_W, H, "#333333");
-    const fill = Math.max(0, (this.health / this.maxHealth) * DRAW_W);
-    renderer.drawRect(bx, by, fill, H, "#22cc44");
+    this._drawHealthBar(renderer, drawX, drawY, DRAW_W);
   }
 
-  // --------------------- PRIVATE ---------------------
+  // --------------------- PRIVATE -----------
+  // ----------
   #updateMovement(deltaTime, normDir, distance) {
     if (this._shootPhase === "animating") {
       this.velocity = new Vector(0, 0);

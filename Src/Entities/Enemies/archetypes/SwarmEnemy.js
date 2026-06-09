@@ -42,7 +42,7 @@ export default class SwarmEnemy extends Enemy {
     this._animations = animations ?? null;
 
     this._animation = animations
-      ? new Animation({ sheet: animations.left.idle, fps: 8, loop: true })
+      ? new Animation({ sheet: animations.left.idle, fps: 6, loop: true })
       : null;
   }
 
@@ -114,11 +114,12 @@ export default class SwarmEnemy extends Enemy {
     if (this.velocity.x < 0) this._facingDir = "left";
     else if (this.velocity.x > 0) this._facingDir = "right";
 
-    const action = this.velocity.squareLength() > 0.1 ? "walk" : "idle";
-    const sheet = this._animations[this._facingDir][action];
+    const action = this.isDiving ? "attack" : "idle";
+    const fps    = this.isDiving ? 12 : 6;
+    const sheet  = this._animations[this._facingDir][action];
 
     if (this._animation.sheet !== sheet) {
-      this._animation = new Animation({ sheet, fps: 8, loop: true });
+      this._animation = new Animation({ sheet, fps, loop: true });
     }
   }
 }

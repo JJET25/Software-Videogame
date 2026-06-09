@@ -75,16 +75,23 @@ export default class Enemy extends Entity {
 
   draw(renderer) {
     super.draw(renderer);
+    this._drawHealthBar(renderer, this.position.x - this.width / 2, this.position.y - this.height / 2, this.width);
+  }
 
-    // health bar just above the enemy sprite
-    const W = this.width;
-    const H = 4;
-    const bx = this.position.x - W / 2;
-    const by = this.position.y - this.height / 2 - H - 2;
+  _drawHealthBar(renderer, bx, by, barW) {
+    const W    = Math.round(barW * 0.65);
+    const offX = Math.floor((barW - W) / 2);
+    const barX = bx + offX;
+    const barY = by - 4;
+    const pct  = Math.max(0, this.health / this.maxHealth);
+    const fill = Math.floor(pct * W);
+    const color =
+      pct > 0.6 ? "#3adb44" :
+      pct > 0.3 ? "#e8a020" :
+                  "#cc2020";
 
-    renderer.drawRect(bx, by, W, H, "#333333");
-    const fill = Math.max(0, (this.health / this.maxHealth) * W);
-    renderer.drawRect(bx, by, fill, H, "#22cc44");
+    renderer.drawRect(barX, barY, W, 2, "#111111");
+    if (fill > 0) renderer.drawRect(barX, barY, fill, 2, color);
   }
 
   die() {

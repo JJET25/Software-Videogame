@@ -68,13 +68,7 @@ export default class TwoHeadedGiant extends TankEnemy {
       renderer.drawRect(drawX, drawY, DRAW_W, DRAW_H, this.color);
     }
 
-    // Health bar
-    const H  = 4;
-    const bx = drawX;
-    const by = drawY - H - 2;
-    renderer.drawRect(bx, by, DRAW_W, H, "#333333");
-    const fill = Math.max(0, (this.health / this.maxHealth) * DRAW_W);
-    renderer.drawRect(bx, by, fill, H, "#22cc44");
+    this._drawHealthBar(renderer, drawX, drawY, DRAW_W);
   }
 
   // --------------------- PRIVATE ---------------------
