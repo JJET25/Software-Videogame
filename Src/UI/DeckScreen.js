@@ -51,7 +51,7 @@ const PV_CD_Y = 162;
 // --------------------- GRID CARDS (right) ---------------------
 const G_W = 18,
   G_H = 25,
-  G_GAP = 3; // ~8:11
+  G_GAP = 3; 
 const STORE_PAGE_SIZE = 8;
 
 const R_ACT_LABEL = 24;
@@ -120,8 +120,7 @@ export default class DeckScreen {
     this.#drawManagement(renderer, ctx, sc, f, cardManager);
   }
 
-  // --------------------- update helpers ---------------------
-
+  // --------------------- UPDATE HELPERS ---------------------
   #totalPages(cardManager) {
     return Math.max(1, Math.ceil(cardManager.storage.length / STORE_PAGE_SIZE));
   }
@@ -172,7 +171,6 @@ export default class DeckScreen {
   }
 
   // --------------------- draw: chrome ---------------------
-
   #drawPanel(renderer, ctx, sc, cx, f) {
     renderer.drawRect(PX, PY, PW, PH, P.bg);
     this.#frame2px(renderer, PX, PY, PW, PH, P.border);

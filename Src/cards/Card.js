@@ -18,39 +18,40 @@ const AUT = "../../Assets/Sprites/cards/automatic cards/";
 
 const CARD_IMAGE_MAP = {
   // ── ACTIVE · MELEE ────────────────────────────────────────────────────────
-  "Quick Strike": ACT + "quick-strike.jpeg",
-  "Iron Fist": ACT + "iron-fist.jpeg",
-  "Nova Burst": ACT + "nova-burst.jpeg",
+  "Quick Strike": ACT + "quick-strike.png",
+  "Iron Fist": ACT + "iron-fist.png",
+  "Nova Burst": ACT + "nova-burst.png",
   "Shadow Blade": ACT + "shadow-knife.png",
 
   // ── ACTIVE · HEAL ─────────────────────────────────────────────────────────
   "Heal Pulse": ACT + "healing-potion.png",
-  "Mending Wave": ACT + "mending-wave.jpeg",
-  "Phoenix Elixir": ACT + "phoenix-elixir.jpeg",
+  "Remedy Vial": ACT + "remedy-vial.png",
+  "Mending Wave": ACT + "mending-wave.png",
+  "Phoenix Elixir": ACT + "phoenix-elixir.png",
 
   // ── ACTIVE · DRAIN ────────────────────────────────────────────────────────
-  "Blood Siphon": ACT + "blood-siphon.jpeg",
+  "Blood Siphon": ACT + "blood-siphon.png",
 
   // ── ACTIVE · DEFENSE ──────────────────────────────────────────────────────
   "Wood Shield": ACT + "wood-shield.png",
-  "Stone Wall": ACT + "stone-wall.jpeg",
-  "Mirror Guard": ACT + "mirror-guard.jpeg",
+  "Stone Wall": ACT + "stone-wall.png",
+  "Mirror Guard": ACT + "mirror-guard.png",
   "Diamond Fortress": ACT + "diamond-fortress.jpeg",
 
   // ── AUTOMATIC · COMMON ────────────────────────────────────────────────────
-  Lifetap: AUT + "life-tap.jpeg",
-  "Iron Skin": AUT + "iron-skin.jpeg",
-  "Wound Echo": AUT + "wound-echo.jpeg",
-  "Quick Recovery": AUT + "quick-recovery.jpeg",
+  Lifetap: AUT + "life-tap.png",
+  "Iron Skin": AUT + "iron-skin.png",
+  "Wound Echo": AUT + "wound-echo.png",
+  "Quick Recovery": AUT + "quick-recovery.png",
 
   // ── AUTOMATIC · RARE ──────────────────────────────────────────────────────
-  Rebound: AUT + "rebound.jpeg",
-  "Berserker Rush": AUT + "berserket-rush.jpeg",
-  "Phantom Step": AUT + "phantom-step.jpeg",
-  "Soul Siphon": AUT + "sould-siphon.jpeg",
+  Rebound: AUT + "rebound.png",
+  "Berserker Rush": AUT + "berserker-rush.png",
+  "Phantom Step": AUT + "phantom-step.png",
+  "Soul Siphon": AUT + "soul-siphon.png",
 
   // ── AUTOMATIC · EPIC ──────────────────────────────────────────────────────
-  "Last Stand": AUT + "last-stand.jpeg",
+  "Last Stand": AUT + "last-stand.png",
   "Chain Kill": AUT + "chain-kill.jpeg",
   Aftershock: AUT + "after-shock.jpeg",
 
