@@ -426,16 +426,14 @@ INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibi
 
 DELIMITER $$
 
--- 1. After a new run is inserted: cancel any other active run for this user
---    and auto-create the run_player_state record.
+-- 1. After a new run is inserted: auto-create the run_player_state record.
+--    Note: cancelling other active runs for the same user cannot be done here
+--    because MySQL forbids updating the triggering table inside a trigger.
+--    That logic lives in sp_start_run instead.
 CREATE TRIGGER trg_after_run_insert
     AFTER INSERT ON runs
     FOR EACH ROW
 BEGIN
-    UPDATE runs
-    SET    status = 'defeat', ended_at = NOW()
-    WHERE  user_id = NEW.user_id AND status = 'active' AND id != NEW.id;
-
     INSERT IGNORE INTO run_player_state (run_id) VALUES (NEW.id);
 END$$
 
@@ -503,9 +501,14 @@ DELIMITER ;
 DELIMITER $$
 
 -- 1. Start a new run.
---    trg_after_run_insert handles: cancelling old active run + creating run_player_state.
+--    Cancels any previous active run for this user, then inserts a new one.
+--    trg_after_run_insert handles creating run_player_state.
 CREATE PROCEDURE sp_start_run(IN p_user_id INT)
 BEGIN
+    UPDATE runs
+    SET    status = 'defeat', ended_at = NOW()
+    WHERE  user_id = p_user_id AND status = 'active';
+
     INSERT INTO runs (user_id) VALUES (p_user_id);
     SELECT LAST_INSERT_ID() AS run_id;
 END$$
