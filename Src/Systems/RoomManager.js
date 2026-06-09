@@ -118,10 +118,11 @@ export default class RoomManager {
     }
 
     renderer.setOffset(0, 0);
-    this.currentRoom.draw(renderer);
-    this.doorVisuals.forEach((v) => v.draw(renderer));
+    this.currentRoom.draw(renderer);                          // bg, walls, objects
+    this.doorVisuals.forEach((v) => v.draw(renderer));        // doors behind enemies
     this.doors.forEach((door) => door.draw(renderer));
     this.doorBlockers.forEach((db) => db.draw(renderer));
+    this.currentRoom.drawEnemies(renderer);                   // enemies in front of doors
     for (const bullet of this.bullets) bullet.draw(renderer);
     for (const credit of this.credits) credit.draw(renderer);
   }
@@ -361,9 +362,11 @@ export default class RoomManager {
 
     renderer.setOffset(fromOffsetX, fromOffsetY);
     fromRoom.draw(renderer);
+    fromRoom.drawEnemies(renderer);
 
     renderer.setOffset(toOffsetX, toOffsetY);
     toRoom.draw(renderer);
+    toRoom.drawEnemies(renderer);
 
     renderer.setOffset(0, 0);
   }

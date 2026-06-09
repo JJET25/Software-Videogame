@@ -86,9 +86,13 @@ export default class Room {
 
     this.#drawDecor(renderer);
 
-    // Draw walls, objects and enemies
+    // Draw walls and objects (enemies drawn separately by RoomManager, after doors)
     for (const wall of this.walls) wall.draw(renderer);
     for (const obj of this.objects) obj.draw(renderer);
+  }
+
+  // Called by RoomManager after door visuals so enemies render on top of doors
+  drawEnemies(renderer) {
     for (const enemy of this.enemies) enemy.draw(renderer);
   }
 
