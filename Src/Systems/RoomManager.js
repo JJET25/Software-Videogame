@@ -1,4 +1,5 @@
 import Door from "../World/Objects/Door.js";
+import DoorVisual from "../World/Objects/DoorVisual.js";
 import Collision from "../Physics/Collision.js";
 import Vector from "../Utils/Vector.js";
 import Room from "../World/Rooms/Room.js";
@@ -38,6 +39,8 @@ export default class RoomManager {
 
     this.doors = [];
     this.doorBlockers = [];
+    this.doorVisuals = [];
+    this._connectedDirs = new Set();
     this.bullets = [];
     this._knownBullets = new Set();
     this.credits = [];
@@ -96,6 +99,7 @@ export default class RoomManager {
     this.currentRoom.update(deltaTime, this.player);
     this.#updateCredits(deltaTime);
     this.#updateBullets(deltaTime);
+    for (const v of this.doorVisuals) v.update(deltaTime);
 
     // Door collisions
     for (const door of this.doors) {
@@ -115,6 +119,7 @@ export default class RoomManager {
 
     renderer.setOffset(0, 0);
     this.currentRoom.draw(renderer);
+    this.doorVisuals.forEach((v) => v.draw(renderer));
     this.doors.forEach((door) => door.draw(renderer));
     this.doorBlockers.forEach((db) => db.draw(renderer));
     for (const bullet of this.bullets) bullet.draw(renderer);
@@ -155,9 +160,10 @@ export default class RoomManager {
 
     this.currentRoom = this.roomCache.get(nodeId);
     this.doors = this.#buildDoors(node);
+    this.doorVisuals = this.#buildDoorVisuals(node);
 
     this.#placePlayer(fromNodeId);
-    this.#setDoorsLocked(this.currentRoom.enemies.length > 0);
+    this.#setDoorsLocked(this.currentRoom.enemies.length > 0, true);
 
     this.trasitionCooldown = 0.3;
     this.player.isVisible = true;
@@ -166,10 +172,12 @@ export default class RoomManager {
 
   #buildDoors(node) {
     this.doorBlockers = [];
+    this._connectedDirs = new Set();
     const doors = [];
 
     for (const neighbor of this.graph.getNeighbors(node.id)) {
       const direction = this.#getDirectionBetweem(node, neighbor);
+      this._connectedDirs.add(direction);
       const positions = this.currentRoom.getDoorTilePositions(direction);
 
       for (const position of positions) {
@@ -179,6 +187,13 @@ export default class RoomManager {
       }
     }
     return doors;
+  }
+
+  #buildDoorVisuals(node) {
+    const tileSetId = this.dimension?.tileSetId ?? "tilesDarkAge";
+    return ["north", "south", "east", "west"].map(
+      (dir) => new DoorVisual(dir, tileSetId),
+    );
   }
 
   // Positions the player at the center on first entry or just inside the arrival door otherwise
@@ -198,10 +213,15 @@ export default class RoomManager {
     this.player.position = doorPos.plus(new Vector(offset.x * 2, offset.y * 2));
   }
 
-  // Loocks or unlocks all doors and blockers together
-  #setDoorsLocked(locked) {
+  // Locks or unlocks all doors, blockers, and door visuals together
+  #setDoorsLocked(locked, instant = false) {
     this.doors.forEach((door) => (locked ? door.lock() : door.unlock()));
     this.doorBlockers.forEach((db) => (db.isActive = locked));
+    this.doorVisuals.forEach((v) => {
+      if (this._connectedDirs.has(v._direction)) {
+        locked ? v.close(instant) : v.open(instant);
+      }
+    });
   }
 
   // Unlocks doors and fires boss callbacks when all enemies are dead
