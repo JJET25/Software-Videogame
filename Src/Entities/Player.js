@@ -155,140 +155,33 @@ const KNIGHT_ANIMATIONS = {
   },
 };
 
-// Cowboy: 608x240, frame 48x60, 13 frames per row
-// Layout per row: col0=idle(1), cols1-4=walk(4), cols5-8=attack(4), cols9-12=defense(4)
+// Cowboy: 608x192, frame 48x48
+// srcX per group: idle=0, walk=48, attack=231(shifted for wide frames), defense=432
+// srcY per row: down=12, left=60, right=108, up=154
 const COWBOY_ANIMATIONS = {
   down: {
-    idle: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 1,
-      row: 0,
-    }),
-    walk: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 0,
-      startCol: 1,
-    }),
-    attack: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 0,
-      startCol: 5,
-    }),
-    defense: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 0,
-      startCol: 9,
-    }),
+    idle:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 1, srcX: 0,   srcY: 12  }),
+    walk:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 48,  srcY: 12  }),
+    attack:  new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 231, srcY: 12  }),
+    defense: new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 432, srcY: 12  }),
   },
   left: {
-    idle: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 1,
-      row: 1,
-    }),
-    walk: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 1,
-      startCol: 1,
-    }),
-    attack: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 1,
-      startCol: 5,
-    }),
-    defense: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 1,
-      startCol: 9,
-    }),
+    idle:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 1, srcX: 0,   srcY: 60  }),
+    walk:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 48,  srcY: 60  }),
+    attack:  new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 231, srcY: 60  }),
+    defense: new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 432, srcY: 60  }),
   },
   right: {
-    idle: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 1,
-      row: 2,
-    }),
-    walk: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 2,
-      startCol: 1,
-    }),
-    attack: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 2,
-      startCol: 5,
-    }),
-    defense: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 2,
-      startCol: 9,
-    }),
+    idle:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 1, srcX: 0,   srcY: 108 }),
+    walk:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 48,  srcY: 108 }),
+    attack:  new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 231, srcY: 108 }),
+    defense: new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 432, srcY: 108 }),
   },
   up: {
-    idle: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 1,
-      row: 3,
-    }),
-    walk: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 3,
-      startCol: 1,
-    }),
-    attack: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 3,
-      startCol: 5,
-    }),
-    defense: new SpriteSheet({
-      image: _cowboyImg,
-      frameWidth: 48,
-      frameHeight: 60,
-      frameCount: 4,
-      row: 3,
-      startCol: 9,
-    }),
+    idle:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 1, srcX: 0,   srcY: 154 }),
+    walk:    new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 48,  srcY: 154 }),
+    attack:  new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 231, srcY: 154 }),
+    defense: new SpriteSheet({ image: _cowboyImg, frameWidth: 48, frameHeight: 48, frameCount: 4, srcX: 432, srcY: 154 }),
   },
 };
 
@@ -418,7 +311,7 @@ export default class Player extends Entity {
     if (dimensionId === "oldWest") {
       this._currentAnimations = COWBOY_ANIMATIONS;
       this._spriteW = 48;
-      this._spriteH = 60;
+      this._spriteH = 48;
     } else {
       this._currentAnimations = KNIGHT_ANIMATIONS;
       this._spriteW = 40;

@@ -129,17 +129,13 @@ export default class Renderer {
   drawAnimation(animation, x, y, width, height) {
     const { sheet, frame } = animation;
     if (!sheet.isLoaded) return;
-    this.drawSprite(
-      sheet.image,
-      (sheet.startCol + frame) * sheet.frameWidth,
-      sheet.row * sheet.frameHeight,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      x,
-      y,
-      width,
-      height,
-    );
+    const sx = sheet.srcX !== null
+      ? sheet.srcX + frame * sheet.frameWidth
+      : (sheet.startCol + frame) * sheet.frameWidth;
+    const sy = sheet.srcY !== null
+      ? sheet.srcY
+      : sheet.row * sheet.frameHeight;
+    this.drawSprite(sheet.image, sx, sy, sheet.frameWidth, sheet.frameHeight, x, y, width, height);
   }
 
   setOffset(x, y) {

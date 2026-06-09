@@ -8,12 +8,16 @@ export default class SpriteSheet {
     frameCount,
     row = 0,
     startCol = 0,
+    srcX = null,
+    srcY = null,
   }) {
     this.frameWidth = frameWidth;
     this.frameHeight = frameHeight;
     this.frameCount = frameCount;
     this.row = row;
     this.startCol = startCol;
+    this.srcX = srcX;
+    this.srcY = srcY;
 
     if (image) {
       this.image = image;
