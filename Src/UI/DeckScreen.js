@@ -3,15 +3,15 @@ import { CardType } from "../cards/Card.js";
 
 // --------------------- PALETTE ---------------------
 const P = {
-  bg: "#0d0520",
-  border: "#2a1050",
-  muted: "#4a2870",
-  sub: "#866ea7",
-  text: "#d0b8ff",
-  label: "#a090cc",
-  dim: "#5a3878",
-  accent: "#7c4dff",
-  cardBg: "#140a28",
+  bg: "#111111",
+  border: "#2a2a2a",
+  muted: "#3a3a3a",
+  sub: "#888888",
+  text: "#d0d0d0",
+  label: "#aaaaaa",
+  dim: "#555555",
+  accent: "#aaaaaa",
+  cardBg: "#0e0e0e",
 };
 
 const RARITY_COLOR = {
@@ -175,7 +175,7 @@ export default class DeckScreen {
     renderer.drawRect(PX, PY, PW, PH, P.bg);
     this.#frame2px(renderer, PX, PY, PW, PH, P.border);
 
-    ctx.shadowColor = "rgba(180,100,255,0.85)";
+    ctx.shadowColor = "rgba(200,200,200,0.45)";
     ctx.shadowBlur = Math.round(9 * sc);
     renderer.drawText("MANAGE DECK", cx, TITLE_Y, 7, P.text, {
       align: "center",
@@ -365,7 +365,7 @@ export default class DeckScreen {
     const { x, y } = rect;
 
     if (!card) {
-      renderer.drawRect(x, y, G_W, G_H, "#0a0418");
+      renderer.drawRect(x, y, G_W, G_H, "#0a0a0a");
       this.#frame1px(renderer, x, y, G_W, G_H, P.muted);
       return;
     }
@@ -393,7 +393,7 @@ export default class DeckScreen {
         y + 1,
         tagW,
         6,
-        "rgba(124,77,255,0.92)",
+        "rgba(80,80,80,0.92)",
       );
       renderer.drawText(
         `L${lvl}`,
@@ -416,7 +416,7 @@ export default class DeckScreen {
         y + G_H - 3,
         pipW,
         2,
-        i < lvl ? P.accent : "#1a0e30",
+        i < lvl ? P.accent : "#1a1a1a",
       );
     }
   }

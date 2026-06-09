@@ -1,6 +1,6 @@
 import DungeonRat from "../../Entities/Enemies/DarkAgesEnemies/DungeonRat.js";
 import Skeleton from "../../Entities/Enemies/DarkAgesEnemies/Skeleton.js";
-import Slime from "../../Entities/Enemies/DarkAgesEnemies/Slime.js";
+import Spirit from "../../Entities/Enemies/DarkAgesEnemies/Spirit.js";
 import SkeletonKing from "../../Entities/Enemies/DarkAgesEnemies/SkeletonKing.js";
 import { ROOM_WEIGHTS } from "../../Utils/Constants.js";
 import Dimension from "./Dimension.js";
@@ -34,7 +34,7 @@ export default class DarkAgesDimension extends Dimension {
       enemyPool: {
         swarm: [DungeonRat],
         tank: [Skeleton],
-        ranged: [Slime],
+        ranged: [Spirit],
       },
       miniBoss: FallenKnight,
       finalBoss: SkeletonKing, 

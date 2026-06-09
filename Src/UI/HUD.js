@@ -29,9 +29,9 @@ const SLOTS_X = 3; // left margin
 const SLOTS_Y = ROOM_HEIGHT - SLOT_H - 7;
 const NAME_STRIP_H = 6;
 
-const SLOT_BG = "#0e0822";
-const SLOT_BORDER = "#3a2860";
-const SLOT_SELECT = "#c0a0ff";
+const SLOT_BG = "#111111";
+const SLOT_BORDER = "#2a2a2a";
+const SLOT_SELECT = "#dddddd";
 
 const FLASH_DUR = 0.25;
 
@@ -182,7 +182,7 @@ export default class HUD {
 
       if (card) {
         if (sel) {
-          ctx.shadowColor = "rgba(192,160,255,0.55)";
+          ctx.shadowColor = "rgba(200,200,200,0.45)";
           ctx.shadowBlur = Math.round(5 * sc);
         }
 
@@ -202,27 +202,27 @@ export default class HUD {
             SLOTS_Y + 1,
             SLOT_W - 2,
             imgH - 1,
-            "#1a0e30",
+            "#1a1a1a",
           );
           renderer.drawText(
             card.name.slice(0, 3).toUpperCase(),
             x + Math.floor(SLOT_W / 2),
             SLOTS_Y + Math.floor(imgH / 2),
             3,
-            "#6a5a90",
+            "#666666",
             { align: "center", font: f },
           );
         }
 
         // Name strip
         const nameY = SLOTS_Y + SLOT_H - NAME_STRIP_H;
-        renderer.drawRect(x, nameY, SLOT_W, NAME_STRIP_H, "#080412");
+        renderer.drawRect(x, nameY, SLOT_W, NAME_STRIP_H, "#0a0a0a");
         renderer.drawText(
           card.name.slice(0, 3).toUpperCase(),
           x + Math.floor(SLOT_W / 2),
           nameY + Math.floor(NAME_STRIP_H / 2),
           3,
-          sel ? "#ffffff" : "#b0a0d0",
+          sel ? "#ffffff" : "#aaaaaa",
           { align: "center", font: f },
         );
 
@@ -230,14 +230,14 @@ export default class HUD {
         if (!cardManager.cooldown.isReady(card.name)) {
           const prog = cardManager.cooldown.getProgress(card.name);
           const overlayH = Math.ceil((1 - prog) * SLOT_H);
-          renderer.drawRect(x, SLOTS_Y, SLOT_W, overlayH, "rgba(8,4,18,0.78)");
+          renderer.drawRect(x, SLOTS_Y, SLOT_W, overlayH, "rgba(10,10,10,0.78)");
           if (overlayH > 7) {
             renderer.drawText(
               cardManager.cooldown.getRemaining(card.name).toFixed(1),
               x + Math.floor(SLOT_W / 2),
               SLOTS_Y + Math.floor(overlayH / 2),
               3,
-              "#d0b8ff",
+              "#cccccc",
               { align: "center", font: f },
             );
           }
@@ -262,7 +262,7 @@ export default class HUD {
           x + Math.floor(SLOT_W / 2),
           SLOTS_Y + Math.floor(SLOT_H / 2),
           3,
-          "#5a4880",
+          "#555555",
           { align: "center", font: f },
         );
       }
@@ -273,7 +273,7 @@ export default class HUD {
         x + Math.floor(SLOT_W / 2),
         SLOTS_Y + SLOT_H + 3,
         3,
-        sel ? "#c0a0ff" : "#7a6aa0",
+        sel ? "#dddddd" : "#888888",
         { align: "center", font: f },
       );
     }

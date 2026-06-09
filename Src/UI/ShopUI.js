@@ -9,15 +9,15 @@ import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
 
 // --------------------- PALETTE ---------------------
 const P = {
-  bg: "#0d0520",
-  border: "#2a1050",
-  muted: "#4a2870",
-  sub: "#866ea7",
-  text: "#d0b8ff",
-  label: "#a090cc",
-  dim: "#5a3878",
-  accent: "#7c4dff",
-  cardBg: "#140a28",
+  bg: "#111111",
+  border: "#2a2a2a",
+  muted: "#3a3a3a",
+  sub: "#888888",
+  text: "#d0d0d0",
+  label: "#aaaaaa",
+  dim: "#555555",
+  accent: "#aaaaaa",
+  cardBg: "#0e0e0e",
   gold: "#ffcc33",
   green: "#5ce08a",
   red: "#e0604a",
@@ -197,7 +197,7 @@ export default class StoreUI {
     const sc = renderer.scale;
     const cx = ROOM_WIDTH / 2;
 
-    renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "rgba(13,5,32,0.88)");
+    renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "rgba(8,8,8,0.88)");
     this.#drawPanel(renderer, ctx, sc, cx, f, player);
     this.#drawTabs(renderer, f);
 
@@ -226,7 +226,7 @@ export default class StoreUI {
       font: f,
     });
 
-    ctx.shadowColor = "rgba(180,100,255,0.85)";
+    ctx.shadowColor = "rgba(200,200,200,0.45)";
     ctx.shadowBlur = Math.round(9 * sc);
     renderer.drawText("MERCHANT", cx, PY + 10, 6, P.text, {
       align: "center",
@@ -258,7 +258,7 @@ export default class StoreUI {
     for (let i = 0; i < 3; i++) {
       const tx = PX + 4 + i * (tw + 2);
       const on = i === this.tab;
-      renderer.drawRect(tx, TAB_Y, tw, TAB_H, on ? P.muted : "#0e0622");
+      renderer.drawRect(tx, TAB_Y, tw, TAB_H, on ? P.muted : "#111111");
       if (on) renderer.drawRect(tx, TAB_Y + TAB_H - 1, tw, 1, P.accent);
       renderer.drawText(
         TAB_NAMES[i],
@@ -424,7 +424,7 @@ export default class StoreUI {
         ry,
         PW - 8,
         ROW_H,
-        selected ? P.muted : "#0e0622",
+        selected ? P.muted : "#111111",
       );
       if (selected) renderer.drawRect(PX + 4, ry, 2, ROW_H, P.accent);
 
