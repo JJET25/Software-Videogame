@@ -1,5 +1,5 @@
 import DesertRat from "../../Entities/Enemies/OldWestEnemies/DesertRat.js";
-import CactusThug from "../../Entities/Enemies/OldWestEnemies/CactusThug.js";
+import Minotaur from "../../Entities/Enemies/OldWestEnemies/Minotaur.js";
 import Bandit from "../../Entities/Enemies/OldWestEnemies/Bandit.js";
 import { ROOM_WEIGHTS } from "../../Utils/Constants.js";
 import Dimension from "./Dimension.js";
@@ -30,7 +30,7 @@ export default class OldWestDimension extends Dimension {
       tileSetId: "tilesOldWest",
       enemyPool: {
         swarm: [DesertRat],
-        tank: [CactusThug],
+        tank: [Minotaur],
         ranged: [Bandit],
       },
       miniBoss: DeadEye,
