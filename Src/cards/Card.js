@@ -52,11 +52,11 @@ const CARD_IMAGE_MAP = {
 
   // ── AUTOMATIC · EPIC ──────────────────────────────────────────────────────
   "Last Stand": AUT + "last-stand.png",
-  "Chain Kill": AUT + "chain-kill.jpeg",
-  Aftershock: AUT + "after-shock.jpeg",
+  "Chain Kill": AUT + "chain-kill.png",
+  Aftershock: AUT + "aftershock.png",
 
   // ── AUTOMATIC · LEGENDARY ─────────────────────────────────────────────────
-  Decimator: AUT + "decimator.jpeg",
+  Decimator: AUT + "decimator.png",
 };
 
 // Abstract base class for all cards
