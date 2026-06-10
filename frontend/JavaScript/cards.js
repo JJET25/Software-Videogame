@@ -219,7 +219,7 @@ const CARDS = [
       "Killing an enemy deals 25 AoE damage to all others within 64 px.",
     stats: ["25 DMG", "64 px", "On Kill"],
     starter: false,
-    image: AUT + "chain-kill.jpeg",
+    image: AUT + "chain-kill.png",
   },
   {
     name: "Aftershock",
@@ -229,7 +229,7 @@ const CARDS = [
       "Dashing releases a shockwave dealing 40 damage to enemies within 180 px.",
     stats: ["40 DMG", "180 px", "On Dash"],
     starter: false,
-    image: AUT + "after-shock.jpeg",
+    image: AUT + "aftershock.png",
   },
   // ── AUTOMATIC · LEGENDARY ─────────────────────────────────────────────────
   {
@@ -240,7 +240,7 @@ const CARDS = [
       "Killing an enemy triggers a massive explosion dealing 70 damage within 280 px.",
     stats: ["70 DMG", "280 px", "On Kill"],
     starter: false,
-    image: AUT + "decimator.jpeg",
+    image: AUT + "decimator.png",
   },
 ];
 
