@@ -50,7 +50,10 @@ const DASH_RANGE = 340;
 const ORBIT_FLIP_TIME = 3.5; // seconds before orbit direction flips
 
 export default class FinalBossEnemy extends Enemy {
-  constructor(position, { player, bullets = [], enemyList = null } = {}) {
+  constructor(
+    position,
+    { player, bullets = [], enemyList = null, enemyPool = null } = {},
+  ) {
     super(position, { player, bullets, enemyList });
 
     this.width = 40;
@@ -61,6 +64,9 @@ export default class FinalBossEnemy extends Enemy {
     this.health = 2000;
     this.maxHealth = 2000;
     this.contactDamage = 50;
+
+    // enemyPool from BossRoom — used to spawn dimension-correct minions
+    this._enemyPool = enemyPool;
 
     // Phase state
     this.phase = 1;
@@ -134,7 +140,8 @@ export default class FinalBossEnemy extends Enemy {
     this.#updateAttacks(normDir);
   }
 
-  // --------------------- PRIVATE ---------------------
+  // ----- PRIVATE -----
+
   #tickTimers(deltaTime) {
     this.dashCooldown -= deltaTime;
     this.dashTimer -= deltaTime;
@@ -145,14 +152,12 @@ export default class FinalBossEnemy extends Enemy {
     if (this._recoveryTimer > 0) this._recoveryTimer -= deltaTime;
     if (this._postDashTimer > 0) this._postDashTimer -= deltaTime;
 
-    // Flip orbit direction periodically so boss circles both ways
     if (this._orbitFlipTimer <= 0) {
       this._orbitSign *= -1;
-      this._orbitFlipTimer = ORBIT_FLIP_TIME + randFloat(-0.5, 0.5);
+      this._orbitFlipTimer = ORBIT_FLIP_TIME;
     }
   }
 
-  // --------------------- MOVEMENT ---------------------
   #updateMovement(deltaTime, normDir, distance) {
     if (this.isDashing) this.#stateDashing(normDir);
     else if (this._isCharging) this.#stateCharging(deltaTime, normDir);
@@ -165,7 +170,6 @@ export default class FinalBossEnemy extends Enemy {
 
     this.isDashing = false;
 
-    // Phase 3: chain a second dash before resting
     if (this.phase === 3 && this._dashesThisCycle < 1) {
       this._dashesThisCycle++;
       this._isCharging = true;
@@ -177,11 +181,10 @@ export default class FinalBossEnemy extends Enemy {
     }
   }
 
-  // Boss freezes and flashes — visible telegraph for player
   #stateCharging(deltaTime, normDir) {
     this._chargeTimer -= deltaTime;
     this.velocity = new Vector(0, 0);
-    this._flashTimer = 0.12;
+    this._flashTimer = 0.1;
 
     if (this._chargeTimer <= 0) {
       this._isCharging = false;
@@ -191,7 +194,6 @@ export default class FinalBossEnemy extends Enemy {
 
   // Orbit around player instead of straight pursuit — creates movement space
   #stateWalking(normDir, distance) {
-    // Perpendicular to player direction — the orbit component
     const perp = new Vector(-normDir.y, normDir.x);
     const orbitStrength = distance > 90 ? 0.45 : 0.0;
     const approach = normDir.times(this.speed);
@@ -226,7 +228,7 @@ export default class FinalBossEnemy extends Enemy {
     if (this.attackCooldown <= 0) {
       this.#shootBurst(normDir);
       this.attackCooldown = PHASE[this.phase].attackRate;
-      this._recoveryTimer = 0.6; // breathing room after burst
+      this._recoveryTimer = 0.6;
       return; // one attack per window
     }
 
@@ -234,7 +236,7 @@ export default class FinalBossEnemy extends Enemy {
     if (this.radialCooldown <= 0) {
       this.#radialAttack();
       this.radialCooldown = PHASE[this.phase].radialCooldown;
-      this._recoveryTimer = 1.0; // larger window — radial is scary
+      this._recoveryTimer = 1.0;
       return;
     }
 
@@ -262,26 +264,31 @@ export default class FinalBossEnemy extends Enemy {
     }
   }
 
+  // Spawn dimension-correct enemies using the enemyPool passed from BossRoom.
+  // Falls back to base archetypes if no pool is available.
   #spawnWave(phase) {
     if (!this.enemyList) return;
+
+    const SwarmClass = this._enemyPool?.swarm?.[0] ?? SwarmEnemy;
+    const RangedClass = this._enemyPool?.ranged?.[0] ?? RangedEnemy;
 
     if (phase === 1) {
       // 2 Swarm
       for (let i = 0; i < 2; i++)
         this.enemyList.push(
-          new SwarmEnemy(this.#randomSpawn(), { player: this.player }),
+          new SwarmClass(this.#randomSpawn(), { player: this.player }),
         );
     } else if (phase === 2) {
       // 3 Swarm
       for (let i = 0; i < 3; i++)
         this.enemyList.push(
-          new SwarmEnemy(this.#randomSpawn(), { player: this.player }),
+          new SwarmClass(this.#randomSpawn(), { player: this.player }),
         );
     } else {
-      // 2 Ranged — no Tanks
+      // 2 Ranged
       for (let i = 0; i < 2; i++)
         this.enemyList.push(
-          new RangedEnemy(this.#randomSpawn(), {
+          new RangedClass(this.#randomSpawn(), {
             player: this.player,
             bullets: this.bullets,
           }),
@@ -319,7 +326,6 @@ export default class FinalBossEnemy extends Enemy {
     this.dashCooldown = PHASE[this.phase].dashCooldown;
   }
 
-  // --------------------- ATTACK PATTERNS ---------------------
   // Phase 1: 3 bullets. Phase 2+: 5 bullets. All aimed at player.
   #shootBurst(direction) {
     const angles =

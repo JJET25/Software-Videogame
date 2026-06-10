@@ -108,6 +108,8 @@ export default class DeadEye extends BossEnemy {
 
     this.width = 45;
     this.height = 45;
+    this.drawWidth = 45;
+    this.drawHeight = 45;
 
     this._facingDir = "left";
     this._animation = new Animation({

@@ -104,6 +104,8 @@ export default class SkeletonKing extends FinalBossEnemy {
 
     this.width = 45;
     this.height = 45;
+    this.drawWidth = 45;
+    this.drawHeight = 45;
 
     this._facingDir = "left";
     this._animation = new Animation({
@@ -123,7 +125,6 @@ export default class SkeletonKing extends FinalBossEnemy {
   }
 
   // ----- PRIVATE -----
-
   #resolveAction() {
     if (this.isDashing) return "dash";
     if (this._isCharging) return "charge";

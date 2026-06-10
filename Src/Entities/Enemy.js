@@ -73,22 +73,54 @@ export default class Enemy extends Entity {
     super.update(deltaTime);
   }
 
+  // drawWidth / drawHeight let subclasses set a sprite size different from the
+  // hitbox size without overriding draw(). Falls back to this.width / this.height
+  // so subclasses that don't set them continue to work unchanged.
   draw(renderer) {
-    super.draw(renderer);
-    this._drawHealthBar(renderer, this.position.x - this.width / 2, this.position.y - this.height / 2, this.width);
+    const dw = this.drawWidth ?? this.width;
+    const dh = this.drawHeight ?? this.height;
+    const drawX = this.position.x - dw / 2;
+    const drawY = this.position.y - dh / 2;
+
+    if (this._animation) {
+      renderer.drawAnimation(this._animation, drawX, drawY, dw, dh);
+      if (this._flashTimer > 0) {
+        renderer.drawRect(drawX, drawY, dw, dh, "rgba(255,255,255,0.7)");
+      }
+    } else {
+      const color = this._flashTimer > 0 ? "#ffffff" : this.color;
+      renderer.drawRect(drawX, drawY, dw, dh, color);
+    }
+
+    this._drawHealthBar(renderer, drawX, drawY, dw);
+
+    // ── DEBUG ──────────────────────────────────────────────────────────────
+    if (window.__debugHitboxes) {
+      // Sprite bounds (yellow)
+      renderer.drawRect(drawX, drawY, dw, dh, "rgba(255,255,0,0.35)");
+      // Hitbox real (red)
+      const b = this.getBounds();
+      renderer.drawRect(
+        b.left,
+        b.top,
+        this.hitboxWidth,
+        this.hitboxHeight,
+        "rgba(255,0,0,0.45)",
+      );
+      // Centro de posición (cyan)
+      renderer.drawRect(this.position.x - 1, this.position.y - 1, 2, 2, "cyan");
+    }
+    // ───────────────────────────────────────────────────────────────────────
   }
 
   _drawHealthBar(renderer, bx, by, barW) {
-    const W    = Math.round(barW * 0.65);
+    const W = Math.round(barW * 0.65);
     const offX = Math.floor((barW - W) / 2);
     const barX = bx + offX;
     const barY = by - 4;
-    const pct  = Math.max(0, this.health / this.maxHealth);
+    const pct = Math.max(0, this.health / this.maxHealth);
     const fill = Math.floor(pct * W);
-    const color =
-      pct > 0.6 ? "#3adb44" :
-      pct > 0.3 ? "#e8a020" :
-                  "#cc2020";
+    const color = pct > 0.6 ? "#3adb44" : pct > 0.3 ? "#e8a020" : "#cc2020";
 
     renderer.drawRect(barX, barY, W, 2, "#111111");
     if (fill > 0) renderer.drawRect(barX, barY, fill, 2, color);

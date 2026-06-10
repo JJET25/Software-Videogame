@@ -8,51 +8,72 @@ const SPRITE_SRC = "../../Assets/Sprites/enemies/minotaur/minotaur.png";
 const _img = new Image();
 _img.src = SPRITE_SRC;
 
-// 480×480 — 10 cols × 10 rows of 48×48 px
-// Rows 0-4: left-facing  (frames read left→right, cols 0-9)
-// Rows 5-9: right-facing (frames read right→left, cols 9-0 — reversed)
-// Row 0/5: idle   Row 1/6: walk + charge   Row 2/7: attack   Rows 3-4 / 8-9: unused
 const FW = 48;
 const FH = 48;
 
 const SHEETS = {
-  idle:   new SpriteSheet({ image: _img, frameWidth: FW, frameHeight: FH, frameCount: 10, row: 0, startCol: 0 }),
-  walk:   new SpriteSheet({ image: _img, frameWidth: FW, frameHeight: FH, frameCount: 10, row: 1, startCol: 0 }),
-  attack: new SpriteSheet({ image: _img, frameWidth: FW, frameHeight: FH, frameCount: 10, row: 2, startCol: 0 }),
+  idle: new SpriteSheet({
+    image: _img,
+    frameWidth: FW,
+    frameHeight: FH,
+    frameCount: 10,
+    row: 0,
+    startCol: 0,
+  }),
+  walk: new SpriteSheet({
+    image: _img,
+    frameWidth: FW,
+    frameHeight: FH,
+    frameCount: 10,
+    row: 1,
+    startCol: 0,
+  }),
+  attack: new SpriteSheet({
+    image: _img,
+    frameWidth: FW,
+    frameHeight: FH,
+    frameCount: 10,
+    row: 2,
+    startCol: 0,
+  }),
 };
 
 const DRAW_W = 60;
 const DRAW_H = 60;
 
 // Stomp — close-range slam that uses the attack frames
-const STOMP_RANGE    = 55;
-const STOMP_DURATION = 0.72;   // 10 frames at ~14 fps
+const STOMP_RANGE = 55;
+const STOMP_DURATION = 0.72; // 10 frames at ~14 fps
 const STOMP_COOLDOWN = 2.8;
-const STOMP_DAMAGE   = 28;
+const STOMP_DAMAGE = 28;
 
 export default class Minotaur extends TankEnemy {
   constructor(position, deps) {
     super(position, deps);
 
-    this.health        = 120;
-    this.maxHealth     = 120;
-    this.speed         = 36;
+    this.health = 120;
+    this.maxHealth = 120;
+    this.speed = 36;
     this.contactDamage = 20;
     this.activationDelay = 1.2;
 
-    this.width        = DRAW_W;
-    this.height       = DRAW_H;
-    this.hitboxWidth  = 28;
+    this.width = DRAW_W;
+    this.height = DRAW_H;
+    this.hitboxWidth = 28;
     this.hitboxHeight = 34;
 
-    this.color         = "#8b4513";
+    this.color = "#8b4513";
     this.originalColor = "#8b4513";
 
     this._facingDir = "left";
-    this._animation = new Animation({ sheet: SHEETS.idle, fps: 10, loop: true });
+    this._animation = new Animation({
+      sheet: SHEETS.idle,
+      fps: 10,
+      loop: true,
+    });
 
-    this._stompPhase   = "ready";  // "ready" | "stomping" | "cooldown"
-    this._stompTimer   = 0;
+    this._stompPhase = "ready"; // "ready" | "stomping" | "cooldown"
+    this._stompTimer = 0;
     this._stompDamaged = false;
   }
 
@@ -71,6 +92,8 @@ export default class Minotaur extends TankEnemy {
     this.#updateAnimation();
   }
 
+  // Minotaur keeps its own draw() because its sprite sheet uses a reversed
+  // right-facing layout that ctx.drawImage must handle manually.
   draw(renderer) {
     const drawX = this.position.x - DRAW_W / 2;
     const drawY = this.position.y - DRAW_H / 2;
@@ -78,11 +101,11 @@ export default class Minotaur extends TankEnemy {
     const { sheet, frame } = this._animation;
     if (sheet?.isLoaded) {
       const ctx = renderer.context;
-      const s   = renderer.scale;
-      const dx  = (drawX + renderer.offsetX) * s;
-      const dy  = (drawY + renderer.offsetY) * s;
-      const dw  = DRAW_W * s;
-      const dh  = DRAW_H * s;
+      const s = renderer.scale;
+      const dx = (drawX + renderer.offsetX) * s;
+      const dy = (drawY + renderer.offsetY) * s;
+      const dw = DRAW_W * s;
+      const dh = DRAW_H * s;
 
       let sx, sy;
       if (this._facingDir === "right") {
@@ -96,24 +119,52 @@ export default class Minotaur extends TankEnemy {
       }
       ctx.drawImage(sheet.image, sx, sy, FW, FH, dx, dy, dw, dh);
 
-      if (this._flashTimer > 0 && this._stompPhase !== "stomping" && !this._isCharging) {
-        renderer.drawRect(drawX, drawY, DRAW_W, DRAW_H, "rgba(255,255,255,0.7)");
+      if (
+        this._flashTimer > 0 &&
+        this._stompPhase !== "stomping" &&
+        !this._isCharging
+      ) {
+        renderer.drawRect(
+          drawX,
+          drawY,
+          DRAW_W,
+          DRAW_H,
+          "rgba(255,255,255,0.7)",
+        );
       }
     } else {
       renderer.drawRect(drawX, drawY, DRAW_W, DRAW_H, this.color);
     }
 
     this._drawHealthBar(renderer, drawX, drawY, DRAW_W);
+
+    // ── DEBUG ──────────────────────────────────────────────────────────────
+    if (window.__debugHitboxes) {
+      // Sprite bounds (amarillo)
+      renderer.drawRect(drawX, drawY, DRAW_W, DRAW_H, "rgba(255,255,0,0.35)");
+      // Hitbox real (rojo)
+      const b = this.getBounds();
+      renderer.drawRect(
+        b.left,
+        b.top,
+        this.hitboxWidth,
+        this.hitboxHeight,
+        "rgba(255,0,0,0.45)",
+      );
+      // Centro de posición (cyan)
+      renderer.drawRect(this.position.x - 1, this.position.y - 1, 2, 2, "cyan");
+    }
+    // ───────────────────────────────────────────────────────────────────────
   }
 
   // --------------------- PRIVATE ---------------------
   #updateStomp(deltaTime, distance) {
     if (this._stompPhase === "ready") {
       if (distance < STOMP_RANGE && !this.isDashing && !this._isCharging) {
-        this._stompPhase   = "stomping";
-        this._stompTimer   = STOMP_DURATION;
+        this._stompPhase = "stomping";
+        this._stompTimer = STOMP_DURATION;
         this._stompDamaged = false;
-        this.velocity      = new Vector(0, 0);
+        this.velocity = new Vector(0, 0);
       }
     } else if (this._stompPhase === "stomping") {
       this._stompTimer -= deltaTime;
@@ -136,16 +187,22 @@ export default class Minotaur extends TankEnemy {
   }
 
   #updateAnimation() {
-    if (!this.isDashing && !this._isCharging && this._stompPhase !== "stomping") {
-      if (this.velocity.x < 0)      this._facingDir = "left";
-      else if (this.velocity.x > 0) this._facingDir = "right";
+    if (
+      !this.isDashing &&
+      !this._isCharging &&
+      this._stompPhase !== "stomping"
+    ) {
+      if (this.velocity.x < 0) this._facingDir = "right";
+      else if (this.velocity.x > 0) this._facingDir = "left";
     }
 
     const isMoving = this.velocity.squareLength() > 0.1;
     const action =
-      this.isDashing || this._stompPhase === "stomping" ? "attack"
-      : this._isCharging || isMoving                    ? "walk"
-      :                                                   "idle";
+      this.isDashing || this._stompPhase === "stomping"
+        ? "attack"
+        : this._isCharging || isMoving
+          ? "walk"
+          : "idle";
     const fps = this.isDashing || this._stompPhase === "stomping" ? 14 : 10;
     const sheet = SHEETS[action];
 

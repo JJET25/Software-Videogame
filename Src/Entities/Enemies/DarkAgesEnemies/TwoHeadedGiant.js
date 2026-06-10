@@ -1,87 +1,196 @@
 import Animation from "../../../Animation/Animation.js";
 import SpriteSheet from "../../../Animation/SpriteSheet.js";
-import TankEnemy from "../archetypes/TankEnemy.js";
+import RangedEnemy from "../archetypes/RangedEnemy.js";
+import BanditBullet from "../../BanditBullet.js";
+import Vector from "../../../Utils/Vector.js";
+import { randInt } from "../../../Utils/Random.js";
 
-const SPRITE_SRC = "../../Assets/Sprites/enemies/Two headed giant/spritesheet (4).png";
+const SPRITE_SRC = "../../Assets/Sprites/enemies/Two_headed_giant/Two_headed_giant_Sprite-Sheet.png";
 
-// Shared image — one load across all TwoHeadedGiant instances
+// Shared image — one load across all Bandit instances
 const _img = new Image();
 _img.src = SPRITE_SRC;
 
-// 4×4 grid — 154×173 px per frame
-// Row 0: walk down   Row 1: walk left   Row 2: walk right   Row 3: walk up
-const FRAME_W = 154;
-const FRAME_H = 173;
-
+const FW = 154;
+const FH = 173;
 const SHEETS = {
   left: {
-    idle: new SpriteSheet({ image: _img, frameWidth: FRAME_W, frameHeight: FRAME_H, frameCount: 1, row: 1, startCol: 0 }),
-    walk: new SpriteSheet({ image: _img, frameWidth: FRAME_W, frameHeight: FRAME_H, frameCount: 4, row: 1, startCol: 0 }),
+    idle: new SpriteSheet({
+      image: _img,
+      srcX: 0,
+      srcY: 0,
+      frameWidth: FW,
+      frameHeight: FH,
+      frameCount: 1,
+    }),
+    run: new SpriteSheet({
+      image: _img,
+      srcX: FW,
+      srcY: 0,
+      frameWidth: FW,
+      frameHeight: FH,
+      frameCount: 4,
+    }),
+    attack: new SpriteSheet({
+      image: _img,
+      srcX: FW * 5,
+      srcY: 0,
+      frameWidth: FW,
+      frameHeight: FH,
+      frameCount: 4,
+    }),
   },
   right: {
-    idle: new SpriteSheet({ image: _img, frameWidth: FRAME_W, frameHeight: FRAME_H, frameCount: 1, row: 2, startCol: 0 }),
-    walk: new SpriteSheet({ image: _img, frameWidth: FRAME_W, frameHeight: FRAME_H, frameCount: 4, row: 2, startCol: 0 }),
+    idle: new SpriteSheet({
+      image: _img,
+      srcX: 0,
+      srcY: FH,
+      frameWidth: FW,
+      frameHeight: FH,
+      frameCount: 1,
+    }),
+    run: new SpriteSheet({
+      image: _img,
+      srcX: FW,
+      srcY: FH,
+      frameWidth: FW,
+      frameHeight: FH,
+      frameCount: 4,
+    }),
+    attack: new SpriteSheet({
+      image: _img,
+      srcX: FW * 5,
+      srcY: FH,
+      frameWidth: FW,
+      frameHeight: FH,
+      frameCount: 4,
+    }),
   },
 };
 
-const DRAW_W  = 44;
-const DRAW_H  = 50;
-const WALK_FPS = 6;
+const DRAW_W = 40;
+const DRAW_H = 40;
 
-export default class TwoHeadedGiant extends TankEnemy {
+const SHOOT_RATE = 1.5;
+const SHOOT_RANGE = 280;
+const PREFERRED_DIST = 180;
+const DIST_BUFFER = 30;
+const STRAFE_SPEED_MULT = 0.7;
+const IDLE_FPS = 4;
+const RUN_FPS = 8;
+const SHOOT_FPS = 10;
+
+export default class Bandit extends RangedEnemy {
   constructor(position, deps) {
     super(position, deps);
 
-    this.health        = 160;
-    this.maxHealth     = 160;
-    this.speed         = 30;
-    this.contactDamage = 25;
-    this.activationDelay = 1.5;
+    this.width = DRAW_W;
+    this.height = DRAW_H;
+    this.drawWidth = DRAW_W;
+    this.drawHeight = DRAW_H;
+    this.hitboxWidth = DRAW_W;
+    this.hitboxHeight = DRAW_H;
 
-    this.width        = DRAW_W;
-    this.height       = DRAW_H;
-    this.hitboxWidth  = 30;
-    this.hitboxHeight = 36;
+    this.color = "#a0522d";
+    this.originalColor = "#a0522d";
 
-    this.color         = "#c07040";
-    this.originalColor = "#c07040";
+    this.shootCooldown = 0;
 
     this._facingDir = "right";
-    this._animation = new Animation({ sheet: SHEETS.right.idle, fps: WALK_FPS, loop: true });
+    this._aimDir = new Vector(1, 0);
+    this._shootPhase = "ready"; // "ready" | "animating" | "cooldown"
+    this._cooldownTimer = 0;
+    this._strafeDir = randInt(0, 1) === 0 ? 1 : -1;
+    this._strafeTimer = randInt(3, 5);
+
+    this._animation = new Animation({
+      sheet: SHEETS.right.idle,
+      fps: IDLE_FPS,
+      loop: true,
+    });
   }
 
+  // Fully overrides RangedEnemy.onUpdate to drive the shoot-animation state machine
   onUpdate(deltaTime) {
-    super.onUpdate(deltaTime);
+    this._cooldownTimer -= deltaTime;
+
+    const dir = new Vector(
+      this.player.position.x - this.position.x,
+      this.player.position.y - this.position.y,
+    );
+    const normDir = dir.normalize();
+    const distance = dir.magnitude();
+
+    this.#updateMovement(deltaTime, normDir, distance);
+    this.#updateShooting(deltaTime, normDir, distance);
     this.#updateAnimation();
   }
 
-  draw(renderer) {
-    const drawX = this.position.x - DRAW_W / 2;
-    const drawY = this.position.y - DRAW_H / 2;
-
-    if (this._animation) {
-      renderer.drawAnimation(this._animation, drawX, drawY, DRAW_W, DRAW_H);
-      if (this._flashTimer > 0) {
-        renderer.drawRect(drawX, drawY, DRAW_W, DRAW_H, "rgba(255,255,255,0.7)");
-      }
-    } else {
-      renderer.drawRect(drawX, drawY, DRAW_W, DRAW_H, this.color);
+  // --------------------- PRIVATE ---------------------
+  #updateMovement(deltaTime, normDir, distance) {
+    // Stand still while playing the shoot animation
+    if (this._shootPhase === "animating") {
+      this.velocity = new Vector(0, 0);
+      return;
     }
 
-    this._drawHealthBar(renderer, drawX, drawY, DRAW_W);
+    if (distance > PREFERRED_DIST + DIST_BUFFER) {
+      this.velocity = normDir.times(this.speed);
+    } else if (distance < PREFERRED_DIST - DIST_BUFFER) {
+      this.velocity = normDir.times(-this.speed);
+    } else {
+      this._strafeTimer -= deltaTime;
+      if (this._strafeTimer <= 0) {
+        this._strafeDir *= -1;
+        this._strafeTimer = randInt(3, 5);
+      }
+      const strafeDir = new Vector(-normDir.y, normDir.x);
+      this.velocity = strafeDir.times(
+        this.speed * STRAFE_SPEED_MULT * this._strafeDir,
+      );
+    }
   }
 
-  // --------------------- PRIVATE ---------------------
+  #updateShooting(deltaTime, normDir, distance) {
+    if (this._shootPhase === "ready") {
+      if (distance < SHOOT_RANGE) {
+        // Face the player and start the attack animation
+        this._aimDir = normDir;
+        this._facingDir = normDir.x >= 0 ? "right" : "left";
+        this._shootPhase = "animating";
+        this._animation = new Animation({
+          sheet: SHEETS[this._facingDir].attack,
+          fps: SHOOT_FPS,
+          loop: false,
+        });
+      }
+    } else if (this._shootPhase === "animating") {
+      if (this._animation.isDone) {
+        const spawnPos = this.position.plus(this._aimDir.times(14));
+        this.bullets.push(new BanditBullet(spawnPos, this._aimDir));
+        this._shootPhase = "cooldown";
+        this._cooldownTimer = SHOOT_RATE;
+      }
+    }
+    // "cooldown" is handled by _cooldownTimer decrement at the top of onUpdate
+  }
+
   #updateAnimation() {
-    if (this.velocity.x < 0)      this._facingDir = "left";
+    if (this._shootPhase === "animating") return;
+
+    if (this.velocity.x < 0) this._facingDir = "left";
     else if (this.velocity.x > 0) this._facingDir = "right";
 
     const isMoving = this.velocity.squareLength() > 0.1;
-    const action   = isMoving ? "walk" : "idle";
-    const sheet    = SHEETS[this._facingDir][action];
+    const action = isMoving ? "run" : "idle";
+    const sheet = SHEETS[this._facingDir][action];
 
     if (this._animation.sheet !== sheet) {
-      this._animation = new Animation({ sheet, fps: WALK_FPS, loop: true });
+      this._animation = new Animation({
+        sheet,
+        fps: isMoving ? RUN_FPS : IDLE_FPS,
+        loop: true,
+      });
     }
   }
 }

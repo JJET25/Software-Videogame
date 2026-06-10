@@ -48,6 +48,9 @@ export default class BossEnemy extends Enemy {
     this.contactDamage = Math.round(35 * damageMult);
     this._bulletDamageMult = damageMult;
 
+    // enemyPool from BossRoom — used to spawn dimension-correct minions
+    this._enemyPool = deps.enemyPool ?? null;
+
     // Phase state
     this.phase = 1;
     this.isEnraged = false;
@@ -219,7 +222,6 @@ export default class BossEnemy extends Enemy {
         new EnemyBullet(
           new Vector(this.position.x, this.position.y),
           rotated.normalize(),
-          // Pass damageMult so bullets also deal reduced damage
           { damageMult: this._bulletDamageMult },
         ),
       );
@@ -240,12 +242,16 @@ export default class BossEnemy extends Enemy {
     }
   }
 
+  // Spawn dimension-correct minions using the enemyPool passed from BossRoom.
+  // Falls back to base SwarmEnemy if no pool is available.
   #spawnMinions(phase) {
     if (!this.enemyList) return;
     const count = phase === 2 ? 2 : 3;
+    const SwarmClass = this._enemyPool?.swarm?.[0] ?? SwarmEnemy;
+
     for (let i = 0; i < count; i++) {
       this.enemyList.push(
-        new SwarmEnemy(this.#randomSpawn(), { player: this.player }),
+        new SwarmClass(this.#randomSpawn(), { player: this.player }),
       );
     }
   }

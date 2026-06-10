@@ -96,6 +96,31 @@ export default class Entity {
       const color = this._flashTimer > 0 ? "#ffffff" : this.color;
       renderer.drawRect(drawX, drawY, this.width, this.height, color);
     }
+
+    // ── DEBUG ──────────────────────────────────────────────────────────────
+    if (window.__debugHitboxes) {
+      // Sprite bounds (amarillo)
+      renderer.drawRect(
+        drawX,
+        drawY,
+        this.width,
+        this.height,
+        "rgba(255,255,0,0.35)",
+      );
+
+      // Hitbox real (rojo)
+      const b = this.getBounds();
+      renderer.drawRect(
+        b.left,
+        b.top,
+        this.hitboxWidth,
+        this.hitboxHeight,
+        "rgba(255,0,0,0.45)",
+      );
+
+      // Centro de posición (cyan, 2×2 px)
+      renderer.drawRect(this.position.x - 1, this.position.y - 1, 2, 2, "cyan");
+    }
   }
 
   update(deltaTime) {

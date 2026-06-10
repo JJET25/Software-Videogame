@@ -1,5 +1,4 @@
 import DungeonRat from "../../Entities/Enemies/DarkAgesEnemies/DungeonRat.js";
-import Skeleton from "../../Entities/Enemies/DarkAgesEnemies/Skeleton.js";
 import Spirit from "../../Entities/Enemies/DarkAgesEnemies/Spirit.js";
 import SkeletonKing from "../../Entities/Enemies/DarkAgesEnemies/SkeletonKing.js";
 import TwoHeadedGiant from "../../Entities/Enemies/DarkAgesEnemies/TwoHeadedGiant.js";

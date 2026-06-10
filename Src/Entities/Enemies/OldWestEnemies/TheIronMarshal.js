@@ -99,13 +99,13 @@ export default class TheIronMarshal extends FinalBossEnemy {
   constructor(position, deps) {
     super(position, deps);
 
-    this.color = "#bb9955";
-    this.originalColor = "#bb9955";
+    this.color = "#8a7560";
+    this.originalColor = "#8a7560";
 
-    // Logical hitbox stays at 40x40 (FinalBossEnemy default)
-    // width/height here controls the drawn sprite size — 45 fills the frame nicely
     this.width = 45;
     this.height = 45;
+    this.drawWidth = 45;
+    this.drawHeight = 45;
 
     this._facingDir = "left";
     this._animation = new Animation({
@@ -115,11 +115,11 @@ export default class TheIronMarshal extends FinalBossEnemy {
     });
   }
 
-  // Phase 3 enraged: badge glows red — law has broken
   onUpdate(deltaTime) {
     super.onUpdate(deltaTime);
     if (this.isEnraged) {
-      this.color = "#dd4422";
+      // Phase 3: badge melts off, coat turns blood red
+      this.color = "#7a3020";
     }
     this.#updateAnimation();
   }
