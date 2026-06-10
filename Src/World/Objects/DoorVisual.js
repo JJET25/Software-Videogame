@@ -12,7 +12,8 @@ const FRAME_OPEN  = 0;
 const FRAME_CLOSED = FRAME_COUNT - 1;
 const ANIM_FPS    = 10;
 
-const FRAME_H = { tilesDarkAge: 35, tilesOldWest: 37 };
+const FRAME_H  = { tilesDarkAge: 35, tilesOldWest: 37 };
+const Y_OFFSET = { tilesDarkAge: 0,  tilesOldWest: 1 };
 const IMG_SRC = {
   tilesDarkAge: "../../Assets/Sprites/room/doors-dungeon.png",
   tilesOldWest: "../../Assets/Sprites/room/doors-oldwest.png",
@@ -48,6 +49,7 @@ export default class DoorVisual {
     this._target    = FRAME_CLOSED;
     this._elapsed   = 0;
     this._pos       = centerPos(direction);
+    this._pos.y    += Y_OFFSET[tileSetId] ?? 0;
   }
 
   open(instant = false) {

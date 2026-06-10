@@ -35,8 +35,9 @@ export default class StartScreen extends Screen {
 
     this._showCredits = false;
     this._lastHovered = null;
+    this._hasSavedDeck = !!localStorage.getItem("dimensionDeck_savedDeck");
 
-    this.buttons = [
+    const baseButtons = [
       {
         label: "PLAY",
         y: 100,
@@ -45,7 +46,7 @@ export default class StartScreen extends Screen {
       },
       {
         label: "CREDITS",
-        y: 118,
+        y: this._hasSavedDeck ? 136 : 118,
         hovered: false,
         action: () => {
           this._showCredits = true;
@@ -53,12 +54,26 @@ export default class StartScreen extends Screen {
       },
       {
         label: "EXIT",
-        y: 136,
+        y: this._hasSavedDeck ? 154 : 136,
         hovered: false,
         // Navigate to root so npx serve always finds index.html with its CSS
         action: () => { window.location.href = "/index.html"; },
       },
     ];
+
+    if (this._hasSavedDeck) {
+      baseButtons.splice(1, 0, {
+        label: "RESTART",
+        y: 118,
+        hovered: false,
+        action: () => {
+          localStorage.removeItem("dimensionDeck_savedDeck");
+          this.screenManager.changeTo(new GameplayScreen());
+        },
+      });
+    }
+
+    this.buttons = baseButtons;
 
     // Back button inside the credits overlay
     this._backBtn = {

@@ -105,18 +105,49 @@ export default class GameplayScreen extends Screen {
       this.cardCatalog = allCards ?? [];
       this.runId = runData?.runId ?? null;
 
+      // Always load default starter cards first
       for (const data of dbCards ?? []) {
         const card = createCard(data);
         if (card) this.cardManager.addCard(card);
       }
       if (!dbCards?.length) this._addFallbackCards();
+
+      // Then add saved cards on top (addCard handles upgrades for duplicates)
+      const savedRaw = localStorage.getItem("dimensionDeck_savedDeck");
+      const savedDeck = savedRaw ? JSON.parse(savedRaw) : null;
+      if (savedDeck?.length && allCards?.length) {
+        for (const { name, level } of savedDeck) {
+          const dbData = allCards.find(d => d.card_name === name);
+          if (dbData) {
+            const card = createCard(dbData);
+            if (card) {
+              card.level = level ?? 1;
+              this.cardManager.addCard(card);
+            }
+          }
+        }
+      }
+
+      // All cards present at run start are treated as starters
+      this._starterCardNames = new Set(this._getAllCards().map(c => c.name));
     } catch {
       this._addFallbackCards();
+      this._starterCardNames = new Set(
+        this._getAllCards().map(c => c.name)
+      );
     }
   }
 
   _addFallbackCards() {
     for (const create of STARTER_DECK) this.cardManager.addCard(create());
+  }
+
+  _getAllCards() {
+    return [
+      ...this.cardManager.activeSlots,
+      ...this.cardManager.autoSlots,
+      ...this.cardManager.storage,
+    ].filter(Boolean);
   }
 
   exit() {
@@ -362,19 +393,21 @@ export default class GameplayScreen extends Screen {
 
   #finishRun(status) {
     this._runEnded = true;
+    const allCards = this._getAllCards();
+    const starterNames = this._starterCardNames ?? new Set();
+    const newCards = allCards.filter(c => !starterNames.has(c.name));
     const finalStats = {
       status,
       ...this.stats,
       damageDealt: this.stats.damageDealt,
       creditsEarned: this.player.credits,
-      cardsCollected: [
-        ...this.cardManager.activeSlots,
-        ...this.cardManager.autoSlots,
-      ].filter(Boolean).length,
+      cardsCollected: allCards.length,
     };
     this.screenManager.changeTo(new DefeatScreen(), {
       runId: this.runId,
       runPromise: this._runPromise,
+      newCards,
+      cardCatalog: this.cardCatalog,
       ...finalStats,
     });
   }

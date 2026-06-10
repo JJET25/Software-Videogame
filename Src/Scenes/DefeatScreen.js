@@ -24,6 +24,9 @@ export default class DefeatScreen extends Screen {
     this.enemiesKilled = context.enemiesKilled ?? 0;
     this.damageDealt   = context.damageDealt   ?? 0;
 
+    this._newCards    = context.newCards    ?? [];
+    this._cardCatalog = context.cardCatalog ?? [];
+
     this._timer   = 0;
     this._ready   = false;
     this._readyAt = 1.4;   // prevent accidental instant-click
@@ -67,12 +70,21 @@ export default class DefeatScreen extends Screen {
     if (this._timer >= this._readyAt) this._ready = true;
     if (!this._ready) return;
 
-    // ANY click or ENTER → back to StartScreen
+    // ANY click or ENTER → continue
     const clicked = this.mouse.consumeClick();
     if (clicked || this.input.wasKeyPressed("ENTER")) {
-      import("./StartScreen.js").then(({ default: StartScreen }) => {
-        this.screenManager.changeTo(new StartScreen());
-      });
+      if (this.status === "defeat" && this._newCards.length > 0) {
+        import("./CardSaveScreen.js").then(({ default: CardSaveScreen }) => {
+          this.screenManager.changeTo(new CardSaveScreen(), {
+            newCards: this._newCards,
+            cardCatalog: this._cardCatalog,
+          });
+        });
+      } else {
+        import("./StartScreen.js").then(({ default: StartScreen }) => {
+          this.screenManager.changeTo(new StartScreen());
+        });
+      }
     }
   }
 
