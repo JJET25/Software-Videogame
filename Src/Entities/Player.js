@@ -221,6 +221,7 @@ export default class Player extends Entity {
     // Cards and economy
     this.cardManager = null;
     this.credits = 0;
+    this.creditsEarned = 0;
     this.totalDamageDealt = 0;
 
     // Set by GameplayScreen so player can read live room state
@@ -275,6 +276,7 @@ export default class Player extends Entity {
 
   addCredits(amount) {
     this.credits += amount;
+    if (amount > 0) this.creditsEarned += amount;
   }
   freeze(duration) {
     this._freezeTimer = duration;

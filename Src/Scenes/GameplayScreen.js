@@ -211,12 +211,14 @@ export default class GameplayScreen extends Screen {
     }
 
     const prevHealth = this.player.health;
+    const enemySnap = new Map(
+      (room?.enemies ?? []).map((e) => [e, e.health])
+    );
+
     if (!shopOpen && !this.deckScreen.isOpen) this.player.update(deltaTime);
 
     if (!this.deckScreen.isOpen) {
       this.cardManager.update(deltaTime);
-      const enemies = room?.enemies ?? [];
-      const enemySnap = new Map(enemies.map((e) => [e, e.health]));
       rm.update(deltaTime);
       this.#trackStats(room, prevHealth, enemySnap);
     }
@@ -364,14 +366,14 @@ export default class GameplayScreen extends Screen {
       this._roomCounted = false;
     }
 
-    for (const enemy of room?.enemies ?? []) {
+    for (const [enemy] of enemySnap) {
       if (enemy.isDead && !this._deadEnemies.has(enemy)) {
         this._deadEnemies.add(enemy);
         this.stats.enemiesKilled++;
       }
     }
 
-    if (room?.isCleared && !this._roomCounted && this._deadEnemies.size > 0) {
+    if (room?.isCleared && !this._roomCounted) {
       this._roomCounted = true;
       this.stats.roomsCleared++;
     }
@@ -400,7 +402,7 @@ export default class GameplayScreen extends Screen {
       status,
       ...this.stats,
       damageDealt: this.stats.damageDealt,
-      creditsEarned: this.player.credits,
+      creditsEarned: this.player.creditsEarned,
       cardsCollected: allCards.length,
     };
     this.screenManager.changeTo(new DefeatScreen(), {
