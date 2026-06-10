@@ -18,29 +18,40 @@ const PHASE = {
 
 const DASH_DURATION = 0.45;
 const CHARGE_DURATION = 0.6;
-const CHARGE_DURATION_2 = 0.5; // Short pause before second dash in phase 3
+const CHARGE_DURATION_2 = 0.5;
 const INTRO_DURATION = 1.0;
 const POST_DASH_WAIT = 2.0;
-const RADIAL_RANGE = 60
+const RADIAL_RANGE = 60;
 const DASH_RANGE = 320;
 
+// Base archetype for all miniBoss encounters.
+// Subclasses pass a bossConfig object to tune stats without duplicating logic:
+//   healthMult    — multiplies base HP (default 1.0)
+//   damageMult    — multiplies contactDamage and bullet damage (default 1.0)
+//   speedMult     — multiplies all phase speeds (default 1.0)
 export default class BossEnemy extends Enemy {
-  constructor(position, deps) {
+  constructor(position, deps, bossConfig = {}) {
     super(position, deps);
 
-    this.width = 40;
-    this.height = 40;
+    this.width = 45;
+    this.height = 45;
     this.hitboxWidth = this.width;
     this.hitboxHeight = this.height;
 
-    this.health = 1000;
-    this.maxHealth = 1000;
-    this.contactDamage = 35;
+    // Read multipliers — all default to 1 so existing subclasses are unaffected
+    const healthMult = bossConfig.healthMult ?? 1.0;
+    const damageMult = bossConfig.damageMult ?? 1.0;
+    this._speedMult = bossConfig.speedMult ?? 1.0;
+
+    this.health = Math.round(1000 * healthMult);
+    this.maxHealth = this.health;
+    this.contactDamage = Math.round(35 * damageMult);
+    this._bulletDamageMult = damageMult;
 
     // Phase state
     this.phase = 1;
     this.isEnraged = false;
-    this.#applyPhase(1); // Set speed and dashSpeed from config
+    this.#applyPhase(1);
 
     // Timers
     this.dashCooldown = 0;
@@ -58,12 +69,14 @@ export default class BossEnemy extends Enemy {
     this._chargeTimer = 0;
     this._chargeDir = null;
     this._dashesThisCycle = 0;
+
+    // Animation — subclasses set _facingDir and override _animation
+    this._facingDir = "left";
   }
 
   onUpdate(deltaTime) {
     this.#tickTimers(deltaTime);
 
-    // Freeze during intro animation
     if (this._introTimer > 0) {
       this._introTimer -= deltaTime;
       this.velocity = new Vector(0, 0);
@@ -83,8 +96,8 @@ export default class BossEnemy extends Enemy {
     this.#updateAttacks(normDir, distance);
   }
 
-  // --------------------- PRIVATE HELPERS ---------------------
-  // Decrease all cooldown timers each frame
+  // ----- PRIVATE -----
+
   #tickTimers(deltaTime) {
     this.dashCooldown -= deltaTime;
     this.dashTimer -= deltaTime;
@@ -94,22 +107,18 @@ export default class BossEnemy extends Enemy {
     if (this._postDashTimer > 0) this._postDashTimer -= deltaTime;
   }
 
-  // Three state machine: dashing -> charging -> walking
   #updateMovement(deltaTime, normDir, distance) {
     if (this.isDashing) this.#stateDashing(normDir);
     else if (this._isCharging) this.#stateCharging(deltaTime, normDir);
     else this.#stateWalking(normDir, distance);
   }
 
-  // Move at full dash speed; check if dash is done
   #stateDashing(normDir) {
     this.velocity = this.dashDirection.times(this.dashSpeed);
-
     if (this.dashTimer > 0) return;
 
     this.isDashing = false;
 
-    // Phase 3: chain a second dash before resting
     if (this.phase === 3 && this._dashesThisCycle < 1) {
       this._dashesThisCycle++;
       this._isCharging = true;
@@ -121,7 +130,6 @@ export default class BossEnemy extends Enemy {
     }
   }
 
-  // Stand still and flash, then launch the dash
   #stateCharging(deltaTime, normDir) {
     this._chargeTimer -= deltaTime;
     this.velocity = new Vector(0, 0);
@@ -133,7 +141,6 @@ export default class BossEnemy extends Enemy {
     }
   }
 
-  // Walk to player, start a charge when close enough
   #stateWalking(normDir, distance) {
     this.velocity = normDir.times(this.speed);
 
@@ -150,7 +157,6 @@ export default class BossEnemy extends Enemy {
     }
   }
 
-  // Fire burst and radial attacks when cooldowns allow
   #updateAttacks(normDir, distance) {
     const idle =
       !this._isCharging && !this.isDashing && this._recoveryTimer <= 0;
@@ -176,7 +182,6 @@ export default class BossEnemy extends Enemy {
     }
   }
 
-  // Transition to the next phase and apply new stats
   #updatePhase() {
     if (this.health <= this.maxHealth * 0.65 && this.phase === 1) {
       this.phase = 2;
@@ -191,10 +196,10 @@ export default class BossEnemy extends Enemy {
     }
   }
 
-  // Pull speed and dashSpeed from the PHASE config table
+  // Apply speed from PHASE table, scaled by the subclass multiplier
   #applyPhase(phase) {
-    this.speed = PHASE[phase].speed;
-    this.dashSpeed = PHASE[phase].dashSpeed;
+    this.speed = PHASE[phase].speed * this._speedMult;
+    this.dashSpeed = PHASE[phase].dashSpeed * this._speedMult;
   }
 
   #startDash(direction) {
@@ -204,7 +209,6 @@ export default class BossEnemy extends Enemy {
     this.dashCooldown = PHASE[this.phase].dashCooldown;
   }
 
-  // 3 bullet spread toward the player
   #shootBurst(direction) {
     for (const angle of [-0.25, 0, 0.25]) {
       const rotated = new Vector(
@@ -215,12 +219,13 @@ export default class BossEnemy extends Enemy {
         new EnemyBullet(
           new Vector(this.position.x, this.position.y),
           rotated.normalize(),
+          // Pass damageMult so bullets also deal reduced damage
+          { damageMult: this._bulletDamageMult },
         ),
       );
     }
   }
 
-  // Ring of bullets in all directions
   #radialAttack() {
     const count = this.phase === 3 ? 18 : 12;
     for (let i = 0; i < count; i++) {
@@ -229,13 +234,14 @@ export default class BossEnemy extends Enemy {
         new EnemyBullet(
           new Vector(this.position.x, this.position.y),
           new Vector(Math.cos(angle), Math.sin(angle)),
+          { damageMult: this._bulletDamageMult },
         ),
       );
     }
   }
 
-  // Spawn SwarmEnemies at random positions on phase transition
   #spawnMinions(phase) {
+    if (!this.enemyList) return;
     const count = phase === 2 ? 2 : 3;
     for (let i = 0; i < count; i++) {
       this.enemyList.push(
