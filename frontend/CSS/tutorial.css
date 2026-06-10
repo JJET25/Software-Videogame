@@ -15,10 +15,19 @@ nav a.nav-active::after {
 .tut-hero {
   height: 40vh;
   min-height: 260px;
+  padding-top: 4.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background: radial-gradient(ellipse at center, #3d1070 0%, #110025 70%);
+  text-align: center;
+}
+
+.tut-hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
   text-align: center;
 }
 
