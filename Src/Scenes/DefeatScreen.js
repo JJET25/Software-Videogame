@@ -60,6 +60,7 @@ export default class DefeatScreen extends Screen {
       damage_taken:    Math.round(ctx.damageTaken    ?? 0),
       credits_earned:  Math.round(ctx.creditsEarned  ?? 0),
       cards_collected: Math.round(ctx.cardsCollected ?? 0),
+      cardIds:         ctx.cardIds ?? [],
     })
       .then(data => { this.score = data?.score ?? 0; })
       .catch(err => { console.error("[saveRun] Failed:", err); this.score = 0; });
