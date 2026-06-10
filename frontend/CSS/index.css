@@ -4,7 +4,7 @@
   --bg: #2c0c50;
   --primary-color: #36145c;
   --secondary-color: #4c2875;
-  --primary-text: #000000;
+  --primary-text: #ffffff;
   --secondary-text: #866ea7;
   --highlight-text: #ff8f33;
   --error: #e81132;
@@ -176,7 +176,7 @@ nav a:hover::after {
   font-weight: 900;
   letter-spacing: 2px;
   background-color: var(--acent);
-  color: var(--primary-text);
+  color: #1a0030;
 
   transition:
     opacity 0.2s,
@@ -253,7 +253,7 @@ nav a:hover::after {
   font-weight: 900;
   letter-spacing: 2px;
   background-color: var(--acent);
-  color: var(--primary-text);
+  color: #1a0030;
 
   transition:
     opacity 0.2s,
