@@ -113,6 +113,8 @@ const ACTIVE_MAP = {
 export function createCard(dbData) {
   const rarity = mapRarity(dbData.rarity);
 
+  let card;
+
   if (dbData.card_type === "automatic") {
     const trigger = TRIGGER_MAP[dbData.effect_json?.trigger];
     if (!trigger) {
@@ -121,23 +123,26 @@ export function createCard(dbData) {
       );
       return null;
     }
-    return new AutomaticCard({
+    card = new AutomaticCard({
       name: dbData.card_name,
       description: dbData.description,
       rarity,
       trigger,
       effect: buildAutoEffect(dbData),
     });
+  } else {
+    const factory = ACTIVE_MAP[dbData.subtype];
+    if (!factory) {
+      console.warn(
+        `CardFactory: unknown subtype "${dbData.subtype}" for "${dbData.card_name}"`,
+      );
+      return null;
+    }
+    card = factory(dbData, rarity);
   }
 
-  const factory = ACTIVE_MAP[dbData.subtype];
-  if (!factory) {
-    console.warn(
-      `CardFactory: unknown subtype "${dbData.subtype}" for "${dbData.card_name}"`,
-    );
-    return null;
-  }
-  return factory(dbData, rarity);
+  if (dbData.id != null) card.id = dbData.id;
+  return card;
 }
 
 export const STARTER_CARDS = ["Quick Strike", "Heal Pulse", "Wood Shield"];

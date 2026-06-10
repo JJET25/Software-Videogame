@@ -404,6 +404,7 @@ export default class GameplayScreen extends Screen {
       damageDealt: this.stats.damageDealt,
       creditsEarned: this.player.creditsEarned,
       cardsCollected: allCards.length,
+      cardIds: allCards.map(c => c.id).filter(Boolean),
     };
     this.screenManager.changeTo(new DefeatScreen(), {
       runId: this.runId,
