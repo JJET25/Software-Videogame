@@ -52,7 +52,7 @@ loginForm.addEventListener("submit", async (event) => {
 
     const data = await response.json();
 
-    if (response.ok) handleAuthSuccess(data.token, data.username);
+    if (response.ok) handleAuthSuccess(data.token, data.username, data.is_admin);
     else {
       overlay.classList.remove("active");
       errorLogin.classList.add("visible");
@@ -101,9 +101,10 @@ signupForm.addEventListener("submit", async (event) => {
   }
 });
 
-function handleAuthSuccess(token, username){
+function handleAuthSuccess(token, username, is_admin = 0){
     localStorage.setItem("token", token);
     localStorage.setItem("username", username);
+    localStorage.setItem("is_admin", is_admin ? "1" : "0");
 
     const redirectAfter = localStorage.getItem("redirectAfter");
 

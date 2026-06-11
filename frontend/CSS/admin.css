@@ -1,0 +1,208 @@
+/* =============================================
+   ADMIN PAGE — extends index.css + stats.css
+   ============================================= */
+
+/* ===== HERO ===== */
+.admin-hero {
+  height: 30vh;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #4a0a0a 0%, #110025 70%);
+  text-align: center;
+  gap: 0.8rem;
+}
+
+.admin-hero__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--error);
+}
+
+.admin-hero__badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  padding: 0.25rem 0.8rem;
+  border-radius: 99px;
+  border: 1px solid rgba(232, 17, 50, 0.4);
+  background: rgba(232, 17, 50, 0.1);
+  color: #ff4466;
+}
+
+/* ===== ACCESS DENIED OVERLAY ===== */
+.access-denied {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(10, 2, 20, 0.96);
+  align-items: center;
+  justify-content: center;
+}
+
+.access-denied.visible {
+  display: flex;
+}
+
+.access-denied__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  background: var(--primary-color);
+  border-radius: 2rem;
+  padding: 3rem 4rem;
+  border: 1px solid rgba(232, 17, 50, 0.3);
+  text-align: center;
+  max-width: 420px;
+}
+
+.access-denied__icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.access-denied__title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--error);
+}
+
+.access-denied__desc {
+  color: var(--secondary-text);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+/* ===== ZONE TITLE OVERRIDE (red accent for admin) ===== */
+.admin-zone-title {
+  color: var(--error);
+  border-bottom-color: rgba(232, 17, 50, 0.2);
+}
+
+/* ===== AVERAGES GRID ===== */
+.avg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.avg-cell {
+  background: var(--primary-color);
+  border-radius: 1.5rem;
+  padding: 1.6rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.avg-cell__label {
+  font-size: 0.6rem;
+  letter-spacing: 3px;
+  font-weight: 900;
+  color: var(--secondary-text);
+}
+
+.avg-cell__val {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--highlight-text);
+  line-height: 1;
+}
+
+.avg-cell__sub {
+  font-size: 0.75rem;
+  color: var(--secondary-text);
+}
+
+/* ===== PLAYERS TABLE ===== */
+.players-table-wrap {
+  overflow-x: auto;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.players-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 820px;
+}
+
+.players-table thead {
+  background: var(--secondary-color);
+}
+
+.players-table th {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  font-size: 0.6rem;
+  letter-spacing: 3px;
+  color: var(--secondary-text);
+  font-weight: 900;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  white-space: nowrap;
+}
+
+.players-table th:first-child { width: 36px; text-align: center; }
+
+.players-table td {
+  padding: 0.85rem 1rem;
+  color: var(--secondary-text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--primary-color);
+  white-space: nowrap;
+}
+
+.players-table tr:last-child td { border-bottom: none; }
+.players-table tbody tr:hover td { background: rgba(255,255,255,0.025); }
+
+.players-table td:first-child {
+  text-align: center;
+  font-weight: 900;
+  font-size: 0.8rem;
+  color: var(--secondary-text);
+}
+
+.pt-rank--1 td:first-child { color: #ffaa00; }
+.pt-rank--2 td:first-child { color: #aaaaaa; }
+.pt-rank--3 td:first-child { color: #cd7f32; }
+
+.pt-username {
+  color: #e0d0ff;
+  font-weight: 700;
+}
+
+.pt-score    { color: var(--highlight-text); font-weight: 700; }
+.pt-winrate  { color: var(--acent); font-weight: 700; }
+.pt-novice   { opacity: 0.4; font-style: italic; font-size: 0.8rem; }
+
+/* ===== CHARTS ROW ===== */
+.chart-wrap--winrate { height: 300px; }
+.chart-wrap--scores  { height: 300px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 860px) {
+  .avg-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .avg-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .access-denied__box {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+}

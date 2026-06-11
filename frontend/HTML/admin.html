@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../CSS/index.css" />
+    <link rel="stylesheet" href="../CSS/stats.css" />
+    <link rel="stylesheet" href="../CSS/admin.css" />
+    <title>Dimension Deck — Admin</title>
+  </head>
+  <body>
+    <!-- ===== ACCESS DENIED (shown if not admin) ===== -->
+    <div class="access-denied" id="accessDenied">
+      <div class="access-denied__box">
+        <div class="access-denied__icon">⛔</div>
+        <p class="access-denied__title">ACCESS DENIED</p>
+        <p class="access-denied__desc" id="accessDeniedMsg">You need to be logged in as an admin to view this page.</p>
+        <a href="/frontend/HTML/login.html" class="loginBtn">LOG IN</a>
+      </div>
+    </div>
+
+    <header>
+      <nav>
+        <a href="/index.html">PLAY</a>
+        <a href="/frontend/HTML/cards.html">CARDS</a>
+        <a href="/frontend/HTML/tutorial.html">TUTORIAL</a>
+        <a href="/frontend/HTML/admin.html" class="nav-active" style="color: var(--error);">ADMIN PANEL</a>
+      </nav>
+      <div id="user" class="user" style="display: none">
+        <div class="user-avatar" id="userAvatar" style="background: var(--error);">
+          <span id="usernameInitial"></span>
+          <div class="user-dropdown" id="userDropdown">
+            <p>Hi, <span id="usernameDisplay"></span>!</p>
+            <button id="logoutBtn">LOG OUT</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- ===== HERO ===== -->
+      <section class="admin-hero">
+        <h1 class="admin-hero__title">ADMIN PANEL</h1>
+        <span class="admin-hero__badge">RESTRICTED ACCESS</span>
+      </section>
+
+      <!-- ===== GLOBAL OVERVIEW ===== -->
+      <section class="stats-zone stats-zone--global" id="globalZone">
+        <h2 class="zone-title admin-zone-title">GLOBAL OVERVIEW</h2>
+
+        <div class="global-counters" id="globalCounters">
+          <div class="g-counter">
+            <span class="g-counter__val" id="gPlayers">–</span>
+            <span class="g-counter__label">PLAYERS</span>
+          </div>
+          <div class="g-counter">
+            <span class="g-counter__val" id="gRuns">–</span>
+            <span class="g-counter__label">TOTAL RUNS</span>
+          </div>
+          <div class="g-counter">
+            <span class="g-counter__val" id="gVictories">–</span>
+            <span class="g-counter__label">VICTORIES</span>
+          </div>
+          <div class="g-counter">
+            <span class="g-counter__val" id="gWinRate">–</span>
+            <span class="g-counter__label">GLOBAL WIN RATE</span>
+          </div>
+          <div class="g-counter g-counter--record">
+            <span class="g-counter__val" id="gRecord">–</span>
+            <span class="g-counter__label">RECORD SCORE</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PLAYER AVERAGES ===== -->
+      <section class="stats-zone" id="averagesZone">
+        <h2 class="zone-title admin-zone-title">PLAYER AVERAGES</h2>
+
+        <div class="avg-grid" id="avgGrid">
+          <div class="avg-cell">
+            <span class="avg-cell__label">AVG RUNS / PLAYER</span>
+            <span class="avg-cell__val" id="avgRuns">–</span>
+            <span class="avg-cell__sub">runs on average per player</span>
+          </div>
+          <div class="avg-cell">
+            <span class="avg-cell__label">AVG WIN RATE</span>
+            <span class="avg-cell__val" id="avgWinRate">–</span>
+            <span class="avg-cell__sub">across all players</span>
+          </div>
+          <div class="avg-cell">
+            <span class="avg-cell__label">AVG BEST SCORE</span>
+            <span class="avg-cell__val" id="avgBestScore">–</span>
+            <span class="avg-cell__sub">best score per player</span>
+          </div>
+          <div class="avg-cell">
+            <span class="avg-cell__label">AVG SCORE / RUN</span>
+            <span class="avg-cell__val" id="avgScoreRun">–</span>
+            <span class="avg-cell__sub">score per completed run</span>
+          </div>
+          <div class="avg-cell">
+            <span class="avg-cell__label">AVG KILLS / RUN</span>
+            <span class="avg-cell__val" id="avgKills">–</span>
+            <span class="avg-cell__sub">enemies killed per run</span>
+          </div>
+          <div class="avg-cell">
+            <span class="avg-cell__label">AVG ROOMS / RUN</span>
+            <span class="avg-cell__val" id="avgRooms">–</span>
+            <span class="avg-cell__sub">rooms cleared per run</span>
+          </div>
+        </div>
+
+        <!-- Damage averages -->
+        <div class="subsection">
+          <h3 class="subsection-title">DAMAGE AVERAGES</h3>
+          <div class="bento-cell cell-damage" style="max-width: 480px;">
+            <span class="cell-label">AVERAGE DAMAGE PER PLAYER</span>
+            <div class="dmg-row">
+              <span class="dmg-row__tag dmg-tag--dealt">DEALT</span>
+              <span class="dmg-row__val" id="avgDmgDealt">–</span>
+            </div>
+            <div class="dmg-track">
+              <div class="dmg-fill dmg-fill--dealt" id="avgDmgBarDealt"></div>
+            </div>
+            <div class="dmg-row">
+              <span class="dmg-row__tag dmg-tag--taken">TAKEN</span>
+              <span class="dmg-row__val" id="avgDmgTaken">–</span>
+            </div>
+            <div class="dmg-track">
+              <div class="dmg-fill dmg-fill--taken" id="avgDmgBarTaken"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PLAYER COMPARISON CHARTS ===== -->
+      <section class="stats-zone" id="chartsZone">
+        <h2 class="zone-title admin-zone-title">PLAYER COMPARISON</h2>
+
+        <div class="charts-row">
+          <div class="subsection" style="flex:1;">
+            <h3 class="subsection-title">WIN RATE BY PLAYER</h3>
+            <div class="chart-wrap chart-wrap--winrate">
+              <canvas id="winRateChart"></canvas>
+            </div>
+          </div>
+          <div class="subsection" style="flex:1;">
+            <h3 class="subsection-title">BEST SCORE BY PLAYER</h3>
+            <div class="chart-wrap chart-wrap--scores">
+              <canvas id="scoresChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ALL PLAYERS TABLE ===== -->
+      <section class="stats-zone" id="playersZone">
+        <h2 class="zone-title admin-zone-title">ALL PLAYERS</h2>
+
+        <div class="players-table-wrap">
+          <table class="players-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>PLAYER</th>
+                <th>RUNS</th>
+                <th>W / L</th>
+                <th>WIN RATE</th>
+                <th>BEST SCORE</th>
+                <th>AVG SCORE</th>
+                <th>KILLS / RUN</th>
+                <th>ROOMS / RUN</th>
+                <th>MEMBER SINCE</th>
+              </tr>
+            </thead>
+            <tbody id="playersBody">
+              <tr>
+                <td colspan="10" style="text-align:center;padding:2rem;color:var(--secondary-text);">
+                  Loading...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+      <div class="footer__github">
+        <a href="https://github.com/JJET25/Software-Videogame" target="_blank">
+          <img src="../../Assets/Website/github_logo.png" alt="GitHub Logo" />
+          <span>GitHub</span>
+        </a>
+      </div>
+      <div class="footer__authors">
+        <h3>By</h3>
+        <p>Jesus Espinoza, Gonzalo Zamarrón, Vladimir Reyes</p>
+      </div>
+      <div class="footer__copyright">
+        <p>
+          © <time datetime="2026">2026</time><br />Dimension Deck<br />All
+          Rights Reserved
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="../JavaScript/admin.js"></script>
+  </body>
+</html>

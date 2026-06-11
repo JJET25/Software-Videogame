@@ -159,9 +159,12 @@ export default class Bandit extends RangedEnemy {
   }
 
   #updateShooting(deltaTime, normDir, distance) {
+    if (this._shootPhase === "cooldown" && this._cooldownTimer <= 0) {
+      this._shootPhase = "ready";
+    }
+
     if (this._shootPhase === "ready") {
       if (distance < SHOOT_RANGE) {
-        // Face the player and start the attack animation
         this._aimDir = normDir;
         this._facingDir = normDir.x >= 0 ? "right" : "left";
         this._shootPhase = "animating";
@@ -179,7 +182,6 @@ export default class Bandit extends RangedEnemy {
         this._cooldownTimer = SHOOT_RATE;
       }
     }
-    // "cooldown" is handled by _cooldownTimer decrement at the top of onUpdate
   }
 
   #updateAnimation() {
