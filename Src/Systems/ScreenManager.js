@@ -1,7 +1,7 @@
-// Routes update and draw calls to the active screen and handles screen transitions
+// ScreenManager.js — Routes update and draw calls to the active screen and handles screen transitions
 export default class ScreenManager {
+  // Merges provided services with a self-reference so screens can request transitions
   constructor(services) {
-    // Inject self so screens can call this.screenManager.changeTo(...)
     this.services = { ...services, screenManager: this };
     this.current  = null;
   }
@@ -14,10 +14,12 @@ export default class ScreenManager {
     this.current.enter(context);
   }
 
+  // Delegates the frame update to the currently active screen
   update(deltaTime) {
     this.current?.update(deltaTime);
   }
 
+  // Delegates the frame draw to the currently active screen
   draw(renderer) {
     this.current?.draw(renderer);
   }

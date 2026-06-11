@@ -1,5 +1,6 @@
-// Holds metadata for a single row of frames in a sprite sheet image
+// SpriteSheet.js — Holds source metadata for a single strip of frames within a sprite sheet image.
 export default class SpriteSheet {
+  // Accepts either a pre-loaded image object or a src path to load automatically.
   constructor({
     src,
     image,
@@ -16,6 +17,7 @@ export default class SpriteSheet {
     this.frameCount = frameCount;
     this.row = row;
     this.startCol = startCol;
+    // Absolute pixel coordinates override row/startCol when provided.
     this.srcX = srcX;
     this.srcY = srcY;
 
@@ -27,7 +29,7 @@ export default class SpriteSheet {
     }
   }
 
-  // True once the image is fully loaded and has valid dimensions
+  // Returns true once the underlying image is fully decoded and has valid dimensions.
   get isLoaded() {
     return this.image.complete && this.image.naturalWidth > 0;
   }

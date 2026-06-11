@@ -1,8 +1,8 @@
+// MouseManager.js — Tracks mouse position in game-space coordinates and left-click state.
 import Vector from "../Utils/Vector.js";
 import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
 
-// This code was made with the help of Claude Code, in order to identifiy how the mouse works as an event listener in JS
-// Tracks mouse position in game-space coordinates and left-click state
+// Converts raw browser mouse events into game-space position and click signals.
 export default class MouseManager {
   constructor(canvas) {
     this.canvas = canvas;
@@ -12,11 +12,12 @@ export default class MouseManager {
     this._setupListeners();
   }
 
+  // Attaches mousemove, mousedown, and mouseup listeners to the canvas element.
   _setupListeners() {
     this.canvas.addEventListener("mousemove", (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      // Converts from CSS pixels to game-space so position is comparable to entity positions
-      const gameScaleX = this.canvas.clientWidth / ROOM_WIDTH; 
+      // Converts from CSS pixels to game-space so position is comparable to entity positions.
+      const gameScaleX = this.canvas.clientWidth / ROOM_WIDTH;
       const gameScaleY = this.canvas.clientHeight / ROOM_HEIGHT;
       this.position = new Vector(
         (e.clientX - rect.left) / gameScaleX,
@@ -36,7 +37,7 @@ export default class MouseManager {
     });
   }
 
-  // Returns true once per click and clears the flag so it fires only on the frame it is read
+  // Returns true once per click; clears the flag so it fires only on the frame it is read.
   consumeClick() {
     if (!this._clickPending) return false;
     this._clickPending = false;

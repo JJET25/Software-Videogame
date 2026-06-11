@@ -1,3 +1,6 @@
+// Chest.js — Interactive chest object that rewards the player with a card or credits on open.
+// Uses LootTable to determine the reward type and falls back to credits if no card is available.
+
 import {
   OBJECTS_IMAGE,
   OBJECTS_SPRITE,
@@ -8,13 +11,14 @@ import GameObject from "./GameObject.js";
 import LootTable from "./LootTable.js";
 
 export default class Chest extends GameObject {
+  // Creates a chest at the given position; starts in the closed state.
   constructor(position) {
     super(position, 16, 16, "#f1c536", "chest");
     this.isSolid = true;
     this.isOpen = false;
   }
 
-  // Call when player presses E near the chest
+  // Opens the chest and distributes loot when the player presses E nearby.
   interact(player, context = {}) {
     if (this.isOpen) return;
     this.isOpen = true;
@@ -26,6 +30,7 @@ export default class Chest extends GameObject {
     } else this.#giveCard(player, loot.rarity, context);
   }
 
+  // Draws the open or closed chest sprite and shows the interaction prompt when the player is near.
   draw(renderer) {
     const key = this.isOpen ? "chestOpen" : "chestClosed";
     const s = OBJECTS_SPRITE[key];
@@ -63,14 +68,13 @@ export default class Chest extends GameObject {
     }
   }
 
-  // --------------------- PRIVATE HELPERS ---------------------
-  // Give credits directly and notify the player
+  // Adds credits directly to the player and displays a notification.
   #giveCredits(player, amount, context) {
     player.addCredits(amount);
     context.showNotification?.(`You got ${amount} Credits!`);
   }
 
-  // Try to give a card; fallback to random credits if no card is available
+  // Attempts to give a card of the rolled rarity; falls back to random credits if unavailable.
   #giveCard(player, rarity, context) {
     const card = getRandomCardByRarity(context.cardCatalog, rarity);
 
@@ -80,7 +84,7 @@ export default class Chest extends GameObject {
       return;
     }
 
-    // No card available, give credits instead
+    // No card available, give credits instead.
     const amount = randInt(1, 10) * 20;
     this.#giveCredits(player, amount, context);
   }

@@ -1,8 +1,10 @@
+// StartScreen.js — Renders the main menu with Play, Restart, Credits, and Exit buttons
+// Displays a credits overlay on request and detects a saved deck from localStorage.
 import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 import GameplayScreen from "./GameplayScreen.js";
 import Screen from "./Screen.js";
 
-// --------------------- PALETTE ---------------------
+// Color palette for all UI elements on this screen
 const P = {
   bg: "#0d0520",
   btnNorm: "#1e0850",
@@ -22,14 +24,17 @@ const P = {
   accent: "#7c4dff",
 };
 
+// Pixel dimensions of each menu button
 const BTN_W = 84;
 const BTN_H = 13;
 
+// Names displayed in the credits overlay
 const TEAM_NAMES = ["Jesus Espinoza", "Gonzalo Zamarron", "Vladimir Reyes"];
 
 const SFX_BASE = "../../Assets/Audios/SFX/";
 
 export default class StartScreen extends Screen {
+  // Builds the button list, loads the logo image, and preloads UI sound effects
   enter() {
     this.btnX = (ROOM_WIDTH - BTN_W) / 2;
 
@@ -61,6 +66,7 @@ export default class StartScreen extends Screen {
       },
     ];
 
+    // Insert a Restart button when a saved deck exists
     if (this._hasSavedDeck) {
       baseButtons.splice(1, 0, {
         label: "RESTART",
@@ -75,7 +81,7 @@ export default class StartScreen extends Screen {
 
     this.buttons = baseButtons;
 
-    // Back button inside the credits overlay
+    // Back button displayed inside the credits overlay
     this._backBtn = {
       x: (ROOM_WIDTH - BTN_W) / 2,
       y: ROOM_HEIGHT - 26,
@@ -85,7 +91,7 @@ export default class StartScreen extends Screen {
     this._logo = new Image();
     this._logo.src = "/Assets/Website/DimensionDeck_Logo.png";
 
-    // Load pixel font — falls back to monospace until ready
+    // Load pixel font and fall back to monospace until ready
     this._font = "monospace";
     document.fonts.load("5px 'Press Start 2P'").then(() => {
       this._font = "'Press Start 2P', monospace";
@@ -95,6 +101,7 @@ export default class StartScreen extends Screen {
     this.audio?.loadSFX("confirmUI", SFX_BASE + "ConfirmUI.wav");
   }
 
+  // Updates button hover states, handles clicks, and delegates to the credits overlay when open
   update(deltaTime) {
     this.#updateHoverSFX();
 
@@ -114,6 +121,7 @@ export default class StartScreen extends Screen {
     }
   }
 
+  // Draws the background, logo, menu buttons, version label, and credits overlay if active
   draw(renderer) {
     renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, P.bg);
     this.#drawLogo(renderer);
@@ -132,8 +140,7 @@ export default class StartScreen extends Screen {
     if (this._showCredits) this.#drawCredits(renderer);
   }
 
-  // --------------------- PRIVATE: update ---------------------
-  // Play hover SFX when the mouse moves onto a new button
+  // Plays hover SFX when the mouse moves onto a new button
   #updateHoverSFX() {
     const mainHovered = this._showCredits
       ? null
@@ -150,7 +157,7 @@ export default class StartScreen extends Screen {
     }
   }
 
-  // Handle hover and click while the credits overlay is open
+  // Handles hover and click logic while the credits overlay is open
   #updateCreditsOverlay(clicked) {
     const b = this._backBtn;
     const mx = this.mouse.position.x;
@@ -164,8 +171,7 @@ export default class StartScreen extends Screen {
     }
   }
 
-  // --------------------- PRIVATE: draw ---------------------
-  // Draws the logo image, or a text fallback if it hasn't loaded yet
+  // Draws the logo image, or a text fallback if it has not loaded yet
   #drawLogo(renderer) {
     if (this._logo.complete && this._logo.naturalWidth > 0) {
       const lh = 60;
@@ -180,9 +186,8 @@ export default class StartScreen extends Screen {
     }
   }
 
-  // Full-screen credits overlay with panel, names, and back button
+  // Draws the full-screen credits overlay with panel, team names, course info, and back button
   #drawCredits(renderer) {
-    // Dim background
     const ctx = renderer.context;
     ctx.fillStyle = P.overlay;
     ctx.fillRect(
@@ -200,14 +205,12 @@ export default class StartScreen extends Screen {
 
     this.#drawCreditsPanel(renderer, px, py, pw, ph);
 
-    // Title
     renderer.drawText("CREDITS", cx, py + 14, 7, P.accent, {
       align: "center",
       font: this._font,
     });
     renderer.drawRect(px + 10, py + 22, pw - 20, 1, P.divider);
 
-    // Team names
     TEAM_NAMES.forEach((name, i) => {
       renderer.drawText(name, cx, py + 32 + i * 13, 4.5, P.txtNorm, {
         align: "center",
@@ -215,7 +218,6 @@ export default class StartScreen extends Screen {
       });
     });
 
-    // Course info
     renderer.drawRect(px + 10, py + 74, pw - 20, 1, P.divider);
     renderer.drawText("TC2005B", cx, py + 82, 5, P.accent, {
       align: "center",
@@ -230,37 +232,35 @@ export default class StartScreen extends Screen {
       font: this._font,
     });
 
-    // Back button
     const b = this._backBtn;
     this.#drawButton(renderer, b.x, b.y, b.hovered, "BACK");
   }
 
-  // Panel background + 2px border + corner cuts
+  // Draws the panel background with a 2px border and single-pixel corner cuts
   #drawCreditsPanel(renderer, px, py, pw, ph) {
     renderer.drawRect(px, py, pw, ph, P.boxBg);
     renderer.drawRect(px, py, pw, 2, P.accent);
     renderer.drawRect(px, py + ph - 2, pw, 2, P.accent);
     renderer.drawRect(px, py, 2, ph, P.accent);
     renderer.drawRect(px + pw - 2, py, 2, ph, P.accent);
-    // 1px corner cuts to give a beveled look
+    // Corner pixels overdrawn with background color to create a beveled look
     renderer.drawRect(px, py, 1, 1, P.bg);
     renderer.drawRect(px + pw - 1, py, 1, 1, P.bg);
     renderer.drawRect(px, py + ph - 1, 1, 1, P.bg);
     renderer.drawRect(px + pw - 1, py + ph - 1, 1, 1, P.bg);
   }
 
-  // Pixel-art RPG button with top highlight, bottom shadow and corner cuts
+  // Draws a pixel-art RPG button with a top highlight, bottom shadow, borders, and corner cuts
   #drawButton(renderer, x, y, hovered, label) {
     const bg = hovered ? P.btnHover : P.btnNorm;
     const top = hovered ? P.btnTopHov : P.btnTop;
     const bdr = hovered ? P.borderHov : P.border;
 
     renderer.drawRect(x, y, BTN_W, BTN_H, bg);
-    renderer.drawRect(x + 1, y + 1, BTN_W - 2, 1, top); // top highlight
-    renderer.drawRect(x + 1, y + BTN_H - 2, BTN_W - 2, 1, P.btnBot); // bottom shadow
-    renderer.drawRect(x, y, 2, BTN_H, bdr); // left border
-    renderer.drawRect(x + BTN_W - 2, y, 2, BTN_H, bdr); // right border
-    // Corner cuts
+    renderer.drawRect(x + 1, y + 1, BTN_W - 2, 1, top);
+    renderer.drawRect(x + 1, y + BTN_H - 2, BTN_W - 2, 1, P.btnBot);
+    renderer.drawRect(x, y, 2, BTN_H, bdr);
+    renderer.drawRect(x + BTN_W - 2, y, 2, BTN_H, bdr);
     renderer.drawRect(x, y, 1, 1, P.corner);
     renderer.drawRect(x + BTN_W - 1, y, 1, 1, P.corner);
     renderer.drawRect(x, y + BTN_H - 1, 1, 1, P.corner);
@@ -276,7 +276,7 @@ export default class StartScreen extends Screen {
     );
   }
 
-  // Returns true if the mouse is inside a button's bounds
+  // Returns true if the mouse cursor is inside the button's bounding rectangle
   #isHovered(btn) {
     const { x: mx, y: my } = this.mouse.position;
     return (

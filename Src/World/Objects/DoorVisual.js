@@ -1,3 +1,6 @@
+// DoorVisual.js — Animated sprite overlay rendered at each door opening.
+// Supports open/close animations with frame stepping and handles per-tileset sprite sheets and offsets.
+
 import {
   TILE_SIZE,
   ROOM_COLS,
@@ -12,14 +15,19 @@ const FRAME_OPEN  = 0;
 const FRAME_CLOSED = FRAME_COUNT - 1;
 const ANIM_FPS    = 10;
 
+// Per-tileset frame height values.
 const FRAME_H  = { tilesDarkAge: 35, tilesOldWest: 37 };
+// Per-tileset vertical draw offsets.
 const Y_OFFSET = { tilesDarkAge: 0,  tilesOldWest: 1 };
+// Per-tileset sprite sheet source paths.
 const IMG_SRC = {
   tilesDarkAge: "../../Assets/Sprites/room/doors-dungeon.png",
   tilesOldWest: "../../Assets/Sprites/room/doors-oldwest.png",
 };
 
+// Cached image objects shared across all DoorVisual instances.
 const _imgs = {};
+// Returns a cached Image for the given tileset, loading it once if needed.
 function getImg(tileSetId) {
   if (!_imgs[tileSetId]) {
     const img = new Image();
@@ -29,6 +37,7 @@ function getImg(tileSetId) {
   return _imgs[tileSetId];
 }
 
+// Computes the center world position of a door opening for the given direction.
 function centerPos(direction) {
   const midCol = Math.floor(ROOM_COLS / 2);
   const midRow = Math.floor(ROOM_ROWS / 2);
@@ -41,6 +50,7 @@ function centerPos(direction) {
 }
 
 export default class DoorVisual {
+  // Creates a door visual for the given direction and tileset.
   constructor(direction, tileSetId) {
     this._direction = direction;
     this._img       = getImg(tileSetId);
@@ -52,16 +62,19 @@ export default class DoorVisual {
     this._pos.y    += Y_OFFSET[tileSetId] ?? 0;
   }
 
+  // Starts the open animation; if instant is true, skips directly to the open frame.
   open(instant = false) {
     this._target = FRAME_OPEN;
     if (instant) this._frame = FRAME_OPEN;
   }
 
+  // Starts the close animation; if instant is true, skips directly to the closed frame.
   close(instant = false) {
     this._target = FRAME_CLOSED;
     if (instant) this._frame = FRAME_CLOSED;
   }
 
+  // Advances the animation frame toward the target at ANIM_FPS frames per second.
   update(deltaTime) {
     if (this._frame === this._target) return;
     this._elapsed += deltaTime;
@@ -71,6 +84,7 @@ export default class DoorVisual {
     }
   }
 
+  // Draws the current animation frame, rotating the sprite to match the door direction.
   draw(renderer) {
     if (!this._img?.complete || !this._img.naturalWidth) return;
 
@@ -79,6 +93,7 @@ export default class DoorVisual {
     const sx  = this._frame * FRAME_W;
     const px  = Math.round((this._pos.x + renderer.offsetX) * sc);
     const py  = Math.round((this._pos.y + renderer.offsetY) * sc);
+    // Rotation angle based on cardinal direction.
     const rot = this._direction === "east"  ?  Math.PI / 2
               : this._direction === "west"  ? -Math.PI / 2
               : this._direction === "south" ?  Math.PI

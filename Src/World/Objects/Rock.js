@@ -1,3 +1,6 @@
+// Rock.js — Solid, indestructible rock obstacle placed in combat rooms.
+// Randomly selects one of three sprite variants on construction.
+
 import {
   OBJECTS_IMAGE,
   OBJECTS_SPRITE,
@@ -6,6 +9,7 @@ import { randInt } from "../../Utils/Random.js";
 import GameObject from "./GameObject.js";
 
 export default class Rock extends GameObject {
+  // Creates a rock at the given position and picks a random sprite variant.
   constructor(position) {
     super(position, 16, 16, "#806262", "rock");
     this.isSolid = true;
@@ -14,6 +18,7 @@ export default class Rock extends GameObject {
     this.spriteKey = variants[randInt(0, variants.length - 1)];
   }
 
+  // Draws the rock sprite if the image is loaded, otherwise renders a fallback rectangle.
   draw(renderer) {
     const s = OBJECTS_SPRITE[this.spriteKey];
 

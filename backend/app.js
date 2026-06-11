@@ -1,3 +1,6 @@
+// app.js — Express application entry point for the Dimension Deck API.
+// Registers all route modules under their respective URL prefixes and starts the HTTP server.
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';

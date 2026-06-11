@@ -1,6 +1,8 @@
+// LevelScreen.js — Timed fade-in/hold/fade-out overlay announcing the current level number and phase
 import Screen from "./Screen.js";
 import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
 
+// Color palette for this screen
 const P = {
   bg:      "#0d0520",
   divider: "#2a1050",
@@ -11,6 +13,7 @@ const P = {
 };
 
 export default class LevelScreen extends Screen {
+  // Reads context values and sets up fade-in, hold, and fade-out timing constants
   enter(context = {}) {
     this.levelNumber   = context.levelNumber   ?? 1;
     this.dimensionName = context.dimensionName ?? null;
@@ -31,14 +34,17 @@ export default class LevelScreen extends Screen {
 
   exit() {}
 
+  // Advances the timer and fires onDone when the full animation sequence completes
   update(deltaTime) {
     this._timer += deltaTime;
     if (this._timer >= this._total) this.onDone();
   }
 
+  // Draws a semi-transparent background and the level title with computed alpha and a glow
   draw(renderer) {
     const t = this._timer;
     let alpha;
+    // Compute alpha based on which phase of the fade animation is active
     if      (t < this._fadeIn)                        alpha = t / this._fadeIn;
     else if (t < this._fadeIn + this._hold)           alpha = 1;
     else alpha = 1 - (t - this._fadeIn - this._hold) / this._fadeOut;
@@ -56,7 +62,7 @@ export default class LevelScreen extends Screen {
 
     ctx.globalAlpha = alpha;
 
-    // Title with glow
+    // Level number with a white glow
     ctx.shadowColor = "rgba(200,210,255,0.9)";
     ctx.shadowBlur  = Math.round(16 * sc);
     renderer.drawText(
@@ -67,7 +73,6 @@ export default class LevelScreen extends Screen {
     ctx.shadowColor = "transparent";
     ctx.shadowBlur  = 0;
 
-    // Divider
     renderer.drawRect((ROOM_WIDTH - 160) / 2, 72, 160, 1, P.divider);
 
     if (this.dimensionName) {

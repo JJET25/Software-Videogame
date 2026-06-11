@@ -1,7 +1,9 @@
+// DeckScreen.js — Full-screen deck management overlay for inspecting, moving, and organizing cards
+// Displays a preview panel on the left and active/auto/storage grids on the right.
 import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
 import { CardType } from "../cards/Card.js";
 
-// --------------------- PALETTE ---------------------
+// Color palette for this screen
 const P = {
   bg: "#111111",
   border: "#2a2a2a",
@@ -14,6 +16,7 @@ const P = {
   cardBg: "#0e0e0e",
 };
 
+// Maps rarity names to their highlight colors
 const RARITY_COLOR = {
   common: "#9b8fb0",
   rare: "#4f8fff",
@@ -21,9 +24,10 @@ const RARITY_COLOR = {
   legendary: "#ffb43c",
 };
 
+// Cooldown-reduction percentage per card level
 const LEVEL_CD_REDUCTION = { 1: 0, 2: 30, 3: 51 };
 
-// --------------------- PANEL ---------------------
+// Outer panel bounds
 const PX = 2,
   PY = 2,
   PW = 268,
@@ -31,40 +35,42 @@ const PX = 2,
 const TITLE_Y = 11;
 const DIV1_Y = 18;
 
-// --------------------- COLUMN SPLIT ---------------------
+// Left column width and derived positions
 const LEFT_W = 92;
-const SPLIT_X = PX + LEFT_W; // 94
+const SPLIT_X = PX + LEFT_W;
 const LEFT_CX = PX + Math.floor(LEFT_W / 2);
-const RX0 = SPLIT_X + 3; // right area left edge
-const RW = PX + PW - 2 - RX0; // right area width
+const RX0 = SPLIT_X + 3;
+const RW = PX + PW - 2 - RX0;
 
-// --------------------- PREVIEW (left) ---------------------
+// Preview card dimensions (approximately 8:11 aspect ratio)
 const PV_W = 50,
-  PV_H = 69; // ~8:11
+  PV_H = 69;
 const PV_X = LEFT_CX - Math.floor(PV_W / 2);
 const PV_CARD_Y = 30;
-const PV_RAR_Y = PV_CARD_Y + PV_H + 5; // 104
-const PV_DESC_Y = PV_RAR_Y + 8; // 112
+const PV_RAR_Y = PV_CARD_Y + PV_H + 5;
+const PV_DESC_Y = PV_RAR_Y + 8;
 const PV_LEVEL_Y = 152;
 const PV_CD_Y = 162;
 
-// --------------------- GRID CARDS (right) ---------------------
+// Grid card dimensions and spacing
 const G_W = 18,
   G_H = 25,
-  G_GAP = 3; 
+  G_GAP = 3;
+// Number of cards visible in storage per page
 const STORE_PAGE_SIZE = 8;
 
+// Row positions for each section label and card row in the right column
 const R_ACT_LABEL = 24;
-const R_ACT_ROW = 28; // 28..53
+const R_ACT_ROW = 28;
 const R_ACT_HINT = R_ACT_ROW + G_H + 1;
-const R_AUTO_LABEL = R_ACT_HINT + 6; // 60
-const R_AUTO_ROW = R_AUTO_LABEL + 5; // 65..90
-const R_STORE_LABEL = R_AUTO_ROW + G_H + 6; // 96
-const R_STORE_ROW = R_STORE_LABEL + 5; // 101..126
+const R_AUTO_LABEL = R_ACT_HINT + 6;
+const R_AUTO_ROW = R_AUTO_LABEL + 5;
+const R_STORE_LABEL = R_AUTO_ROW + G_H + 6;
+const R_STORE_ROW = R_STORE_LABEL + 5;
 const R_HINT_Y = 140;
 
-// --------------------- CLASS ---------------------
 export default class DeckScreen {
+  // Initializes closed state, selection tracking, and loads the pixel font
   constructor() {
     this._open = false;
     this._selected = null;
@@ -77,10 +83,12 @@ export default class DeckScreen {
     });
   }
 
+  // Returns true when the deck screen is currently open
   get isOpen() {
     return this._open;
   }
 
+  // Handles TAB toggle, page navigation, and click-based card interaction
   update(input, mouse, cardManager, audio = null) {
     if (input.wasKeyPressed("TAB")) {
       this._open = !this._open;
@@ -107,6 +115,7 @@ export default class DeckScreen {
     else this.#handleInspectOrPickup(card, hit, audio);
   }
 
+  // Draws the full-screen overlay with panel chrome, preview, and management sections
   draw(renderer, cardManager) {
     if (!this._open) return;
     const f = this._font;
@@ -120,11 +129,12 @@ export default class DeckScreen {
     this.#drawManagement(renderer, ctx, sc, f, cardManager);
   }
 
-  // --------------------- UPDATE HELPERS ---------------------
+  // Returns the total number of storage pages for the current card count
   #totalPages(cardManager) {
     return Math.max(1, Math.ceil(cardManager.storage.length / STORE_PAGE_SIZE));
   }
 
+  // On first click selects for inspection; on second click picks up for moving
   #handleInspectOrPickup(card, hit, audio) {
     if (!card) {
       this._inspected = null;
@@ -139,6 +149,7 @@ export default class DeckScreen {
     }
   }
 
+  // Drops the held card into a valid target slot or cancels the move
   #handleDrop(hit, cardManager, audio) {
     if (hit) {
       const src = this._selected.card;
@@ -155,7 +166,7 @@ export default class DeckScreen {
     this._inspected = null;
   }
 
-  // The card shown in the preview: inspected > moving > first available card
+  // Returns the card to show in the preview: inspected card, held card, or first available card
   #previewCard(cardManager) {
     if (this._inspected?.card) return this._inspected.card;
     if (this._selected?.card) return this._selected.card;
@@ -170,7 +181,7 @@ export default class DeckScreen {
     return cardManager.storage[0] ?? null;
   }
 
-  // --------------------- draw: chrome ---------------------
+  // Draws the outer panel background, title, horizontal divider, and vertical column separator
   #drawPanel(renderer, ctx, sc, cx, f) {
     renderer.drawRect(PX, PY, PW, PH, P.bg);
     this.#frame2px(renderer, PX, PY, PW, PH, P.border);
@@ -188,6 +199,7 @@ export default class DeckScreen {
     renderer.drawRect(SPLIT_X, DIV1_Y + 1, 1, PY + PH - DIV1_Y - 3, P.border);
   }
 
+  // Draws a 2px panel border with single-pixel corner cuts
   #frame2px(renderer, x, y, w, h, color) {
     renderer.drawRect(x, y, w, 2, color);
     renderer.drawRect(x, y + h - 2, w, 2, color);
@@ -199,8 +211,7 @@ export default class DeckScreen {
     renderer.drawRect(x + w - 1, y + h - 1, 1, 1, P.bg);
   }
 
-  // --------------------- draw: preview (left) ---------------------
-
+  // Draws the large card preview, rarity label, name, description, level stars, and cooldown reduction
   #drawPreview(renderer, ctx, sc, f, cardManager) {
     const card = this.#previewCard(cardManager);
 
@@ -214,20 +225,19 @@ export default class DeckScreen {
 
     const rc = RARITY_COLOR[card.rarity] ?? P.sub;
 
-    // Big card with rarity glow + contour
+    // Big card art with a rarity-colored glow
     ctx.shadowColor = rc + "99";
     ctx.shadowBlur = Math.round(6 * sc);
     this.#drawCardArt(renderer, card, PV_X, PV_CARD_Y, PV_W, PV_H, rc, f);
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
 
-    // Rarity label
     renderer.drawText(card.rarity.toUpperCase(), LEFT_CX, PV_RAR_Y, 3, rc, {
       align: "center",
       font: f,
     });
 
-    // Name (wrapped, max 2 lines)
+    // Name wrapped to a maximum of 2 lines
     const nameLines = this.#wrap(card.name.toUpperCase(), 13).slice(0, 2);
     nameLines.forEach((ln, i) =>
       renderer.drawText(ln, LEFT_CX, PV_DESC_Y + i * 7, 4, P.text, {
@@ -236,7 +246,7 @@ export default class DeckScreen {
       }),
     );
 
-    // Description (wrapped) below the name
+    // Description wrapped below the name
     const descStart = PV_DESC_Y + nameLines.length * 7 + 3;
     const descLines = this.#wrap(
       card.description ?? "No description.",
@@ -249,7 +259,7 @@ export default class DeckScreen {
       }),
     );
 
-    // Level: stars + cooldown reduction
+    // Level display with filled and empty star characters
     const lvl = card.level ?? 1;
     const stars = "★".repeat(lvl) + "☆".repeat(3 - lvl);
     renderer.drawText(`LV ${lvl}`, LEFT_CX - 14, PV_LEVEL_Y, 4, P.sub, {
@@ -272,10 +282,8 @@ export default class DeckScreen {
     );
   }
 
-  // --------------------- draw: management (right) ---------------------
-
+  // Draws the active slots, auto slots, and paginated storage grid with labels
   #drawManagement(renderer, ctx, sc, f, cardManager) {
-    // ACTIVE
     renderer.drawText("ACTIVE", RX0, R_ACT_LABEL, 4, P.sub, {
       align: "left",
       font: f,
@@ -300,7 +308,6 @@ export default class DeckScreen {
       );
     }
 
-    // AUTOMATIC
     renderer.drawText("AUTOMATIC", RX0, R_AUTO_LABEL, 4, P.sub, {
       align: "left",
       font: f,
@@ -317,7 +324,6 @@ export default class DeckScreen {
       );
     }
 
-    // STORAGE
     const total = cardManager.storage.length;
     const totalPages = this.#totalPages(cardManager);
     const pageStart = this._storePage * STORE_PAGE_SIZE;
@@ -360,7 +366,7 @@ export default class DeckScreen {
     );
   }
 
-  // --------------------- draw: single grid card ---------------------
+  // Draws a single grid card: art, glow when selected/inspected, level tag, and pips
   #drawCard(renderer, card, rect, ctx, sc, f) {
     const { x, y } = rect;
 
@@ -384,7 +390,7 @@ export default class DeckScreen {
       ctx.shadowBlur = 0;
     }
 
-    // Level tag (top-right) for upgraded cards
+    // Level tag in the top-right corner for upgraded cards
     const lvl = card.level ?? 1;
     if (lvl > 1) {
       const tagW = 8;
@@ -405,7 +411,7 @@ export default class DeckScreen {
       );
     }
 
-    // Level pips (bottom)
+    // Three level pips along the bottom of the card
     const pipW = 3,
       pipGap = 1;
     const pipsW = 3 * pipW + 2 * pipGap;
@@ -421,7 +427,7 @@ export default class DeckScreen {
     }
   }
 
-  // --------------------- Shared card art ---------------------
+  // Draws a card background, image or name fallback, and a 1px colored border
   #drawCardArt(renderer, card, x, y, w, h, contour, f) {
     renderer.drawRect(x, y, w, h, P.cardBg);
     if (card._img?.complete && card._img.naturalWidth > 0) {
@@ -439,6 +445,7 @@ export default class DeckScreen {
     this.#frame1px(renderer, x, y, w, h, contour);
   }
 
+  // Draws a 1px rectangular outline using four drawRect calls
   #frame1px(renderer, x, y, w, h, color) {
     renderer.drawRect(x, y, w, 1, color);
     renderer.drawRect(x, y + h - 1, w, 1, color);
@@ -446,7 +453,7 @@ export default class DeckScreen {
     renderer.drawRect(x + w - 1, y, 1, h, color);
   }
 
-  // --------------------- Text wrap ---------------------
+  // Splits text into lines no longer than maxChars words
   #wrap(text, maxChars) {
     const words = String(text ?? "").split(/\s+/);
     const lines = [];
@@ -462,9 +469,7 @@ export default class DeckScreen {
     return lines;
   }
 
-  // --------------------- hit testing ---------------------
-
-  // Centres a row of cards within the right management column
+  // Returns centered bounding rects for a row of count cards starting at rowY
   _rowRects(count, rowY) {
     const rowW = count * G_W + Math.max(0, count - 1) * G_GAP;
     const startX = RX0 + Math.floor((RW - rowW) / 2);
@@ -475,6 +480,7 @@ export default class DeckScreen {
     }));
   }
 
+  // Returns a hit descriptor for the slot under the given mouse position, or null
   _hitTest(pos, cardManager) {
     const act = this._rowRects(cardManager.activeSlotCount, R_ACT_ROW);
     for (let i = 0; i < cardManager.activeSlotCount; i++)
@@ -493,6 +499,7 @@ export default class DeckScreen {
     return null;
   }
 
+  // Returns the card object at the given hit location, or null if the slot is empty
   _cardAt(hit, cardManager) {
     if (hit.type === "active")
       return cardManager.activeSlots[hit.index] ?? null;
@@ -501,6 +508,7 @@ export default class DeckScreen {
     return null;
   }
 
+  // Returns true if the position falls within the given rect bounds
   _inRect(pos, rect, h) {
     return (
       pos.x >= rect.x &&

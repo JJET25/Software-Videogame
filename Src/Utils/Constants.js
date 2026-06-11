@@ -1,40 +1,42 @@
-// Room Game Size
-export const TILE_SIZE = 16; // Size of one tile in pixels
-export const ROOM_COLS = 17; // Total columns in a room
-export const ROOM_ROWS = 11; // Total rows in a room
-export const ROOM_WIDTH = TILE_SIZE * ROOM_COLS; // Total room width in pixeles
-export const ROOM_HEIGHT = TILE_SIZE * ROOM_ROWS; // Total room height in pixels
+// Constants.js — Shared game configuration values for room dimensions, generation, and UI layout.
 
-// Directions Room
+// Base tile size and room grid dimensions in pixels.
+export const TILE_SIZE = 16;
+export const ROOM_COLS = 17;
+export const ROOM_ROWS = 11;
+export const ROOM_WIDTH = TILE_SIZE * ROOM_COLS;
+export const ROOM_HEIGHT = TILE_SIZE * ROOM_ROWS;
+
+// Cardinal direction vectors used for adjacency checks and movement.
 export const DIRECTIONS = [
-  { dx: 1, dy: 0 }, // East  (right)
-  { dx: -1, dy: 0 }, // West  (left)
-  { dx: 0, dy: 1 }, // South (down)
-  { dx: 0, dy: -1 }, // North (up)
+  { dx: 1, dy: 0 },
+  { dx: -1, dy: 0 },
+  { dx: 0, dy: 1 },
+  { dx: 0, dy: -1 },
 ];
 
-// Room Probability Weights
+// Weighted probability table for procedural room type selection.
 export const ROOM_WEIGHTS = {
-  combat: 57,       // % chance for combat room
-  chest: 20,        // % chance for chest room
-  shrine: 2,        // % chance for shrine room (portal — rarest)
-  glitch: 10,       // % chance for glitch room
-  shop: 10,         // % chance for store room
-  mrBombastic: 1,   // 1/100 — sala secreta de Mr. Bombastic
+  combat: 57,
+  chest: 20,
+  shrine: 2,
+  glitch: 10,
+  shop: 10,
+  mrBombastic: 1,
 };
 
-// Room Configs
+// Enemy count bounds for a single combat room.
 export const MIN_ENEMIES = 2;
 export const MAX_ENEMIES = 8;
 
-// Graph Generation
+// Map generation parameters controlling room count and connection density.
 export const GENERATION = {
-  MIN_ROOMS: 20, // Min rooms in a map
-  MAX_ROOMS: 30, // Max rooms in a map
-  CONNECTION_CHANCE: 0.3, // % chance to connect with nearby rooms
+  MIN_ROOMS: 20,
+  MAX_ROOMS: 30,
+  CONNECTION_CHANCE: 0.3,
 };
 
-// Minimap UI Config
+// Minimap rendering configuration including anchor position, cell size, and color palette.
 export const MINIMAP_CONFIG = {
   anchorX: TILE_SIZE * (ROOM_COLS - 1) + TILE_SIZE / 2,
   anchorY: TILE_SIZE * (ROOM_ROWS - 1) + TILE_SIZE / 2,

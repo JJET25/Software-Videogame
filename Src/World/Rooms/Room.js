@@ -1,3 +1,6 @@
+// Room.js — Base class for all dungeon rooms.
+// Handles tile grid construction, wall placement, decoration generation, enemy/object updates, collision resolution, and rendering.
+
 import {
   TILE_SIZE,
   ROOM_WIDTH,
@@ -11,17 +14,20 @@ import Collision from "../../Physics/Collision.js";
 import Credit from "../../Entities/pickups/Credit.js";
 import { randFloat, randInt } from "../../Utils/Random.js";
 
+// Background image paths indexed by tileset ID.
 const ROOM_BG = {
   tilesOldWest: "../../Assets/Sprites/room/roomOldWest.png",
   tilesDarkAge: "../../Assets/Sprites/room/roomDungeon.png",
 };
 
+// Tileset sprite sheet paths used for floor decoration rendering.
 const ROOM_TILESET = {
   tilesDarkAge: "../../Assets/Sprites/tiles/tilesDungeon.png",
   tilesOldWest: "../../Assets/Sprites/tiles/tilesOldWest.png",
 };
 
 export default class Room {
+  // Builds the room grid and walls; subclasses call populate() to add enemies and objects.
   constructor(
     doorDirections = [],
     player,
@@ -35,17 +41,17 @@ export default class Room {
     this.bullets = bullets;
     this.credits = credits;
 
-    // Room generation data
+    // Dimension data used for tileset, enemy pool, and decorations.
     this.dimension = dimension;
     this.tileGrid = null;
     this.decorGrid = null;
 
-    // Room content
+    // Room content arrays populated by subclasses.
     this.walls = [];
     this.enemies = [];
     this.objects = [];
 
-    // Room state
+    // False until all enemies are defeated.
     this.isCleared = false;
 
     Room.#loadImage(this.dimension?.tileSetId);
@@ -54,9 +60,10 @@ export default class Room {
     this.buildWalls();
   }
 
-  populate() {} // Overriden by child clases
+  // Override in subclasses to spawn enemies and place objects after construction.
+  populate() {}
 
-  // ------------------------ Main: Update and Draw ------------------------
+  // Updates player collision, objects, enemies, and removes dead entities each frame.
   update(deltaTime, player) {
     this.#handlePlayerCollision(player);
     this.#updateObjects(deltaTime, player);
@@ -66,11 +73,10 @@ export default class Room {
     this.#removeDeadObjects();
   }
 
-  // ------------------------ Draw ------------------------
+  // Draws the room background, decorations, walls, and objects.
   draw(renderer) {
     const img = Room.#imageCache[this.dimension?.tileSetId];
 
-    // Draw room background
     if (img?.complete && img.naturalWidth > 0) {
       renderer.drawImage(
         img,
@@ -80,23 +86,23 @@ export default class Room {
         ROOM_HEIGHT + TILE_SIZE * 2,
       );
     } else {
-      // Fallback background
+      // Fallback solid background when image is not yet loaded.
       renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, "#1a1a1a");
     }
 
     this.#drawDecor(renderer);
 
-    // Draw walls and objects (enemies drawn separately by RoomManager, after doors)
+    // Enemies are drawn separately by RoomManager after door visuals so they render on top.
     for (const wall of this.walls) wall.draw(renderer);
     for (const obj of this.objects) obj.draw(renderer);
   }
 
-  // Called by RoomManager after door visuals so enemies render on top of doors
+  // Called by RoomManager after door visuals so enemies appear on top of doors.
   drawEnemies(renderer) {
     for (const enemy of this.enemies) enemy.draw(renderer);
   }
 
-  // ------------------------ Helpers & Updates functions ------------------------
+  // Draws floor decoration tiles from the decor grid onto inner floor cells.
   #drawDecor(renderer) {
     if (!this.decorGrid) return;
     const pool = this.dimension?.decorations?.pool;
@@ -129,6 +135,7 @@ export default class Room {
     }
   }
 
+  // Resolves wall and boundary collisions for the player; runs extra iterations during a dash.
   #handlePlayerCollision(player) {
     const iterations = player.isDashing ? 3 : 1;
     for (let i = 0; i < iterations; i++) {
@@ -137,6 +144,7 @@ export default class Room {
     }
   }
 
+  // Updates each object, resolves solid object collisions against player and enemies, and handles contact effects.
   #updateObjects(deltaTime, player) {
     for (const obj of this.objects) {
       obj.update?.(deltaTime);
@@ -150,6 +158,7 @@ export default class Room {
         }
       }
 
+      // Trigger floor-hazard contact effects (e.g. spikes).
       if (
         typeof obj.onPlayerContact === "function" &&
         Collision.rectCollision(obj.getBounds(), player.getBounds())
@@ -159,6 +168,7 @@ export default class Room {
     }
   }
 
+  // Updates each enemy and keeps them within walls and room bounds.
   #updateEnemies(deltaTime) {
     for (const enemy of this.enemies) {
       enemy.update(deltaTime);
@@ -167,12 +177,12 @@ export default class Room {
     }
   }
 
+  // Removes dead enemies and spawns a credit pickup at each enemy's last position.
   #removeDeadEnemies() {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const enemy = this.enemies[i];
       if (!enemy.isDead) continue;
 
-      // Spawn credits where the enemy died
       this.credits.push(
         new Credit(new Vector(enemy.position.x, enemy.position.y)),
       );
@@ -180,6 +190,7 @@ export default class Room {
     }
   }
 
+  // Removes dead objects, plays break sound for boxes, and allows objects to drop loot.
   #removeDeadObjects() {
     for (let i = this.objects.length - 1; i >= 0; i--) {
       const obj = this.objects[i];
@@ -187,18 +198,15 @@ export default class Room {
 
       if (obj.type === "box") this.player?.audio?.playSFX("boxBreak");
 
-      // Some objects can drop loot
       obj.dropLoot?.(this.credits);
       this.objects.splice(i, 1);
     }
   }
 
-  // ------------------------ Room Generation ------------------------
+  // Builds the 2D tile grid of "wall", "floor", and "door" cells based on room dimensions.
   buildGrid() {
     const grid = [];
-    const variants = [];
 
-    // Create room tiles
     for (let row = 0; row < ROOM_ROWS; row++) {
       grid[row] = [];
 
@@ -207,10 +215,9 @@ export default class Room {
           row < 2 || row >= ROOM_ROWS - 2 || col < 2 || col >= ROOM_COLS - 2;
 
         if (isWall) {
-          // Create doors where needed
+          // Replace wall tiles with "door" where a door opening is needed.
           grid[row][col] = this.#isDoorGap(row, col) ? "door" : "wall";
         } else {
-          // Floor tiles
           grid[row][col] = "floor";
         }
       }
@@ -219,6 +226,7 @@ export default class Room {
     this.tileGrid = grid;
   }
 
+  // Creates Wall objects for every "wall" cell in the tile grid.
   buildWalls() {
     for (let row = 0; row < ROOM_ROWS; row++) {
       for (let col = 0; col < ROOM_COLS; col++) {
@@ -236,6 +244,7 @@ export default class Room {
     }
   }
 
+  // Randomly assigns floor decoration sprites to inner tiles based on the dimension's frequency setting.
   buildDecorGrid() {
     const decor = this.dimension?.decorations;
     if (!decor?.pool) {
@@ -259,17 +268,16 @@ export default class Room {
     this.decorGrid = grid;
   }
 
+  // Returns true if the given tile position falls within a door gap for one of the active door directions.
   #isDoorGap(row, col) {
     const midCol = Math.floor(ROOM_COLS / 2);
     const midRow = Math.floor(ROOM_ROWS / 2);
 
-    // Check if tile is inside the door area
     const inDoorCol =
       col === midCol || col === midCol - 1 || col === midCol + 1;
     const inDoorRow =
       row === midRow || row === midRow - 1 || row === midRow + 1;
 
-    // Open wall tiles where door exists
     if (this.doorDirections.includes("north") && row < 2 && inDoorCol)
       return true;
     if (
@@ -290,7 +298,7 @@ export default class Room {
     return false;
   }
 
-  // ------------------------ Dooor Utilities ------------------------
+  // Returns the center world-space position of the door tile for the given direction.
   getDoorPosition(direction) {
     let col = 0;
     let row = 0;
@@ -323,6 +331,7 @@ export default class Room {
     );
   }
 
+  // Returns the three tile positions that make up the door opening for the given direction.
   getDoorTilePositions(direction) {
     const midCol = Math.floor(ROOM_COLS / 2);
     const midRow = Math.floor(ROOM_ROWS / 2);
@@ -372,20 +381,20 @@ export default class Room {
     return positions;
   }
 
-  // ------------------------ Room State ------------------------
+  // Returns an array of interactable objects in this room; overridden by subclasses.
   getInteractables() {
     return [];
   }
 
-  // ------------------------ Static ------------------------
-  // Shared image cache for all rooms
+  // Shared background image cache for all Room instances.
   static #imageCache = {};
+  // Shared tileset image cache used for decoration rendering.
   static #tilesetCache = {};
 
+  // Loads the background image for the given tileset ID once and caches it.
   static #loadImage(tileSetId) {
     if (!tileSetId || !ROOM_BG[tileSetId]) return null;
 
-    // Load image only once
     if (!Room.#imageCache[tileSetId]) {
       const img = new Image();
       img.src = ROOM_BG[tileSetId];
@@ -394,6 +403,7 @@ export default class Room {
     return Room.#imageCache[tileSetId];
   }
 
+  // Loads the tileset sprite sheet for the given tileset ID once and caches it.
   static #loadTileset(tileSetId) {
     if (!tileSetId || !ROOM_TILESET[tileSetId]) return null;
     if (!Room.#tilesetCache[tileSetId]) {

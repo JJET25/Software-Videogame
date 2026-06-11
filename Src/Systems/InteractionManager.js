@@ -1,13 +1,17 @@
-const INTERACTION_RANGE_SQ = 24 ** 2; // squared to avoid sqrt each frame
+// InteractionManager.js — Detects a single-frame E press and triggers the nearest in-range interactable
+// Updates proximity flags on all interactables every frame so objects can show prompt indicators.
 
-// Detects a single-frame E press and triggers the nearest in-range interactable
+// Squared interaction range used when an object does not define its own range
+const INTERACTION_RANGE_SQ = 24 ** 2;
+
 export default class InteractionManager {
+  // Stores the input handler and previous E-key state for edge detection
   constructor(input) {
     this.input = input;
     this._ePrev = false;
   }
 
-  // Call once per frame; fires interact() on the closest object within range
+  // Call once per frame; updates proximity flags and fires interact() on the closest in-range object when E is pressed
   update(player, interactables, context = {}) {
     this.#updateProximity(player, interactables);
 
@@ -21,7 +25,6 @@ export default class InteractionManager {
     if (closest) closest.interact(player, context);
   }
 
-  // --------------------- PRIVATE HELPERS ---------------------
   // Returns the nearest interactable within range, or null if none found
   #findClosest(origin, interactables) {
     let closest = null;
@@ -39,12 +42,14 @@ export default class InteractionManager {
     return closest;
   }
 
+  // Returns the squared distance between two points to avoid sqrt per frame
   #distanceSq(a, b) {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
     return dx * dx + dy * dy;
   }
 
+  // Sets isPlayerNear on each interactable based on current player position
   #updateProximity(player, interactables) {
     for (const obj of interactables) {
       const rangeSq = obj.interactionRange ? obj.interactionRange ** 2 : INTERACTION_RANGE_SQ;

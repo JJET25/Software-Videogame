@@ -1,3 +1,6 @@
+// Box.js — Destructible box object that can drop credits when broken.
+// Has a health value, supports a dimension-specific sprite variant, and drops random credits on death.
+
 import { randInt } from "../../Utils/Random.js";
 import GameObject from "./GameObject.js";
 import Credit from "../../Entities/pickups/Credit.js";
@@ -8,6 +11,7 @@ import {
 } from "../../../Assets/Sprites/ObjectsID.js";
 
 export default class Box extends GameObject {
+  // Creates a box with the given position and visual type variant.
   constructor(position, type) {
     super(position, 16, 16, "#8B6914", "box");
     this.isSolid = true;
@@ -18,12 +22,14 @@ export default class Box extends GameObject {
     this.spriteKey = `box_1_${type}`;
   }
 
+  // Reduces health by the given amount and marks the box as dead when health reaches zero.
   takeDamage(amount) {
     if (this.isDead) return;
     this.health -= amount;
     if (this.health <= 0) this.isDead = true;
   }
 
+  // Spawns a credit pickup at the box position with a random amount (0, 10, or 20).
   dropLoot(credits) {
     const amount = randInt(0, 2) * 10;
     if (amount > 0)
@@ -32,6 +38,7 @@ export default class Box extends GameObject {
       );
   }
 
+  // Draws the box sprite if the image is loaded, otherwise renders a fallback rectangle.
   draw(renderer) {
     const s = OBJECTS_SPRITE[this.spriteKey];
 

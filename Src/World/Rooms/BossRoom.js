@@ -1,38 +1,39 @@
+// BossRoom.js — Room subclass that spawns either a mini-boss or the final boss at the room center.
+// Boss stats are scaled by the player's difficulty multiplier; the boss receives the full enemy list reference.
+
 import Room from "./Room.js";
 import Vector from "../../Utils/Vector.js";
 import { ROOM_COLS, ROOM_ROWS, TILE_SIZE } from "../../Utils/Constants.js";
 
 export default class BossRoom extends Room {
+  // Creates the boss room, spawns the appropriate boss, and sets a short activation delay.
   constructor(doorDirections, player, bullets, credits, dimension, nodeType) {
     super(doorDirections, player, bullets, credits, dimension);
     this.dimension = dimension;
-    this.nodeType = nodeType; // "miniBoss" or "finalBoss"
+    // Determines whether to spawn the mini-boss or the final boss.
+    this.nodeType = nodeType;
     this.onBossDefeated = null;
 
-    // Create the boss when the room is initialized
     this.populate();
-    // Small delay before the boss becomes active
+    // Short delay in seconds before the boss becomes active after room entry.
     this.spawnDelay = 0.5;
   }
 
+  // Selects the boss class, instantiates it at the room center, and applies difficulty scaling.
   populate() {
-    // Stop if required data is missing
     if (!this.player || !this.dimension) return;
 
-    // Choose the boss type based on the room node
     const BossClass =
       this.nodeType === "finalBoss"
         ? this.dimension.finalBoss
         : this.dimension.miniBoss;
 
-    // Stop if no boss class exists
     if (!BossClass) return;
 
-    // Calculate the center position of the room
     const centerX = Math.floor(ROOM_COLS / 2) * TILE_SIZE;
     const centerY = Math.floor(ROOM_ROWS / 2) * TILE_SIZE;
 
-    // Pass enemyPool so the boss can spawn dimension-correct minions on phase change
+    // Pass the enemy pool so the boss can spawn dimension-correct minions on phase change.
     const deps = {
       player: this.player,
       bullets: this.bullets,
@@ -40,7 +41,7 @@ export default class BossRoom extends Room {
     };
     const boss = new BossClass(new Vector(centerX, centerY), deps);
 
-    // Scale boss stats by difficulty multiplier
+    // Scale boss health and damage by the current difficulty multiplier.
     const mult = this.player?.cardManager?.difficultyMultiplier ?? 1;
     if (mult > 1) {
       boss.health = Math.round(boss.health * mult);

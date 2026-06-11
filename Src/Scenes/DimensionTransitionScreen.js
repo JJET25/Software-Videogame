@@ -1,6 +1,8 @@
+// DimensionTransitionScreen.js — Timed overlay showing the dimension shift between the outgoing and incoming dimension
 import Screen from "./Screen.js";
 import { ROOM_WIDTH, ROOM_HEIGHT } from "../Utils/Constants.js";
 
+// Color palette for this screen
 const P = {
   bg:      "#0d0520",
   divider: "#2a1050",
@@ -11,6 +13,7 @@ const P = {
 };
 
 export default class DimensionTransitionScreen extends Screen {
+  // Reads context values and sets up fade-in, hold, and fade-out timing constants
   enter(context = {}) {
     this.fromName = context.fromName ?? "???";
     this.toName   = context.toName   ?? "???";
@@ -30,14 +33,17 @@ export default class DimensionTransitionScreen extends Screen {
 
   exit() {}
 
+  // Advances the timer and fires onDone when the full animation sequence completes
   update(deltaTime) {
     this._timer += deltaTime;
     if (this._timer >= this._total) this.onDone();
   }
 
+  // Draws a fading overlay with the dimension-shift title, source name, arrow, and destination name
   draw(renderer) {
     const t = this._timer;
     let alpha;
+    // Compute alpha based on which phase of the fade animation is active
     if      (t < this._fadeIn)                        alpha = t / this._fadeIn;
     else if (t < this._fadeIn + this._hold)           alpha = 1;
     else alpha = 1 - (t - this._fadeIn - this._hold) / this._fadeOut;
@@ -55,17 +61,15 @@ export default class DimensionTransitionScreen extends Screen {
 
     ctx.globalAlpha = alpha;
 
-    // Title with glow
+    // Title with a purple glow
     ctx.shadowColor = "rgba(180,100,255,0.9)";
     ctx.shadowBlur  = Math.round(14 * sc);
     renderer.drawText("DIMENSION SHIFT", cx, 22, 8, P.accent, { align: "center", font: f });
     ctx.shadowColor = "transparent";
     ctx.shadowBlur  = 0;
 
-    // Divider
     renderer.drawRect((ROOM_WIDTH - 160) / 2, 34, 160, 1, P.divider);
 
-    // From → To
     renderer.drawText(
       this.fromName.toUpperCase(),
       cx, 48, 6, P.sub,
@@ -78,7 +82,6 @@ export default class DimensionTransitionScreen extends Screen {
       { align: "center", font: f }
     );
 
-    // Divider
     renderer.drawRect((ROOM_WIDTH - 160) / 2, 90, 160, 1, P.divider);
 
     renderer.drawText(

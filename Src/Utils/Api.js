@@ -1,26 +1,26 @@
+// Api.js — HTTP client functions for communicating with the Dimension Deck backend API.
 const BASE_URL = "http://localhost:3001";
 
+// Retrieves the stored auth token from local storage.
 function getToken() {
   return localStorage.getItem("token");
 }
 
-// ── Cards ────────────────────────────────────────────────────────────────────
-
+// Fetches all available cards from the server.
 export async function fetchCards() {
   const res = await fetch(`${BASE_URL}/cards`);
   if (!res.ok) throw new Error(`fetchCards failed: ${res.status}`);
   return res.json();
 }
 
+// Fetches only the starter cards intended for new players.
 export async function fetchStarterCards() {
   const res = await fetch(`${BASE_URL}/cards/starter`);
   if (!res.ok) throw new Error(`fetchStarterCards failed: ${res.status}`);
   return res.json();
 }
 
-// ── Runs ─────────────────────────────────────────────────────────────────────
-
-// Creates a new run for the logged-in player and returns { runId }
+// Creates a new run for the authenticated player and returns the run ID.
 export async function createRun() {
   const token = getToken();
   if (!token) return null;
@@ -35,7 +35,7 @@ export async function createRun() {
   return res.json();
 }
 
-// Finalises a run with the given status and stats, returns { score }
+// Finalizes a run with outcome data and returns the computed score.
 export async function endRun(runId, data) {
   const token = getToken();
   if (!token || !runId) return null;
@@ -60,6 +60,7 @@ export async function endRun(runId, data) {
   }
 }
 
+// Fetches the full card list; returns null on any error instead of throwing.
 export async function fetchAllCards() {
   try {
     const res = await fetch(`${BASE_URL}/cards`);

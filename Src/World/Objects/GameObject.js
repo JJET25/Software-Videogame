@@ -1,6 +1,10 @@
+// GameObject.js — Base class for all world objects in the game.
+// Provides position, velocity, hitbox configuration, and basic draw/bounds methods.
+
 import Vector from "../../Utils/Vector.js";
 
 export default class GameObject {
+  // Initializes position, size, hitbox, color, and type. Hitbox can be overridden via options.
   constructor(position, width, height, color = null, type, options = {}) {
     this.position = position;
     this.velocity = new Vector(0, 0);
@@ -8,7 +12,7 @@ export default class GameObject {
     this.width = width;
     this.height = height;
 
-    // Hitbox config
+    // Hitbox dimensions and offset, defaulting to the visual size if not specified.
     this.hitboxWidth = options.hitboxWidth ?? width;
     this.hitboxHeight = options.hitboxHeight ?? height;
     this.hitboxOffset = options.hitboxOffset ?? new Vector(0, 0);
@@ -17,7 +21,7 @@ export default class GameObject {
     this.type = type;
   }
 
-  // Returns the hitbox edges for collisions
+  // Returns the axis-aligned bounding box edges used for collision detection.
   getBounds() {
     return {
       left: this.position.x + this.hitboxOffset.x - this.hitboxWidth / 2,
@@ -27,7 +31,7 @@ export default class GameObject {
     };
   }
 
-  // Draws the gameObject, it centers the obj on its position
+  // Draws the object as a colored rectangle centered on its position.
   draw(renderer) {
     const drawX = this.position.x - this.width / 2;
     const drawY = this.position.y - this.height / 2;

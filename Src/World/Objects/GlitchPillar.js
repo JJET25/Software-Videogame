@@ -1,9 +1,13 @@
+// GlitchPillar.js — Interactable glitch pillar that rewards the player with a card when activated.
+// Plays an animated sprite loop and performs a weighted rarity roll on interaction.
+
 import Animation from "../../Animation/Animation.js";
 import SpriteSheet from "../../Animation/SpriteSheet.js";
 import { getRandomCardByRarity } from "../../cards/CardFactory.js";
 import { randInt } from "../../Utils/Random.js";
 import GameObject from "./GameObject.js";
 
+// Sprite sheet definition for the glitch pillar animation.
 const PILLAR_SHEET = new SpriteSheet({
   src: "../../Assets/Sprites/objects/glitch_pilar.png",
   frameWidth: 64,
@@ -12,6 +16,7 @@ const PILLAR_SHEET = new SpriteSheet({
 });
 
 export default class GlitchPillar extends GameObject {
+  // Creates the pillar with a looping animation; sets a smaller hitbox than the visual sprite.
   constructor(position) {
     super(position, 64, 64, "#3bb0a6", "glitchPillar");
     this.hitboxHeight = 34;
@@ -26,10 +31,12 @@ export default class GlitchPillar extends GameObject {
     });
   }
 
+  // Advances the pillar animation each frame.
   update(deltaTime) {
     this.animation?.update(deltaTime);
   }
 
+  // Draws the animation and the interaction prompt when the player is nearby.
   draw(renderer) {
     if (this.animation) {
       renderer.drawAnimation(
@@ -53,6 +60,7 @@ export default class GlitchPillar extends GameObject {
     }
   }
 
+  // Triggers the pillar once; rolls a rarity and attempts to give the player a card.
   interact(player, context = {}) {
     if (this.isTriggered) return;
     this.isTriggered = true;
@@ -62,6 +70,7 @@ export default class GlitchPillar extends GameObject {
     this.#giveCard(player, rarity, context);
   }
 
+  // Returns a rarity string based on a weighted random roll (common 40%, rare 35%, epic 18%, legendary 7%).
   #rarityRoll() {
     const weight = randInt(1, 100);
     if (weight <= 40) return "common";
@@ -70,6 +79,7 @@ export default class GlitchPillar extends GameObject {
     else return "legendary";
   }
 
+  // Attempts to give the player a card of the given rarity; shows a fallback message if no card is found.
   #giveCard(player, rarity, context) {
     const card = getRandomCardByRarity(context.cardCatalog, rarity);
 
@@ -79,7 +89,6 @@ export default class GlitchPillar extends GameObject {
       return;
     }
 
-    // No card available, no happens nothing
     context.showNotification?.("The pillar hums... but nothing appears.");
   }
 }

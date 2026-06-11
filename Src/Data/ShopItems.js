@@ -1,11 +1,10 @@
+// ShopItems.js — Static shop inventory: card pool, sell values, and slot upgrade costs.
+// Mirrors the database seed data exactly; used when the API is unreachable.
 import { createCard } from "../cards/CardFactory.js";
 
-// Fallback card pool — mirrors the DB seed data exactly.
-// Used by ShopUI when the API is unreachable.
-// Cards with shop_cost = 0 (starters) are excluded; the API does the same.
-
+// Full fallback card definitions excluding starters (shop_cost = 0).
 const FALLBACK_CARDS = [
-  // ── Active — Melee ────────────────────────────────────────────────────────
+  // Active — Melee cards.
   {
     card_name: "Iron Fist",
     card_type: "active",
@@ -45,7 +44,7 @@ const FALLBACK_CARDS = [
     effect_json: { range: 48, spread: 2.356 },
   },
 
-  // ── Active — Heal ─────────────────────────────────────────────────────────
+  // Active — Heal cards.
   {
     card_name: "Remedy Vial",
     card_type: "active",
@@ -83,7 +82,7 @@ const FALLBACK_CARDS = [
     effect_json: { full_heal: true },
   },
 
-  // ── Active — Drain ────────────────────────────────────────────────────────
+  // Active — Drain cards.
   {
     card_name: "Blood Siphon",
     card_type: "active",
@@ -97,7 +96,7 @@ const FALLBACK_CARDS = [
     effect_json: {},
   },
 
-  // ── Active — Defense ──────────────────────────────────────────────────────
+  // Active — Defense cards.
   {
     card_name: "Stone Wall",
     card_type: "active",
@@ -135,7 +134,7 @@ const FALLBACK_CARDS = [
     effect_json: { shield: 100 },
   },
 
-  // ── Automatic — Common ────────────────────────────────────────────────────
+  // Automatic — Common cards.
   {
     card_name: "Lifetap",
     card_type: "automatic",
@@ -185,7 +184,7 @@ const FALLBACK_CARDS = [
     effect_json: { trigger: "on_hit_received" },
   },
 
-  // ── Automatic — Rare ──────────────────────────────────────────────────────
+  // Automatic — Rare cards.
   {
     card_name: "Rebound",
     card_type: "automatic",
@@ -223,7 +222,7 @@ const FALLBACK_CARDS = [
     effect_json: { trigger: "on_kill", shield: 10 },
   },
 
-  // ── Automatic — Epic ──────────────────────────────────────────────────────
+  // Automatic — Epic cards.
   {
     card_name: "Last Stand",
     card_type: "automatic",
@@ -254,7 +253,8 @@ const FALLBACK_CARDS = [
   },
 ];
 
-// Each entry exposes `rarity` so ShopUI can group by tier without instantiating cards.
+// Exported pool: each entry wraps a factory function so cards are instantiated on demand.
+// Exposes rarity so ShopUI can group by tier without instantiating cards.
 export const SHOP_CARD_POOL = FALLBACK_CARDS.map((d) => ({
   factory: () => createCard(d),
   cost: d.shop_cost,
@@ -262,8 +262,7 @@ export const SHOP_CARD_POOL = FALLBACK_CARDS.map((d) => ({
   name: d.card_name,
 }));
 
-// Credits returned when selling a card — keyed by rarity.
-// Raised proportionally with shop prices so selling also creates meaningful decisions.
+// Credits awarded when selling a card, keyed by rarity.
 export const SELL_VALUE = {
   common: 30,
   rare: 70,
@@ -271,9 +270,8 @@ export const SELL_VALUE = {
   legendary: 220,
 };
 
-// Slot upgrades: now cost ~18% and ~33% of one level's income respectively,
-// making them a real tradeoff against buying an epic or legendary card.
+// Gold costs to unlock additional active card slots (two upgrade tiers).
 export const ACTIVE_SLOT_UPGRADE_COSTS = [150, 280];
 
-// Auto slots: 4 tiers, scaled so full unlock costs ~100% of one level's income.
+// Gold costs to unlock additional automatic card slots (four upgrade tiers).
 export const AUTO_SLOT_UPGRADE_COSTS = [110, 160, 210, 270];

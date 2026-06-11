@@ -1,7 +1,10 @@
+// DefeatScreen.js — Displays the end-of-run screen with score, stats, and a prompt to continue
+// Used for both defeat and victory outcomes; routes to CardSaveScreen if new cards were earned.
 import Screen from "./Screen.js";
 import { endRun } from "../Utils/Api.js";
 import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
+// Color palette for the end screen
 const P = {
   bg:      "#0d0520",
   panel:   "#130838",
@@ -16,9 +19,10 @@ const P = {
 };
 
 export default class DefeatScreen extends Screen {
+  // Reads run stats from context, kicks off the API save, and starts the input-lock timer
   enter(context = {}) {
     this.status = context.status ?? "defeat";
-    this.score  = null;   // null = waiting for API
+    this.score  = null;
 
     this.roomsCleared  = context.roomsCleared  ?? 0;
     this.enemiesKilled = context.enemiesKilled ?? 0;
@@ -29,13 +33,14 @@ export default class DefeatScreen extends Screen {
 
     this._timer   = 0;
     this._ready   = false;
-    this._readyAt = 1.4;   // prevent accidental instant-click
+    this._readyAt = 1.4;
 
     this._font = "monospace";
     document.fonts.load("5px 'Press Start 2P'").then(() => {
       this._font = "'Press Start 2P', monospace";
     });
 
+    // Save run stats to the API using the run ID or its pending promise
     if (context.runId) {
       this._saveRun(context.runId, context);
     } else if (context.runPromise) {
@@ -51,6 +56,7 @@ export default class DefeatScreen extends Screen {
     }
   }
 
+  // Sends final run data to the API and populates this.score with the returned value
   _saveRun(runId, ctx) {
     endRun(runId, {
       status:          ctx.status,
@@ -66,12 +72,12 @@ export default class DefeatScreen extends Screen {
       .catch(err => { console.error("[saveRun] Failed:", err); this.score = 0; });
   }
 
+  // Waits for the lock timer, then routes to CardSaveScreen or StartScreen on input
   update(deltaTime) {
     this._timer += deltaTime;
     if (this._timer >= this._readyAt) this._ready = true;
     if (!this._ready) return;
 
-    // ANY click or ENTER → continue
     const clicked = this.mouse.consumeClick();
     if (clicked || this.input.wasKeyPressed("ENTER")) {
       if (this.status === "defeat" && this._newCards.length > 0) {
@@ -89,15 +95,14 @@ export default class DefeatScreen extends Screen {
     }
   }
 
+  // Renders the background, outcome title, score (with saving blink), stat columns, and continue prompt
   draw(renderer) {
     const isWin  = this.status === "victory";
     const cx     = ROOM_WIDTH / 2;
     const f      = this._font;
 
-    // ── Background ──────────────────────────────────────────────────────────
     renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, P.bg);
 
-    // ── Title ───────────────────────────────────────────────────────────────
     renderer.drawText(
       isWin ? "YOU WIN!" : "GAME OVER",
       cx, 20, 13,
@@ -105,14 +110,12 @@ export default class DefeatScreen extends Screen {
       { align: "center", font: f }
     );
 
-    // ── Divider ─────────────────────────────────────────────────────────────
     renderer.drawRect((ROOM_WIDTH - 160) / 2, 32, 160, 1, P.divider);
 
-    // ── Score ───────────────────────────────────────────────────────────────
     renderer.drawText("SCORE", cx, 42, 3.5, P.sub, { align: "center", font: f });
 
     if (this.score === null) {
-      // Blink while waiting for API
+      // Blink the saving label while waiting for the API response
       if (Math.floor(this._timer * 2) % 2 === 0) {
         renderer.drawText("SAVING...", cx, 58, 6, P.muted, { align: "center", font: f });
       }
@@ -125,10 +128,9 @@ export default class DefeatScreen extends Screen {
       );
     }
 
-    // ── Divider ─────────────────────────────────────────────────────────────
     renderer.drawRect((ROOM_WIDTH - 160) / 2, 74, 160, 1, P.divider);
 
-    // ── Stats (3 columns) ───────────────────────────────────────────────────
+    // Three-column stat layout: rooms cleared, enemies killed, damage dealt
     const col = [ROOM_WIDTH / 4, ROOM_WIDTH / 2, (3 * ROOM_WIDTH) / 4];
 
     renderer.drawText("ROOMS",  col[0], 84, 3.2, P.sub, { align: "center", font: f });
@@ -139,10 +141,9 @@ export default class DefeatScreen extends Screen {
     renderer.drawText(String(this.enemiesKilled),          col[1], 96, 7, P.text, { align: "center", font: f });
     renderer.drawText(this.damageDealt.toLocaleString(),   col[2], 96, 7, P.text, { align: "center", font: f });
 
-    // ── Divider ─────────────────────────────────────────────────────────────
     renderer.drawRect((ROOM_WIDTH - 160) / 2, 108, 160, 1, P.divider);
 
-    // ── Continue prompt (blink after ready) ──────────────────────────────────
+    // Blink the continue prompt after the input lock expires
     if (this._ready && Math.floor(this._timer * 1.6) % 2 === 0) {
       renderer.drawText(
         "CLICK TO CONTINUE",

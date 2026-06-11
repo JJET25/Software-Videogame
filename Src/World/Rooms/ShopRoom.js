@@ -1,10 +1,13 @@
+// ShopRoom.js — Pre-cleared room subclass that contains a merchant NPC and a store UI.
+// Shows an interaction prompt when the player is within range and the shop is closed.
+
 import Room from "./Room.js";
 import Merchant from "../Objects/Merchant.js";
 import StoreUI from "../../UI/ShopUI.js";
 import { ROOM_WIDTH, ROOM_HEIGHT } from "../../Utils/Constants.js";
 
-// Shop room variant — pre-cleared, contains a merchant NPC with an interactive store
 export default class ShopRoom extends Room {
+  // Creates the shop room, instantiates the merchant and store UI, and marks the room as cleared.
   constructor(doorDirections, player, bullets, credits, dimension) {
     super(doorDirections, player, bullets, credits, dimension);
 
@@ -20,23 +23,24 @@ export default class ShopRoom extends Room {
     });
     this.merchant.storeUI = this.storeUI;
 
-    // Añadir al array de objects para que Room aplique colisiones automáticamente
+    // Register merchant in objects so Room applies solid collision automatically.
     this.objects.push(this.merchant);
   }
 
+  // Builds the decoration grid; no enemies or combat objects are added.
   populate() {
     this.buildDecorGrid();
   }
 
-  // Calls super so wall collisions are resolved correctly
+  // Updates the room using the base class to resolve wall collisions correctly.
   update(deltaTime, player) {
     super.update(deltaTime, player);
   }
 
+  // Draws the room and shows the shop prompt when the player is close enough and the UI is closed.
   draw(renderer) {
-    super.draw(renderer); // dibuja fondo, decor, paredes y objects (incluye merchant)
+    super.draw(renderer);
 
-    // Show interaction prompt when the player is nearby and the shop is closed
     if (!this.storeUI.isOpen) {
       const dx = this.player.position.x - this.merchant.position.x;
       const dy = this.player.position.y - this.merchant.position.y;
@@ -53,6 +57,7 @@ export default class ShopRoom extends Room {
     }
   }
 
+  // Returns the merchant as the sole interactable in this room.
   getInteractables() {
     return this.merchant ? [this.merchant] : [];
   }

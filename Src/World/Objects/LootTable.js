@@ -1,7 +1,10 @@
+// LootTable.js — Static weighted loot table used by chests and other reward sources.
+// Rolls a random number against probability thresholds to produce credits or a card of a given rarity.
+
 import { Rarity } from "../../cards/Card.js";
 import { randInt } from "../../Utils/Random.js";
 
-// Loot chances table
+// Weighted entries: each entry has a probability weight and a factory function returning the loot result.
 const TABLE = [
   {
     weight: 60,
@@ -12,8 +15,8 @@ const TABLE = [
   { weight: 5, roll: () => ({ type: "card", rarity: Rarity.LEGENDARY }) },
 ];
 
-
 export default class LootTable {
+  // Rolls the table and returns a loot result object with type and amount or rarity.
   static roll() {
     const n = randInt(1, 100);
     let sum = 0;

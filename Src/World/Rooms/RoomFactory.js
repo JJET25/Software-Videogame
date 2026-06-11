@@ -1,3 +1,6 @@
+// RoomFactory.js — Factory that instantiates the correct Room subclass based on a node's type.
+// Returns a plain Room for unrecognized types as a safe fallback.
+
 import BossRoom from "./BossRoom.js";
 import ChestRoom from "./ChestRoom.js";
 import CombatRoom from "./CombatRoom.js";
@@ -8,6 +11,7 @@ import ShrineRoom from "./ShrineRoom.js";
 import BombasticRoom from "./BombasticRoom.js";
 
 export default class RoomFactory {
+  // Creates and returns the appropriate room instance for the given node type and shared game state.
   static create(node, doorDirections, player, bullets, credits, dimension) {
     if (node.type === "combat") {
       return new CombatRoom(

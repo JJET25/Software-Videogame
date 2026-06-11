@@ -1,7 +1,10 @@
+// ActiveDrainCard.js — Active card that damages the nearest enemy and heals the player.
+// Finds the closest living enemy using squared-distance comparison for efficiency.
+
 import ActiveCard from "./ActiveCard.js";
 
-// Active card that damages the enemies
 export default class ActiveDrainCard extends ActiveCard {
+  // Constructs a drain card with damage and heal amounts.
   constructor({
     name,
     description,
@@ -16,11 +19,11 @@ export default class ActiveDrainCard extends ActiveCard {
     this.healAmount = healAmount;
   }
 
-  // Finds the closest enemy, deals damage, then heals the player
+  // Locates the nearest enemy, deals damage to it, and restores health to the player.
   effect({ player, enemies }) {
     if (!enemies?.length) return;
 
-    // Real center player hitbox
+    // Use the center of the player hitbox as the distance origin.
     const pb = player.getBounds();
     const pcx = (pb.left + pb.right) / 2;
     const pcy = (pb.top + pb.bottom) / 2;

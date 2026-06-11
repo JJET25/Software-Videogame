@@ -1,6 +1,9 @@
+// CardSaveScreen.js — Lets the player select up to 3 cards to save as the starting deck for the next run
+// Auto-saves all cards when three or fewer were acquired; otherwise shows a selection UI.
 import Screen from "./Screen.js";
 import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
+// Color palette for this screen
 const P = {
   bg:       "#0d0520",
   panel:    "#130838",
@@ -24,6 +27,7 @@ const P = {
   cardBg:   "#0e0e0e",
 };
 
+// Maps rarity names to their highlight colors
 const RARITY_COLOR = {
   common:    "#9b8fb0",
   rare:      "#4f8fff",
@@ -36,14 +40,17 @@ const CW = 22;
 const CH = 30;
 const GAP = 5;
 
-// Button
+// Save button dimensions
 const BTN_W = 100;
 const BTN_H = 13;
 
+// Maximum cards the player can save
 const MAX_SAVE = 3;
+// localStorage key used to persist the saved deck
 const LS_KEY   = "dimensionDeck_savedDeck";
 
 export default class CardSaveScreen extends Screen {
+  // Reads new cards from context and auto-saves if the count is within the limit
   enter(context = {}) {
     this._newCards = context.newCards ?? [];
     this._selected = new Set();
@@ -62,6 +69,7 @@ export default class CardSaveScreen extends Screen {
     }
   }
 
+  // Handles card selection clicks and save/continue button interaction
   update(_dt) {
     if (this._done) return;
 
@@ -70,20 +78,19 @@ export default class CardSaveScreen extends Screen {
     const clicked = this.mouse.consumeClick();
 
     if (this._autoSave) {
-      // Any click / ENTER after auto-save → back to menu
       if (clicked || this.input.wasKeyPressed("ENTER")) {
         this._goToStart();
       }
       return;
     }
 
-    // Hit-test card thumbnails
     if (clicked) {
       const cards = this._newCards;
       const rects = this._cardRects(cards.length);
       for (let i = 0; i < cards.length; i++) {
         const r = rects[i];
         if (mx >= r.x && mx < r.x + CW && my >= r.y && my < r.y + CH) {
+          // Toggle selection; enforce the MAX_SAVE limit
           if (this._selected.has(i)) {
             this._selected.delete(i);
           } else if (this._selected.size < MAX_SAVE) {
@@ -93,7 +100,6 @@ export default class CardSaveScreen extends Screen {
         }
       }
 
-      // Save button
       if (this._isBtnHovered(mx, my)) {
         const toSave = [...this._selected].map(i => this._newCards[i]);
         this._save(toSave);
@@ -105,13 +111,13 @@ export default class CardSaveScreen extends Screen {
     this._btnHovered = this._isBtnHovered(mx, my);
   }
 
+  // Draws the title, auto-save confirmation or card grid, and the save button
   draw(renderer) {
     const cx = ROOM_WIDTH / 2;
     const f  = this._font;
 
     renderer.drawRect(0, 0, ROOM_WIDTH, ROOM_HEIGHT, P.bg);
 
-    // Title
     renderer.drawText("SAVE CARDS", cx, 14, 8, P.accent, { align: "center", font: f });
     renderer.drawRect((ROOM_WIDTH - 140) / 2, 22, 140, 1, P.divider);
 
@@ -120,7 +126,6 @@ export default class CardSaveScreen extends Screen {
       return;
     }
 
-    // Instruction
     const sel = this._selected.size;
     renderer.drawText(
       `SELECT UP TO 3 CARDS  (${sel}/3)`,
@@ -129,14 +134,12 @@ export default class CardSaveScreen extends Screen {
 
     this.#drawCards(renderer, cx, f);
 
-    // Save button
     const btnX = (ROOM_WIDTH - BTN_W) / 2;
     const btnY = ROOM_HEIGHT - 24;
     this.#drawButton(renderer, btnX, btnY, this._btnHovered, f);
   }
 
-  // --------------------- PRIVATE ---------------------
-
+  // Shows a confirmation message and the auto-saved cards
   #drawAutoSave(renderer, cx, f) {
     const count = this._newCards.length;
     renderer.drawText(
@@ -160,6 +163,7 @@ export default class CardSaveScreen extends Screen {
     );
   }
 
+  // Renders each card thumbnail with art, a rarity border, level pips, and the card name
   #drawCards(renderer, _cx, f, startY = 48) {
     const cards = this._newCards;
     const rects = this._cardRects(cards.length, startY);
@@ -170,10 +174,8 @@ export default class CardSaveScreen extends Screen {
       const sel  = this._selected.has(i) || this._autoSave;
       const rc   = RARITY_COLOR[card.rarity] ?? P.sub;
 
-      // Card background
       renderer.drawRect(r.x, r.y, CW, CH, sel ? P.selBg : P.cardBg);
 
-      // Card art
       if (card._img?.complete && card._img.naturalWidth > 0) {
         renderer.drawImage(card._img, r.x + 1, r.y + 1, CW - 2, CH - 2);
       } else {
@@ -185,11 +187,11 @@ export default class CardSaveScreen extends Screen {
         );
       }
 
-      // Border: green if selected, rarity color otherwise
+      // Green border when selected, rarity color otherwise
       const borderColor = sel ? P.selected : rc;
       this.#frame1px(renderer, r.x, r.y, CW, CH, borderColor);
 
-      // Level pips
+      // Three level pips at the bottom of the card
       const lvl = card.level ?? 1;
       const pipW = 3; const pipGap = 1;
       const pipsW = 3 * pipW + 2 * pipGap;
@@ -203,7 +205,6 @@ export default class CardSaveScreen extends Screen {
         );
       }
 
-      // Card name below
       const name = card.name.length > 9 ? card.name.slice(0, 8) + "." : card.name;
       renderer.drawText(
         name.toUpperCase(), r.x + Math.floor(CW / 2), r.y + CH + 6,
@@ -212,6 +213,7 @@ export default class CardSaveScreen extends Screen {
     }
   }
 
+  // Draws the Save / Skip button with a pixel-art style
   #drawButton(renderer, x, y, hovered, f) {
     const bg  = hovered ? P.btnHover : P.btnNorm;
     const top = hovered ? P.btnTopH  : P.btnTop;
@@ -236,6 +238,7 @@ export default class CardSaveScreen extends Screen {
     );
   }
 
+  // Draws a 1px rectangular border using four drawRect calls
   #frame1px(renderer, x, y, w, h, color) {
     renderer.drawRect(x, y, w, 1, color);
     renderer.drawRect(x, y + h - 1, w, 1, color);
@@ -243,7 +246,7 @@ export default class CardSaveScreen extends Screen {
     renderer.drawRect(x + w - 1, y, 1, h, color);
   }
 
-  // Returns the (x,y) positions for each card thumbnail, centered on screen (up to 2 rows)
+  // Returns centered (x,y) positions for each card thumbnail, up to two rows
   _cardRects(count, startY = 48) {
     if (count === 0) return [];
     const maxPerRow = Math.min(count, 9);
@@ -263,12 +266,14 @@ export default class CardSaveScreen extends Screen {
     return rects;
   }
 
+  // Returns true if the mouse is within the save button bounds
   _isBtnHovered(mx, my) {
     const btnX = (ROOM_WIDTH - BTN_W) / 2;
     const btnY = ROOM_HEIGHT - 24;
     return mx >= btnX && mx < btnX + BTN_W && my >= btnY && my < btnY + BTN_H;
   }
 
+  // Persists the selected card names and levels to localStorage, or clears the key if empty
   _save(cards) {
     if (cards.length === 0) {
       localStorage.removeItem(LS_KEY);
@@ -278,6 +283,7 @@ export default class CardSaveScreen extends Screen {
     localStorage.setItem(LS_KEY, JSON.stringify(data));
   }
 
+  // Marks the screen as done and navigates back to the start menu
   _goToStart() {
     this._done = true;
     import("./StartScreen.js").then(({ default: StartScreen }) => {

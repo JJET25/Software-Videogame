@@ -1,19 +1,22 @@
+// RoomTypeAssigner.js — Assigns room types to untyped nodes in a graph using weighted probability.
+// Ensures the start and boss nodes keep their fixed types and prevents duplicate shop rooms.
+
 import { randInt } from "../Utils/Random.js";
 
 export default class RoomTypeAssigner {
-  // Sets types for all rooms in the graph
+  // Iterates all untyped nodes and assigns a weighted random room type to each.
   assign(graph, weights, bossType = "boss") {
     graph.getStartNode().type = "start";
     graph.getBossNode().type = bossType;
 
-    // Track if a shop was already placed by GraphBuilder
+    // Check if GraphBuilder already placed a shop to prevent duplicates.
     let shopAssigned = graph.getAllNodes().some((n) => n.type === "shop");
 
     for (const node of graph.getAllNodes()) {
       if (node.type === null) {
         let type = this.#weightedRoll(weights);
 
-        // Prevent duplicate shop rooms
+        // Demote the second shop roll to a combat room if one already exists.
         if (type === "shop" && shopAssigned) {
           type = "combat";
         } else if (type === "shop") {
@@ -24,24 +27,23 @@ export default class RoomTypeAssigner {
     }
   }
 
-  // Pick a random type using probability weights
+  // Returns a room type string selected by rolling against the cumulative weight table.
   #weightedRoll(weights) {
     const arrWeights = this.#buildCumalativeTable(weights);
     const randomWeight = randInt(0, 100);
 
-    // Find where random number fits in the limits
     for (const weight of arrWeights) {
       if (randomWeight <= weight.limit) return weight.type;
     }
   }
 
-  // Create a table with combined limit numbers for easy checking
+  // Converts a weight map into a cumulative threshold array for O(n) random selection.
   #buildCumalativeTable(weights) {
     const arrWeights = [];
     let sumWeights = 0;
 
     Object.entries(weights).forEach(([key, value]) => {
-      sumWeights += value; // Add the current weight to the total sum
+      sumWeights += value;
 
       arrWeights.push({
         type: key,

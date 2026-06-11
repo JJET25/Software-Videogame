@@ -1,19 +1,29 @@
+// RoomNode.js — Single node in the dungeon room graph.
+// Tracks the room's type, depth, connections, cleared/visited state, and minimap grid position.
+
 export default class RoomNode {
-    constructor(id, depth) {
-        this.id = id;                   // Unique ID for the node ID
-        this.type = null;               // Room type
-        this.depth = depth;             // Depth in the graph
-        this.connections = [];          // List of connected node ID
-        this.isCleared = false;         // True if enemies are dead
-        this.isVisited = false;         // True if player entered the room
-        this.gridPos = { x: 0, y: 0 }   // {x, y} minimap's layout
-    }
+  constructor(id, depth) {
+    // Unique identifier for this node.
+    this.id = id;
+    // Room type assigned by the generator (e.g. "combat", "shop", "boss").
+    this.type = null;
+    // Distance from the start node in BFS traversal order.
+    this.depth = depth;
+    // List of connected neighbor node IDs.
+    this.connections = [];
+    // True once all enemies in this room have been defeated.
+    this.isCleared = false;
+    // True once the player has entered this room.
+    this.isVisited = false;
+    // Grid position used for minimap rendering.
+    this.gridPos = { x: 0, y: 0 };
+  }
 
-    // Connect this room to another room
-    connectTo(otherId) {
-        if (!this.connections.includes(otherId)) this.connections.push(otherId);
-    }
+  // Adds a connection to another node if not already present.
+  connectTo(otherId) {
+    if (!this.connections.includes(otherId)) this.connections.push(otherId);
+  }
 
-    // Check if this room connects to another room
-    isConnectedTo(otherId) { return this.connections.includes(otherId); }
+  // Returns true if this node is directly connected to the given node ID.
+  isConnectedTo(otherId) { return this.connections.includes(otherId); }
 }

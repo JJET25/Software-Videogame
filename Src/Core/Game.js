@@ -1,3 +1,4 @@
+// Game.js — Root game object that owns all core services and drives the main loop.
 import InputManager from "./InputManager.js";
 import MouseManager from "./MouseManager.js";
 import Renderer from "./Renderer.js";
@@ -5,12 +6,12 @@ import ScreenManager from "../Systems/ScreenManager.js";
 import StartScreen from "../Scenes/StartScreen.js";
 import AudioManager from "./AudioManager.js";
 
-// Root object, owns all core services and drives the game loop
+// Root object that instantiates core services and manages the game loop.
 export default class Game {
   constructor(canvas) {
     this.lastTime = 0;
 
-    // Core services: instantiated once and injected into all screens
+    // Core services: instantiated once and injected into all screens.
     this.renderer = new Renderer(canvas);
     this.input = new InputManager();
     this.mouse = new MouseManager(canvas);
@@ -30,12 +31,12 @@ export default class Game {
     this.#startLoop();
   }
 
-  // --------------------- PRIVATE ---------------------
+  // Kicks off the animation frame loop.
   #startLoop() {
     requestAnimationFrame((ts) => this.#gameLoop(ts));
   }
 
-  // Caps deltaTime at 50ms to prevent spiral-of-death on focus loss
+  // Caps deltaTime at 50ms to prevent spiral-of-death on focus loss.
   #gameLoop(timestamp) {
     const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.05);
     this.lastTime = timestamp;

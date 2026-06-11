@@ -1,11 +1,12 @@
+// DimensionManager.js — Orchestrates the full run by shuffling dimensions, advancing phases, and delegating to RoomManager
 import DimensionGenerator from "../Generation/DimensionGenerator.js";
 import { randInt } from "../Utils/Random.js";
 import DarkAgesDimension from "../World/Dimensions/DarkAgesDimension.js";
 import OldWestDimension from "../World/Dimensions/OldWestDimension.js";
 import RoomManager from "./RoomManager.js";
 
-// Orchestrates the full run — shuffles dimensions, advances phases, and delegates to RoomManager
 export default class DimensionManager {
+  // Stores player reference, victory callback, and optional overlay callbacks with safe defaults
   constructor(
     player,
     onVictory           = null,
@@ -33,7 +34,7 @@ export default class DimensionManager {
     this._advancing       = false;
   }
 
-  // Shuffles dimensions, loads first phase, and shows Level 1 overlay
+  // Shuffles dimensions, loads the first mini-boss phase, and shows the Level 1 overlay
   startRun() {
     this.runDimensions   = this.#shuffleDimensions();
     this.currentDimIndex = 0;
@@ -44,6 +45,7 @@ export default class DimensionManager {
     this._onShowLevel(this._levelNumber, dim.name, "MINI BOSS", null);
   }
 
+  // Transitions from mini-boss to final-boss phase within the current dimension
   onMiniBossDefeated() {
     if (this._advancing) return;
     this._advancing = true;
@@ -86,14 +88,17 @@ export default class DimensionManager {
     }
   }
 
+  // Returns the dimension object at the current run index
   getCurrentDimension() {
     return this.runDimensions[this.currentDimIndex];
   }
 
+  // Returns the active RoomManager instance
   getRoomManager() {
     return this.roomManager;
   }
 
+  // Returns false only when the player is on the last phase of the last dimension
   canAdvanceLevel() {
     return !(
       this.currentDimIndex === this.runDimensions.length - 1 &&
@@ -101,12 +106,12 @@ export default class DimensionManager {
     );
   }
 
+  // Delegates to the correct boss-defeated handler based on the current phase
   advanceLevel() {
     if (this.currentPhase === "miniBoss") this.onMiniBossDefeated();
     else if (this.currentPhase === "finalBoss") this.onFinalBossDefeated();
   }
 
-  // --------------------- PRIVATE HELPERS ---------------------
   // Generates the room graph for the current phase and creates a fresh RoomManager
   #loadCurrentPhase() {
     const dim = this.getCurrentDimension();
@@ -135,11 +140,12 @@ export default class DimensionManager {
     this.roomManager.enterStartRoom();
   }
 
+  // Invokes the victory callback if one was provided
   #triggerVictory() {
     this.onVictory?.();
   }
 
-  // Fisher-Yates shuffle using the seeded math.random so runs are reproducible
+  // Fisher-Yates shuffle using seeded math.random so runs are reproducible
   #shuffleDimensions() {
     let arr = [...this.availableDimensions];
     for (let i = arr.length - 1; i > 0; i--) {

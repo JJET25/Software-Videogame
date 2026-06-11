@@ -1,3 +1,4 @@
+// RoomManager.js — Manages the active room, door transitions, bullet simulation, and credit pickup
 import Door from "../World/Objects/Door.js";
 import DoorVisual from "../World/Objects/DoorVisual.js";
 import Collision from "../Physics/Collision.js";
@@ -8,7 +9,7 @@ import RoomFactory from "../World/Rooms/RoomFactory.js";
 import { ROOM_HEIGHT, ROOM_WIDTH, TILE_SIZE } from "../Utils/Constants.js";
 import DoorBlocker from "../World/Objects/DoorBlocker.js";
 
-// --------------------- CONSTANTS ---------------------
+// Maps each cardinal direction to its opposite for player placement logic
 const OPPOSITE = {
   north: "south",
   south: "north",
@@ -16,14 +17,16 @@ const OPPOSITE = {
   west: "east",
 };
 
+// Duration in seconds of the scroll transition between rooms
 const TRANSITION_DURATION = 0.8;
 
+// Smoothstep easing for the room scroll animation
 function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 }
 
-// Manages the active room, door transitions, bullet simulation, and credit pickup
 export default class RoomManager {
+  // Accepts the room graph, player, current dimension, and boss-defeat callbacks
   constructor(graph, player, dimension, callbacks = {}) {
     this.graph = graph;
     this.player = player;
@@ -47,10 +50,12 @@ export default class RoomManager {
     this.roomCache = new Map();
   }
 
+  // Enters the graph's designated start node with no previous room
   enterStartRoom() {
     this.enterRoom(this.graph.startNodeId, null);
   }
 
+  // Begins a scroll transition to the target node, or commits immediately on first entry
   enterRoom(nodeId, fromNodeId = null) {
     // Pre-build destination room if not cached yet
     this.#getOrCreateRoom(nodeId);
@@ -60,7 +65,7 @@ export default class RoomManager {
       return;
     }
 
-    // Calculate scroll direction
+    // Calculate scroll direction from grid positions
     const fromNode = this.graph.getNode(fromNodeId);
     const toNode = this.graph.getNode(nodeId);
     const direction = this.#getDirectionBetween(fromNode, toNode);
@@ -74,13 +79,13 @@ export default class RoomManager {
       pendingFromNodeId: fromNodeId,
     };
 
-    // Block player input
+    // Lock player input for the duration of the scroll
     this.player.inputLocked = true;
   }
 
   // Updates the room, handles credit drops, bullet movement, collisions, and door transitions
   update(deltaTime) {
-    // Advance scroll transition
+    // Advance scroll transition progress and commit when complete
     if (this.transition) {
       this.transition.progress += deltaTime / TRANSITION_DURATION;
 
@@ -89,7 +94,6 @@ export default class RoomManager {
         this.transition = null;
         this.#commitEnterRoom(pendingNodeId, pendingFromNodeId);
       } else this.player.update?.(deltaTime);
-      // During the trasition only move player
 
       return;
     }
@@ -101,7 +105,7 @@ export default class RoomManager {
     this.#updateBullets(deltaTime);
     for (const v of this.doorVisuals) v.update(deltaTime);
 
-    // Door collisions
+    // Resolve player collision against locked doors
     for (const door of this.doors) {
       if (door.isLocked) Collision.resolve(this.player, door);
     }
@@ -111,6 +115,7 @@ export default class RoomManager {
     this.#checkDoorTransitions();
   }
 
+  // Draws the room, door visuals, enemies, bullets, and credits; handles scroll transition rendering
   draw(renderer) {
     if (this.transition) {
       this.#drawTransition(renderer);
@@ -118,17 +123,16 @@ export default class RoomManager {
     }
 
     renderer.setOffset(0, 0);
-    this.currentRoom.draw(renderer);                          // bg, walls, objects
-    this.doorVisuals.forEach((v) => v.draw(renderer));        // doors behind enemies
+    this.currentRoom.draw(renderer);
+    this.doorVisuals.forEach((v) => v.draw(renderer));
     this.doors.forEach((door) => door.draw(renderer));
     this.doorBlockers.forEach((db) => db.draw(renderer));
-    this.currentRoom.drawEnemies(renderer);                   // enemies in front of doors
+    this.currentRoom.drawEnemies(renderer);
     for (const bullet of this.bullets) bullet.draw(renderer);
     for (const credit of this.credits) credit.draw(renderer);
   }
 
-  // --------------------- PRIVATE HELPERS ---------------------
-  // Returns existing room or creates and caches it
+  // Returns existing room from cache or creates and caches a new one
   #getOrCreateRoom(nodeId) {
     if (this.roomCache.has(nodeId)) return this.roomCache.get(nodeId);
 
@@ -150,7 +154,7 @@ export default class RoomManager {
     return room;
   }
 
-  // Performs actual room swap after scroll animation finishes
+  // Performs the actual room swap after the scroll animation finishes
   #commitEnterRoom(nodeId, fromNodeId) {
     const node = this.graph.getNode(nodeId);
 
@@ -171,6 +175,7 @@ export default class RoomManager {
     this.player.inputLocked = false;
   }
 
+  // Builds Door and DoorBlocker objects for all edges of the given node
   #buildDoors(node) {
     this.doorBlockers = [];
     this._connectedDirs = new Set();
@@ -190,6 +195,7 @@ export default class RoomManager {
     return doors;
   }
 
+  // Creates one DoorVisual per cardinal direction using the current dimension's tile set
   #buildDoorVisuals(node) {
     const tileSetId = this.dimension?.tileSetId ?? "tilesDarkAge";
     return ["north", "south", "east", "west"].map(
@@ -250,6 +256,7 @@ export default class RoomManager {
     }
   }
 
+  // Moves credits, checks pickup proximity, and removes collected credits
   #updateCredits(deltaTime) {
     for (const credit of this.credits) {
       credit.update(deltaTime);
@@ -266,6 +273,7 @@ export default class RoomManager {
     }
   }
 
+  // Updates all bullets, plays SFX on first detection, and resolves collisions
   #updateBullets(deltaTime) {
     for (const bullet of this.bullets) {
       if (!this._knownBullets.has(bullet)) {
@@ -283,6 +291,7 @@ export default class RoomManager {
     }
   }
 
+  // Kills a bullet on impact with walls, active blockers, solid objects, or the player
   #resolveBulletCollisions(bullet) {
     if (bullet.isDead) return;
 
@@ -318,6 +327,7 @@ export default class RoomManager {
     }
   }
 
+  // Pushes the player and enemies out of active door blocker volumes
   #resolveBlockerCollisions() {
     for (const blocker of this.doorBlockers) {
       if (!blocker.isActive) continue;
@@ -328,6 +338,7 @@ export default class RoomManager {
     }
   }
 
+  // Renders both rooms offset by the eased scroll amount during a transition
   #drawTransition(renderer) {
     const { fromRoom, toRoom, direction, progress } = this.transition;
     const ease = easeInOut(progress);
@@ -371,6 +382,7 @@ export default class RoomManager {
     renderer.setOffset(0, 0);
   }
 
+  // Derives a cardinal direction string from the grid-position delta between two nodes
   #getDirectionBetween(fromNode, toNode) {
     const dx = toNode.gridPos.x - fromNode.gridPos.x;
     const dy = toNode.gridPos.y - fromNode.gridPos.y;
@@ -380,6 +392,7 @@ export default class RoomManager {
     if (dy < 0) return "north";
   }
 
+  // Returns a one-tile inward offset vector for the given door direction
   #getInnerOffset(direction) {
     switch (direction) {
       case "north":

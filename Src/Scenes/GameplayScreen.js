@@ -1,3 +1,4 @@
+// GameplayScreen.js — Main gameplay screen that sets up all game systems and delegates update and draw each frame
 import Screen from "./Screen.js";
 import DefeatScreen from "./DefeatScreen.js";
 
@@ -28,8 +29,8 @@ import {
 } from "../Utils/Api.js";
 import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
-// Main gameplay screen, sets up all game systems and delegates update/draw each frame
 export default class GameplayScreen extends Screen {
+  // Initializes all systems, starts the dimension run, and loads starter cards from the API
   async enter(context = {}) {
     this.cardManager = new CardManager();
     this.hud = new HUD();
@@ -81,7 +82,7 @@ export default class GameplayScreen extends Screen {
     };
     this._enemyHealthSnap = new Map();
 
-    // Track room state for stat counting
+    // Tracks the previous room reference and dead enemies for stat counting
     this._prevRoom = null;
     this._deadEnemies = new Set();
     this._roomCounted = false;
@@ -89,10 +90,11 @@ export default class GameplayScreen extends Screen {
     this.pauseMenu = new PauseMenu(this.audio);
     window.testingMode = false;
 
-    // Load starter cards from DB; fall back to hardcoded deck if API is down
+    // Loads starter cards from the DB; falls back to a hardcoded deck if the API is unavailable
     await this._loadStarterCards();
   }
 
+  // Fetches run data, starter cards, and the full card catalog concurrently; applies any saved deck on top
   async _loadStarterCards() {
     const runPromise = createRun();
     this._runPromise = runPromise;
@@ -105,14 +107,13 @@ export default class GameplayScreen extends Screen {
       this.cardCatalog = allCards ?? [];
       this.runId = runData?.runId ?? null;
 
-      // Always load default starter cards first
       for (const data of dbCards ?? []) {
         const card = createCard(data);
         if (card) this.cardManager.addCard(card);
       }
       if (!dbCards?.length) this._addFallbackCards();
 
-      // Then add saved cards on top (addCard handles upgrades for duplicates)
+      // Saved cards are layered on top; addCard handles upgrades for duplicates
       const savedRaw = localStorage.getItem("dimensionDeck_savedDeck");
       const savedDeck = savedRaw ? JSON.parse(savedRaw) : null;
       if (savedDeck?.length && allCards?.length) {
@@ -128,7 +129,7 @@ export default class GameplayScreen extends Screen {
         }
       }
 
-      // All cards present at run start are treated as starters
+      // All cards present at run start are recorded as starters for end-of-run comparison
       this._starterCardNames = new Set(this._getAllCards().map(c => c.name));
     } catch {
       this._addFallbackCards();
@@ -138,10 +139,12 @@ export default class GameplayScreen extends Screen {
     }
   }
 
+  // Populates the deck with the hardcoded starter set when the API is unavailable
   _addFallbackCards() {
     for (const create of STARTER_DECK) this.cardManager.addCard(create());
   }
 
+  // Returns a flat array of all cards across active slots, auto slots, and storage
   _getAllCards() {
     return [
       ...this.cardManager.activeSlots,
@@ -150,12 +153,14 @@ export default class GameplayScreen extends Screen {
     ].filter(Boolean);
   }
 
+  // Stops background music when leaving the gameplay screen
   exit() {
     this.audio?.stopBGM();
   }
 
+  // Advances all game systems each frame; pauses the world when an overlay or pause menu is active
   update(deltaTime) {
-    // Overlay activo — el juego se pausa detrás
+    // Active overlay suspends all world updates
     if (this._overlay) {
       this._overlay.update(deltaTime);
       return;
@@ -166,7 +171,7 @@ export default class GameplayScreen extends Screen {
       return;
     }
 
-    // Notification banner — freeze world until player presses ENTER
+    // Notification banner freezes the world until the player presses ENTER
     if (this._notification) {
       if (this.input.wasKeyPressed("ENTER")) {
         this._notification = null;
@@ -179,7 +184,7 @@ export default class GameplayScreen extends Screen {
     const room = rm.currentRoom;
     const shopOpen = room?.isShopRoom && room.storeUI?.isOpen;
 
-    // ESC or ENTER toggles pause when shop and deck are closed
+    // ESC or ENTER toggles pause when the shop and deck screen are both closed
     const wantsPause =
       this.input.wasKeyPressed("ESCAPE") || this.input.wasKeyPressed("ENTER");
     if (wantsPause && !shopOpen && !this.deckScreen.isOpen) {
@@ -196,7 +201,7 @@ export default class GameplayScreen extends Screen {
       window.testingMode = !window.testingMode;
     }
 
-    // DeckScreen consumes clicks before the player does
+    // DeckScreen consumes mouse clicks before the player does
     if (!shopOpen) {
       const wasOpen = this.deckScreen.isOpen;
       this.deckScreen.update(
@@ -238,6 +243,7 @@ export default class GameplayScreen extends Screen {
     this.#updateBGM();
   }
 
+  // Draws the world, HUD, minimap, deck screen, shop UI, brightness overlay, pause menu, and any active overlay
   draw(renderer) {
     renderer.clear();
     this.dimManager.getRoomManager().draw(renderer);
@@ -251,7 +257,7 @@ export default class GameplayScreen extends Screen {
       room.storeUI.draw(renderer, this.player, this.cardManager, this.mouse);
     }
 
-    // Darken the screen if brightness is reduced in settings
+    // Apply a darkening layer when brightness is reduced in settings
     const brightness = window.gameBrightness ?? 1.0;
     if (brightness < 1.0) {
       const alpha = ((1.0 - brightness) * 0.85).toFixed(2);
@@ -269,7 +275,7 @@ export default class GameplayScreen extends Screen {
     if (this._notification)
       this.#drawNotification(renderer, this._notification.message);
 
-    // Overlay encima de todo — reset ctx después para no contaminar el HUD
+    // Overlay is drawn last; canvas state is reset afterward to prevent contamination
     if (this._overlay) {
       this._overlay.draw(renderer);
       const ctx = renderer.context;
@@ -281,17 +287,18 @@ export default class GameplayScreen extends Screen {
     }
   }
 
-  // --------------------- METHODS ---------------------
+  // Triggers the victory flow if the run has not already ended
   onVictory() {
     if (!this._runEnded) this.#finishRun("victory");
   }
 
+  // Freezes the player and displays a dismissable message banner
   showNotification(message) {
     this._notification = { message };
     this.player.freeze(99999);
   }
 
-  // --------------------- PRIVATE HELPERS ---------------------
+  // Instantiates an overlay screen, attaches services, and mounts it over the gameplay layer
   #mountOverlay(OverlayClass, context) {
     const overlay = new OverlayClass();
     overlay.attach({
@@ -304,6 +311,7 @@ export default class GameplayScreen extends Screen {
     this._overlay = overlay;
   }
 
+  // Shows the level number overlay and clears it once the screen calls onDone
   #showLevelOverlay(levelNumber, dimensionName, phaseName, onDone) {
     this.#mountOverlay(LevelScreen, {
       levelNumber,
@@ -316,6 +324,7 @@ export default class GameplayScreen extends Screen {
     });
   }
 
+  // Shows the boss-defeated overlay and resumes the run when dismissed
   #showBossKillOverlay(bossType, dimensionName, nextLabel, onDone) {
     this.#mountOverlay(VictoryScreen, {
       bossType,
@@ -328,6 +337,7 @@ export default class GameplayScreen extends Screen {
     });
   }
 
+  // Shows the dimension-shift overlay and resumes when it finishes
   #showDimensionTransitionOverlay(fromName, toName, onDone) {
     this.#mountOverlay(DimensionTransitionScreen, {
       fromName,
@@ -339,7 +349,7 @@ export default class GameplayScreen extends Screen {
     });
   }
 
-  // Handles pause menu button results
+  // Handles pause menu button results and routes to the appropriate action
   #updatePauseMenu() {
     const result = this.pauseMenu.update(this.mouse);
     if (result === "resume") this._paused = false;
@@ -348,18 +358,17 @@ export default class GameplayScreen extends Screen {
     if (result === "menu") window.location.href = "/index.html";
   }
 
-  // Tracks damage taken/dealt, enemies killed, and rooms cleared each frame
+  // Tracks damage taken and dealt, enemies killed, and rooms cleared each frame
   #trackStats(room, prevHealth, enemySnap = new Map()) {
     const dmgTaken = Math.max(0, prevHealth - this.player.health);
     this.stats.damageTaken += dmgTaken;
     if (dmgTaken > 0) this.hud.triggerDamageFlash();
 
-    // Accumulate damage dealt to enemies this frame
     for (const [enemy, prevHp] of enemySnap) {
       this.stats.damageDealt += Math.max(0, prevHp - enemy.health);
     }
 
-    // Reset counters when the player enters a new room
+    // Reset per-room counters when the player moves to a different room
     if (room !== this._prevRoom) {
       this._prevRoom = room;
       this._deadEnemies = new Set();
@@ -379,7 +388,7 @@ export default class GameplayScreen extends Screen {
     }
   }
 
-  // Runs interactable checks and shop UI updates
+  // Runs interactable proximity and input checks for the current room
   #updateInteractables(room, shopOpen) {
     const interactables = room?.getInteractables?.() ?? [];
     if (interactables.length > 0 && !shopOpen) {
@@ -393,6 +402,7 @@ export default class GameplayScreen extends Screen {
     }
   }
 
+  // Computes final stats, separates newly acquired cards, and navigates to the end screen
   #finishRun(status) {
     this._runEnded = true;
     const allCards = this._getAllCards();
@@ -415,7 +425,7 @@ export default class GameplayScreen extends Screen {
     });
   }
 
-  // Draws a dark banner at the bottom with a message and a hint to continue
+  // Draws a semi-transparent banner at the bottom with a message and a hint to continue
   #drawNotification(renderer, message) {
     const PIXEL = { font: "'Press Start 2P', monospace", align: "center" };
     renderer.drawRect(0, ROOM_HEIGHT - 40, ROOM_WIDTH, 40, "rgba(0,0,0,0.85)");
@@ -423,7 +433,7 @@ export default class GameplayScreen extends Screen {
     renderer.drawText("Press ENTER to continue", ROOM_WIDTH / 2, ROOM_HEIGHT - 10, 4, "#888888", PIXEL);
   }
 
-  // --------------------- BGM ---------------------
+  // Loads all background music tracks and begins playback for the current room state
   #loadAndPlayBGM() {
     const BASE = "../../Assets/Audios/BGM/";
     this.audio.loadBGM("darkAges", BASE + "DarkAgesTheme.mp3");
@@ -436,6 +446,7 @@ export default class GameplayScreen extends Screen {
     this.#updateBGM();
   }
 
+  // Selects the correct BGM track based on the current room type and dimension
   #updateBGM() {
     const room = this.dimManager?.getRoomManager()?.currentRoom;
     const dim = this.dimManager?.getCurrentDimension();
@@ -452,6 +463,7 @@ export default class GameplayScreen extends Screen {
     }
 
     if (nodeType === "finalBoss") {
+      // Hook into the boss phase 3 event to switch the music track on entry
       const boss = room?.enemies?.[0];
       if (boss && !boss._phase3Hooked) {
         boss._phase3Hooked = true;
@@ -462,7 +474,7 @@ export default class GameplayScreen extends Screen {
         this.audio._currentBGMName !== "finalBoss" &&
         this.audio._currentBGMName !== "finalBossTheme_2"
       )
-        this.audio.playBGM("finalBoss"); 
+        this.audio.playBGM("finalBoss");
     } else if (nodeType === "miniBoss") this.audio.playBGM("miniBoss");
     else if (inCombat) this.audio.playBGM("combat");
     else {
@@ -471,7 +483,7 @@ export default class GameplayScreen extends Screen {
     }
   }
 
-  // --------------------- SFX ---------------------
+  // Registers all sound effect assets used during gameplay
   #loadSFX() {
     const BASE = "../../Assets/Audios/SFX/";
     const sfx = [
