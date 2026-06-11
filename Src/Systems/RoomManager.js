@@ -63,7 +63,7 @@ export default class RoomManager {
     // Calculate scroll direction
     const fromNode = this.graph.getNode(fromNodeId);
     const toNode = this.graph.getNode(nodeId);
-    const direction = this.#getDirectionBetweem(fromNode, toNode);
+    const direction = this.#getDirectionBetween(fromNode, toNode);
 
     this.transition = {
       fromRoom: this.currentRoom,
@@ -135,7 +135,7 @@ export default class RoomManager {
     const node = this.graph.getNode(nodeId);
     const neighbors = this.graph.getNeighbors(nodeId);
     const doorDirections = neighbors.map((n) =>
-      this.#getDirectionBetweem(node, n),
+      this.#getDirectionBetween(node, n),
     );
 
     const room = RoomFactory.create(
@@ -177,7 +177,7 @@ export default class RoomManager {
     const doors = [];
 
     for (const neighbor of this.graph.getNeighbors(node.id)) {
-      const direction = this.#getDirectionBetweem(node, neighbor);
+      const direction = this.#getDirectionBetween(node, neighbor);
       this._connectedDirs.add(direction);
       const positions = this.currentRoom.getDoorTilePositions(direction);
 
@@ -206,7 +206,7 @@ export default class RoomManager {
 
     const currentNode = this.graph.getNode(this.currentNodeId);
     const fromNode = this.graph.getNode(fromNodeId);
-    const direction = this.#getDirectionBetweem(fromNode, currentNode);
+    const direction = this.#getDirectionBetween(fromNode, currentNode);
     const oppositeDir = OPPOSITE[direction];
     const doorPos = this.currentRoom.getDoorPosition(oppositeDir);
     const offset = this.#getInnerOffset(oppositeDir);
@@ -371,7 +371,7 @@ export default class RoomManager {
     renderer.setOffset(0, 0);
   }
 
-  #getDirectionBetweem(fromNode, toNode) {
+  #getDirectionBetween(fromNode, toNode) {
     const dx = toNode.gridPos.x - fromNode.gridPos.x;
     const dy = toNode.gridPos.y - fromNode.gridPos.y;
     if (dx > 0) return "east";

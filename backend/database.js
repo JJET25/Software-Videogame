@@ -9,4 +9,6 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 });
 
+pool.on('error', (err) => console.error('[DB Pool Error]', err.message));
+
 export default pool;

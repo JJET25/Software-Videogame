@@ -1,28 +1,9 @@
 import { Router } from "express";
 import pool from "../../database.js";
 import requireAuth from "../middleware/auth.js";
+import { toCard } from "../utils/cardTransform.js";
 
 const router = Router();
-
-// Maps the flat columns returned by sp_get_shop_offerings to the shape CardFactory expects
-function toCard({ effect_range, spread, shield, invincibility,
-                  trigger_event, threshold, heal_pct, full_heal, from_enemy,
-                  ...card }) {
-    return {
-        ...card,
-        effect_json: {
-            range:         effect_range  ?? null,
-            spread:        spread        ?? null,
-            shield:        shield        ?? null,
-            invincibility: invincibility ?? null,
-            trigger:       trigger_event ?? null,
-            threshold:     threshold     ?? null,
-            heal_pct:      heal_pct      ?? null,
-            full_heal:     full_heal     ?? 0,
-            from_enemy:    from_enemy    ?? 0,
-        },
-    };
-}
 
 // GET /shop/offerings/:runId
 // Uses sp_get_shop_offerings: generates 5 persistent offerings on first call,

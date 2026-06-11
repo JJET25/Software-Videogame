@@ -30,7 +30,7 @@ import { ROOM_HEIGHT, ROOM_WIDTH } from "../Utils/Constants.js";
 
 // Main gameplay screen, sets up all game systems and delegates update/draw each frame
 export default class GameplayScreen extends Screen {
-  enter(context = {}) {
+  async enter(context = {}) {
     this.cardManager = new CardManager();
     this.hud = new HUD();
     this.deckScreen = new DeckScreen();
@@ -90,7 +90,7 @@ export default class GameplayScreen extends Screen {
     window.testingMode = false;
 
     // Load starter cards from DB; fall back to hardcoded deck if API is down
-    this._loadStarterCards();
+    await this._loadStarterCards();
   }
 
   async _loadStarterCards() {

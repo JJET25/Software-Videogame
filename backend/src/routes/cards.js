@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../../database.js';
+import { toCard } from '../utils/cardTransform.js';
 
 const router = Router();
 
@@ -33,27 +34,6 @@ const CARD_SELECT = `
     JOIN rarities      r  ON r.id   = c.rarity_id
     LEFT JOIN card_effect_params ep ON ep.card_id = c.id
 `;
-
-// Reconstruct effect_json from the flat columns so the API response shape
-// remains identical to what CardFactory.js expects.
-function toCard({ effect_range, spread, shield, invincibility,
-                  trigger_event, threshold, heal_pct, full_heal, from_enemy,
-                  ...card }) {
-    return {
-        ...card,
-        effect_json: {
-            range:         effect_range   ?? null,
-            spread:        spread         ?? null,
-            shield:        shield         ?? null,
-            invincibility: invincibility  ?? null,
-            trigger:       trigger_event  ?? null,
-            threshold:     threshold      ?? null,
-            heal_pct:      heal_pct       ?? null,
-            full_heal:     full_heal      ?? 0,
-            from_enemy:    from_enemy     ?? 0,
-        },
-    };
-}
 
 // GET /cards
 router.get('/', async (_req, res) => {

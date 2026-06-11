@@ -239,6 +239,10 @@ export default class Player extends Entity {
     // Freeze blocks all input and movement (notifications, room entry)
     this._freezeTimer = 0;
 
+    // Set by RoomManager during room transitions
+    this.inputLocked = false;
+    this.isVisible = true;
+
     // Melee arc visual — written by ActiveMeleeCard, read in draw()
     this._strikeTimer = 0;
     this._strikeDir = new Vector(1, 0);
@@ -298,6 +302,13 @@ export default class Player extends Entity {
       return;
     }
 
+    // inputLocked blocks all input during room transitions
+    if (this.inputLocked) {
+      this.velocity = new Vector(0, 0);
+      super.update(deltaTime);
+      return;
+    }
+
     const { raw, isMoving, direction } = this.#readMovementInput();
 
     this.#updateAim();
@@ -327,6 +338,7 @@ export default class Player extends Entity {
   }
 
   draw(renderer) {
+    if (!this.isVisible) return;
     if (this._strikeTimer > 0) this.#drawMeleeArc(renderer);
 
     if (this._animation) {
