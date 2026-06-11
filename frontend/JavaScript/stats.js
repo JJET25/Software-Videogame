@@ -75,7 +75,7 @@ async function initHeader() {
     document.getElementById('usernameInitial').textContent = data.username.charAt(0).toUpperCase();
     document.getElementById('signupUser').style.display = 'none';
     document.getElementById('user').style.display       = 'flex';
-    return data.username;
+    return data;
   } catch {
     localStorage.removeItem('token');
     return null;
@@ -560,16 +560,24 @@ async function init() {
     document.getElementById('noAuthOverlay')?.classList.add('visible');
   });
 
-  const username = await initHeader();
+  const userData = await initHeader();
+  const username = userData?.username ?? null;
+  const isAdmin  = userData?.is_admin === 1;
   const hasAuth  = !!localStorage.getItem('token');
+
   if (!hasAuth) document.getElementById('noAuthOverlay')?.classList.add('visible');
 
+  if (isAdmin) {
+    window.location.replace('/frontend/HTML/admin.html');
+    return;
+  }
+
   const [summaryRes, cardsRes, globalRes, lbRes, runsRes] = await Promise.allSettled([
-    hasAuth ? apiFetch('/stats/me/summary', true) : Promise.reject('no-auth'),
-    hasAuth ? apiFetch('/stats/me/cards',   true) : Promise.reject('no-auth'),
+    hasAuth && !isAdmin ? apiFetch('/stats/me/summary', true) : Promise.reject('no-auth'),
+    hasAuth && !isAdmin ? apiFetch('/stats/me/cards',   true) : Promise.reject('no-auth'),
     apiFetch('/stats/global', false),
     apiFetch('/leaderboard',  false),
-    hasAuth ? apiFetch('/stats/me/runs',    true) : Promise.reject('no-auth'),
+    hasAuth && !isAdmin ? apiFetch('/stats/me/runs',    true) : Promise.reject('no-auth'),
   ]);
 
   const summary = summaryRes.status === 'fulfilled' ? summaryRes.value : null;

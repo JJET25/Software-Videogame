@@ -10,6 +10,7 @@ import usersRoutes       from './src/routes/users.js';
 import leaderboardRoutes from './src/routes/leaderboard.js';
 import shopRoutes        from './src/routes/shop.js';
 import statsRoutes       from './src/routes/stats.js';
+import adminRoutes       from './src/routes/admin.js';
 
 const app  = express();
 const PORT = process.env.PORT ?? 3001;
@@ -24,5 +25,6 @@ app.use('/users',       usersRoutes);
 app.use('/leaderboard', leaderboardRoutes);
 app.use('/shop',        shopRoutes);
 app.use('/stats',       statsRoutes);
+app.use('/admin',       adminRoutes);
 
 app.listen(PORT, () => console.log(`Dimension Deck API running on port ${PORT}`));

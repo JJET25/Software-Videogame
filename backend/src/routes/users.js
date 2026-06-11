@@ -8,7 +8,7 @@ const router = Router();
 router.get('/me', requireAuth, async (req, res) => {
     try {
         const [[user]] = await pool.query(
-            'SELECT id, username, email, created_at FROM users WHERE id = ?',
+            'SELECT id, username, email, is_admin, created_at FROM users WHERE id = ?',
             [req.user.id]
         );
         if (!user) return res.status(404).json({ error: 'User not found' });
