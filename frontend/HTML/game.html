@@ -10,6 +10,21 @@
   </head>
   <body>
 
+    <!-- SVG colorblind correction filters referenced by the canvas CSS filter -->
+    <svg id="cb-svg" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+      <defs>
+        <filter id="cb-protanopia" x="0" y="0" width="100%" height="100%" color-interpolation-filters="linearRGB">
+          <feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/>
+        </filter>
+        <filter id="cb-deuteranopia" x="0" y="0" width="100%" height="100%" color-interpolation-filters="linearRGB">
+          <feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/>
+        </filter>
+        <filter id="cb-tritanopia" x="0" y="0" width="100%" height="100%" color-interpolation-filters="linearRGB">
+          <feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/>
+        </filter>
+      </defs>
+    </svg>
+
     <div id="dd-loader">
       <img class="ld-logo" src="/Assets/Website/DimensionDeck_Logo.png" alt="Dimension Deck" />
       <p class="ld-text" id="ldText">LOADING...</p>
@@ -37,6 +52,31 @@
       });
       obs.observe(canvas, { attributes: true, attributeFilter: ['width'] });
       setTimeout(hide, 5000);
+    </script>
+
+    <script>
+      // Applies a CSS filter to the canvas for colorblind correction.
+      // Called by PauseMenu when the player changes the mode, and on startup to restore saved preference.
+      window.applyColorblindMode = function (mode) {
+        const c = document.getElementById('gameCanvas');
+        if (!c) return;
+        window.colorblindMode = mode || 'off';
+        localStorage.setItem('cbMode', window.colorblindMode);
+        c.style.filter = (mode && mode !== 'off') ? 'url(#cb-' + mode + ')' : '';
+      };
+
+      // Restore saved colorblind preference once the canvas exists
+      (function () {
+        const saved = localStorage.getItem('cbMode');
+        if (!saved || saved === 'off') return;
+        const obs = new MutationObserver(function () {
+          const c = document.getElementById('gameCanvas');
+          if (c) { obs.disconnect(); window.applyColorblindMode(saved); }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        // Also try immediately in case canvas is already in DOM
+        window.applyColorblindMode(saved);
+      })();
     </script>
 
   </body>

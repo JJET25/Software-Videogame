@@ -41,6 +41,23 @@ const SFX_Y = PY + 58;
 const MID_DIV = PY + 69;
 const BRI_Y = PY + 88;
 
+// Colorblind mode buttons row (below brightness slider)
+const CB_LBL_Y = BRI_Y + 11;
+const CB_BTN_Y = BRI_Y + 15;
+const CB_BTN_H = 5;
+const CB_BTN_W = 19;
+const CB_BTN_GAP = 2;
+const CB_MODES = ['off', 'protanopia', 'deuteranopia', 'tritanopia'];
+const CB_LBLS  = ['OFF', 'PRO', 'DEU', 'TRI'];
+const CB_BTNS  = CB_MODES.map((mode, i) => ({
+  x: TRACK_X + i * (CB_BTN_W + CB_BTN_GAP),
+  y: CB_BTN_Y,
+  w: CB_BTN_W,
+  h: CB_BTN_H,
+  mode,
+  label: CB_LBLS[i],
+}));
+
 // Controls list starting Y and row spacing
 const CTRL_Y0 = PY + 40;
 const CTRL_DY = 10;
@@ -92,6 +109,9 @@ export default class PauseMenu {
     // Sync the audio bus to the persisted values
     audio?.setBGMVolume(window.gameVolume);
     audio?.setSFXVolume(window.gameSFXVolume);
+
+    if (window.colorblindMode === undefined)
+      window.colorblindMode = localStorage.getItem('cbMode') || 'off';
 
     // Load pixel font and fall back to monospace until ready
     this._font = "monospace";
@@ -185,6 +205,18 @@ export default class PauseMenu {
       return "menu";
     }
 
+    // Colorblind mode buttons — clicking the active mode turns it off (toggle)
+    for (const btn of CB_BTNS) {
+      if (this._hit(mx, my, btn)) {
+        const next = (window.colorblindMode || 'off') === btn.mode ? 'off' : btn.mode;
+        window.colorblindMode = next;
+        if (typeof window.applyColorblindMode === 'function') {
+          window.applyColorblindMode(next);
+        }
+        return null;
+      }
+    }
+
     // Slider hit areas are taller than the visible track for easier mouse targeting
     const sh = { x: TRACK_X, w: TRACK_W, h: TRACK_H + 12 };
 
@@ -268,6 +300,25 @@ export default class PauseMenu {
       font: f,
     });
     this._drawSlider(renderer, BRI_Y, window.gameBrightness);
+
+    // Colorblind mode toggle buttons
+    renderer.drawText("COLOR", TRACK_X + 1, CB_LBL_Y, 4, P.label, {
+      align: "left",
+      font: f,
+    });
+    const currentCB = window.colorblindMode || 'off';
+    for (const btn of CB_BTNS) {
+      const active = currentCB === btn.mode;
+      renderer.drawRect(btn.x, btn.y, btn.w, btn.h, active ? P.sliderFg : P.sliderBg);
+      renderer.drawText(
+        btn.label,
+        btn.x + Math.floor(btn.w / 2),
+        btn.y + Math.floor(btn.h / 2),
+        3,
+        active ? P.text : P.dim,
+        { align: "center", font: f },
+      );
+    }
   }
 
   // Draws the controls column with a key-action list
