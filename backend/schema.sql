@@ -150,16 +150,31 @@ CREATE TABLE enemies (
 CREATE OR REPLACE VIEW v_user_run_summary AS
 SELECT
     user_id,
-    COUNT(*)                        AS total_runs,
-    SUM(status = 'victory')         AS total_wins,
-    SUM(status = 'defeat')          AS total_losses,
-    MAX(score)                      AS best_score,
-    AVG(score)                      AS avg_score,
-    SUM(rooms_cleared)              AS total_rooms,
-    SUM(enemies_killed)             AS total_kills
+    COUNT(*)                                             AS total_runs,
+    SUM(status = 'victory')                              AS victories,
+    SUM(status = 'defeat')                               AS defeats,
+    ROUND(SUM(status = 'victory') / COUNT(*) * 100, 1)  AS win_rate_pct,
+    MAX(score)                                           AS best_score,
+    ROUND(AVG(score), 0)                                 AS avg_score,
+    SUM(enemies_killed)                                  AS total_enemies_killed,
+    ROUND(AVG(enemies_killed), 1)                        AS avg_enemies_per_run,
+    SUM(rooms_cleared)                                   AS total_rooms_cleared,
+    ROUND(AVG(rooms_cleared), 1)                         AS avg_rooms_per_run,
+    SUM(damage_dealt)                                    AS total_damage_dealt,
+    SUM(damage_taken)                                    AS total_damage_taken
 FROM runs
 WHERE status IN ('victory', 'defeat')
 GROUP BY user_id;
+
+CREATE OR REPLACE VIEW v_leaderboard AS
+SELECT
+    u.username,
+    COALESCE(s.best_score,  0) AS best_score,
+    COALESCE(s.total_runs,  0) AS total_runs,
+    COALESCE(s.victories,   0) AS victories
+FROM users u
+JOIN v_user_run_summary s ON u.id = s.user_id
+WHERE u.is_admin = 0;
 
 CREATE OR REPLACE VIEW v_card_usage AS
 SELECT
