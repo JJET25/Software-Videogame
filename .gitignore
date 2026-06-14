@@ -1,3 +1,8 @@
+# Large media files (exceeds GitHub 100MB limit)
+*.mp4
+*.mov
+*.avi
+
 # Archivos de sistema (MacOS / Windows)
 .DS_Store
 .DS_Store?

@@ -1,0 +1,6 @@
+Link Github Project
+https://github.com/users/JJET25/projects/1
+
+Link Issues
+https://github.com/JJET25/Software-Videogame/issues?q=is%3Aissue%20state%3Aclosed
+
