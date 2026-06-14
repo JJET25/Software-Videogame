@@ -1,6 +1,5 @@
 USE dimension_deck;
 
--- Procedures must be dropped before tables (they're not dropped automatically)
 DROP PROCEDURE IF EXISTS sp_start_run;
 DROP PROCEDURE IF EXISTS sp_end_run;
 DROP PROCEDURE IF EXISTS sp_add_card_to_run;
@@ -146,7 +145,8 @@ CREATE TABLE enemies (
     preferred_distance INT         DEFAULT NULL
 );
 
--- ── Views ─────────────────────────────────────────────────────────────────────
+-- Views
+
 CREATE OR REPLACE VIEW v_user_run_summary AS
 SELECT
     user_id,
@@ -201,7 +201,7 @@ JOIN card_subtypes cs ON cs.id = c.subtype_id
 JOIN rarities      ra ON ra.id = c.rarity_id
 GROUP BY c.id, c.card_name, ra.name, cs.card_type, cs.subtype;
 
--- All purchasable cards with full stats — source for sp_get_shop_offerings
+-- Shop catalog with full card stats
 CREATE OR REPLACE VIEW v_shop_catalog AS
 SELECT
     c.id,
@@ -230,7 +230,7 @@ JOIN rarities      r  ON r.id  = c.rarity_id
 LEFT JOIN card_effect_params ep ON ep.card_id = c.id
 WHERE c.shop_cost > 0;
 
--- Per-run summary with card list — useful for a run history endpoint
+-- Run history with the list of cards used per run
 CREATE OR REPLACE VIEW v_run_detail AS
 SELECT
     r.id        AS run_id,
@@ -275,7 +275,7 @@ JOIN rarities      ra ON ra.id  = c.rarity_id
 WHERE ru.status = 'victory'
 GROUP BY ru.user_id, u.username, c.id, c.card_name, cs.card_type, ra.name;
 
--- Win rate per card — shows how powerful each card actually is
+-- Win rate per card
 CREATE OR REPLACE VIEW v_card_win_rate AS
 SELECT
     c.id        AS card_id,
@@ -311,7 +311,8 @@ JOIN users u ON u.id = r.user_id
 LEFT JOIN run_player_state rps ON rps.run_id = r.id
 WHERE r.status = 'active';
 
--- ── Seed data ─────────────────────────────────────────────────────────────────
+-- Seed data
+
 INSERT INTO rarities (name, display_order) VALUES
 ('common',    1),
 ('uncommon',  2),
@@ -328,59 +329,31 @@ INSERT INTO card_subtypes (card_type, subtype) VALUES
 ('automatic', 'heal'),
 ('automatic', 'defense');
 
--- subtype_id reference:
---   1 = active/melee   2 = active/heal   3 = active/defense
---   4 = active/drain   5 = auto/melee    6 = auto/heal   7 = auto/defense
---
--- rarity_id reference:
---   1 = common   2 = uncommon   3 = rare   4 = epic   5 = legendary
---
--- Balance v2 — see ShopItems.js changelog for full reasoning.
+-- subtype_id: 1=active/melee 2=active/heal 3=active/defense 4=active/drain 5=auto/melee 6=auto/heal 7=auto/defense
+-- rarity_id: 1=common 2=uncommon 3=rare 4=epic 5=legendary
 
 INSERT INTO cards (card_name, subtype_id, rarity_id, base_damage, base_heal, cooldown_seconds, shop_cost, description) VALUES
--- id 1  starter
 ('Quick Strike',     1, 1,   25,  0,  2,    0, 'Deal damage to enemies within 80px.'),
--- id 2
 ('Iron Fist',        1, 3,   55,  0,  5,  120, 'A powerful close-range blow dealing 55 damage within 48px.'),
--- id 3
 ('Nova Burst',       1, 4,  110,  0,  9,  210, 'Unleash an explosion dealing 110 damage to all enemies within 72px.'),
--- id 4
 ('Shadow Blade',     1, 5,  250,  0, 10,  360, 'A devastating strike dealing 250 damage to enemies within 48px.'),
--- id 5  starter
 ('Heal Pulse',       2, 1,    0, 25,  5,    0, 'Restore 25 HP.'),
--- id 6
 ('Mending Wave',     2, 4,    0, 85, 12,  220, 'Release a healing wave that restores 85 HP.'),
--- id 7
 ('Phoenix Elixir',   2, 5,    0,  0, 18,  380, 'Consume a legendary elixir to fully restore all HP.'),
--- id 8
 ('Blood Siphon',     4, 3,   45, 20, 10,  140, 'Drain the nearest enemy for 45 damage and restore 20 HP.'),
--- id 9  starter
 ('Wood Shield',      3, 1,    0,  0,  6,    0, 'Absorb the next 20 damage.'),
--- id 10
 ('Stone Wall',       3, 3,    0,  0, 10,  125, 'Erect a wall of stone that absorbs the next 50 damage.'),
--- id 11
 ('Mirror Guard',     3, 4,    0,  0, 14,  200, 'Gain 58 shield and 1.5s of invincibility.'),
--- id 12
 ('Diamond Fortress', 3, 5,    0,  0, 15,  350, 'Crystallize your body, absorbing the next 100 damage.'),
--- id 13
 ('Lifetap',          6, 1,    0, 20,  0,   65, 'Restore 20 HP each time you kill an enemy.'),
--- id 14
 ('Iron Skin',        7, 1,    0,  0,  0,   70, 'Gain 8 shield each time you hit an enemy.'),
--- id 15
 ('Rebound',          5, 3,   15,  0,  0,  120, 'When hit, deal 15 damage to enemies within 48px.'),
--- id 16
 ('Berserker Rush',   5, 3,   20,  0,  0,  130, 'Dashing deals 20 damage to enemies within 32px.'),
--- id 17
 ('Last Stand',       7, 4,    0,  0,  0,  205, 'When hit below 30% HP, gain 2s of invincibility.'),
--- id 18
 ('Remedy Vial',      2, 3,    0, 42,  8,  130, 'Drink a swift remedy restoring 42 HP.'),
--- id 19
 ('Chain Kill',       5, 4,   25,  0,  0,  215, 'Killing an enemy deals 25 damage to all others within 64px.'),
--- id 20
 ('Quick Recovery',   6, 1,    0,  8,  0,   65, 'When hit, instantly recover 8 HP.'),
--- id 21
 ('Soul Siphon',      6, 3,    0, 18,  0,  135, 'Killing an enemy restores 18 HP and grants 10 shield.'),
--- id 22
 ('Wound Echo',       5, 1,   10,  0,  0,   65, 'Each hit deals 10 bonus damage to the struck enemy.');
 
 INSERT INTO enemies (name, archetype, dimension, hp, speed, contact_dmg, width_px, height_px, shoot_rate, preferred_distance) VALUES
@@ -392,45 +365,37 @@ INSERT INTO enemies (name, archetype, dimension, hp, speed, contact_dmg, width_p
 ('CactusThug',   'tank',   'old_west',   90,  38, 18, 28, 28, NULL, NULL),
 ('DesertRat',    'swarm',  'old_west',   16,  82,  6, 12, 12, NULL, NULL);
 
--- card_effect_params — IDs match the INSERT order above.
 INSERT INTO card_effect_params (card_id, effect_range, spread, shield, invincibility, trigger_event, threshold, heal_pct, full_heal, from_enemy) VALUES
 -- Active melee
-(1,    80, 1.200, NULL, NULL, NULL,              NULL, NULL, 0, 0),  -- Quick Strike
-(2,    48, 1.099, NULL, NULL, NULL,              NULL, NULL, 0, 0),  -- Iron Fist      range 28→48
-(3,    72, 3.142, NULL, NULL, NULL,              NULL, NULL, 0, 0),  -- Nova Burst
-(4,    48, 2.356, NULL, NULL, NULL,              NULL, NULL, 0, 0),  -- Shadow Blade
-
+(1,    80, 1.200, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(2,    48, 1.099, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(3,    72, 3.142, NULL, NULL, NULL,              NULL, NULL, 0, 0),
+(4,    48, 2.356, NULL, NULL, NULL,              NULL, NULL, 0, 0),
 -- Active heal
-(7,  NULL,  NULL, NULL, NULL, NULL,              NULL, NULL, 1, 0),  -- Phoenix Elixir (full_heal)
-
+(7,  NULL,  NULL, NULL, NULL, NULL,              NULL, NULL, 1, 0),
 -- Active defense
-(9,  NULL,  NULL,   20, NULL, NULL,              NULL, NULL, 0, 0),  -- Wood Shield
-(10, NULL,  NULL,   50, NULL, NULL,              NULL, NULL, 0, 0),  -- Stone Wall
-(11, NULL,  NULL,   58,  1.5, NULL,              NULL, NULL, 0, 0),  -- Mirror Guard   shield 35→58
-(12, NULL,  NULL,  100, NULL, NULL,              NULL, NULL, 0, 0),  -- Diamond Fortress
-
+(9,  NULL,  NULL,   20, NULL, NULL,              NULL, NULL, 0, 0),
+(10, NULL,  NULL,   50, NULL, NULL,              NULL, NULL, 0, 0),
+(11, NULL,  NULL,   58,  1.5, NULL,              NULL, NULL, 0, 0),
+(12, NULL,  NULL,  100, NULL, NULL,              NULL, NULL, 0, 0),
 -- Automatic
-(13, NULL,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 0),  -- Lifetap
-(14, NULL,  NULL,    8, NULL, 'on_attack',       NULL, NULL, 0, 0),  -- Iron Skin
-(15,   48,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),  -- Rebound
-(16,   32,  NULL, NULL, NULL, 'on_dash',         NULL, NULL, 0, 0),  -- Berserker Rush
-(17, NULL,  NULL, NULL,  2.0, 'on_hit_received', 0.30, NULL, 0, 0),  -- Last Stand
-(19,   64,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 1),  -- Chain Kill     (from_enemy)
-(20, NULL,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),  -- Quick Recovery
-(21, NULL,  NULL,   10, NULL, 'on_kill',         NULL, NULL, 0, 0);  -- Soul Siphon
+(13, NULL,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 0),
+(14, NULL,  NULL,    8, NULL, 'on_attack',       NULL, NULL, 0, 0),
+(15,   48,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),
+(16,   32,  NULL, NULL, NULL, 'on_dash',         NULL, NULL, 0, 0),
+(17, NULL,  NULL, NULL,  2.0, 'on_hit_received', 0.30, NULL, 0, 0),
+(19,   64,  NULL, NULL, NULL, 'on_kill',         NULL, NULL, 0, 1),
+(20, NULL,  NULL, NULL, NULL, 'on_hit_received', NULL, NULL, 0, 0),
+(21, NULL,  NULL,   10, NULL, 'on_kill',         NULL, NULL, 0, 0);
 
--- ═══════════════════════════════════════════════════════════════════════════
--- TRIGGERS (6)
--- Note: triggers on a table are dropped automatically when the table is dropped,
--- so no explicit DROP TRIGGER is needed here.
--- ═══════════════════════════════════════════════════════════════════════════
+-- Triggers
+-- Triggers on a table are dropped automatically when the table is dropped.
 
 DELIMITER $$
 
--- 1. After a new run is inserted: auto-create the run_player_state record.
---    Note: cancelling other active runs for the same user cannot be done here
---    because MySQL forbids updating the triggering table inside a trigger.
---    That logic lives in sp_start_run instead.
+-- After a new run is inserted: auto-create the run_player_state row.
+-- Cancelling active runs for the same user is handled in sp_start_run
+-- because MySQL forbids updating the triggering table inside a trigger.
 CREATE TRIGGER trg_after_run_insert
     AFTER INSERT ON runs
     FOR EACH ROW
@@ -438,7 +403,7 @@ BEGIN
     INSERT IGNORE INTO run_player_state (run_id) VALUES (NEW.id);
 END$$
 
--- 2. Before updating a run: prevent the score from ever decreasing.
+-- Before updating a run: prevent the score from ever decreasing.
 CREATE TRIGGER trg_run_score_guard
     BEFORE UPDATE ON runs
     FOR EACH ROW
@@ -448,7 +413,7 @@ BEGIN
     END IF;
 END$$
 
--- 3. Before updating a run: block reopening a finished run and auto-set ended_at.
+-- Before updating a run: block reopening a finished run and auto-set ended_at.
 CREATE TRIGGER trg_run_status_guard
     BEFORE UPDATE ON runs
     FOR EACH ROW FOLLOWS trg_run_score_guard
@@ -462,7 +427,7 @@ BEGIN
     END IF;
 END$$
 
--- 4. After a card is added to a run: increment cards_collected and log the event.
+-- After a card is added to a run: increment cards_collected and log the event.
 CREATE TRIGGER trg_cards_collected_count
     AFTER INSERT ON run_cards
     FOR EACH ROW
@@ -472,7 +437,7 @@ BEGIN
     VALUES (NEW.run_id, 'card_acquired', NEW.card_id, 1);
 END$$
 
--- 5. After a shop offering is marked sold: log the purchase event.
+-- After a shop offering is marked sold: log the purchase event.
 CREATE TRIGGER trg_shop_offering_sold
     AFTER UPDATE ON shop_offerings
     FOR EACH ROW
@@ -483,7 +448,7 @@ BEGIN
     END IF;
 END$$
 
--- 6. Before updating run_player_state: clamp credits to 0 (never go negative).
+-- Before updating run_player_state: clamp credits so they never go negative.
 CREATE TRIGGER trg_prevent_negative_credits
     BEFORE UPDATE ON run_player_state
     FOR EACH ROW
@@ -495,15 +460,12 @@ END$$
 
 DELIMITER ;
 
--- ═══════════════════════════════════════════════════════════════════════════
--- STORED PROCEDURES (6)
--- ═══════════════════════════════════════════════════════════════════════════
+-- Stored procedures
 
 DELIMITER $$
 
--- 1. Start a new run.
---    Cancels any previous active run for this user, then inserts a new one.
---    trg_after_run_insert handles creating run_player_state.
+-- Cancel any active run for the user, then start a new one.
+-- trg_after_run_insert creates run_player_state automatically.
 CREATE PROCEDURE sp_start_run(IN p_user_id INT)
 BEGIN
     UPDATE runs
@@ -514,7 +476,7 @@ BEGIN
     SELECT LAST_INSERT_ID() AS run_id;
 END$$
 
--- 2. Finalise a run: compute score server-side and persist all stats.
+-- Finalize a run: compute score server-side and persist all stats.
 CREATE PROCEDURE sp_end_run(
     IN p_run_id         INT,
     IN p_user_id        INT,
@@ -543,21 +505,18 @@ BEGIN
         damage_taken   = COALESCE(p_damage_taken,   damage_taken),
         credits_earned = COALESCE(p_credits_earned, credits_earned)
     WHERE id = p_run_id AND user_id = p_user_id AND status = 'active';
-    -- trg_run_status_guard auto-sets ended_at and blocks reopening
 
     SELECT v_score AS score, ROW_COUNT() AS affected;
 END$$
 
--- 3. Add a single card to a run's deck.
---    trg_cards_collected_count increments the counter and logs the event.
+-- Add a single card to a run. trg_cards_collected_count increments the counter and logs the event.
 CREATE PROCEDURE sp_add_card_to_run(IN p_run_id INT, IN p_card_id INT)
 BEGIN
     INSERT IGNORE INTO run_cards (run_id, card_id) VALUES (p_run_id, p_card_id);
     SELECT ROW_COUNT() AS inserted;
 END$$
 
--- 4. Generate (or retrieve) the shop offerings for a run.
---    First call persists 5 random cards; subsequent calls return the same set.
+-- Generate shop offerings for a run on first call; return the same set on subsequent calls.
 CREATE PROCEDURE sp_get_shop_offerings(IN p_run_id INT)
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM shop_offerings WHERE run_id = p_run_id LIMIT 1) THEN
@@ -597,7 +556,7 @@ BEGIN
     ORDER BY so.id;
 END$$
 
--- 5. Process a card purchase: validate offering, mark sold, add to deck.
+-- Validate the offering, mark it sold, and add the card to the run deck.
 CREATE PROCEDURE sp_buy_card(IN p_run_id INT, IN p_card_id INT)
 BEGIN
     DECLARE v_sold   TINYINT DEFAULT 0;
@@ -615,17 +574,15 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card already sold';
     END IF;
 
-    -- trg_shop_offering_sold logs the shop_purchase event automatically
     UPDATE shop_offerings SET sold = 1
     WHERE  run_id = p_run_id AND card_id = p_card_id;
 
-    -- trg_cards_collected_count increments counter + logs card_acquired
     INSERT IGNORE INTO run_cards (run_id, card_id) VALUES (p_run_id, p_card_id);
 
     SELECT 'ok' AS result;
 END$$
 
--- 6. Write an arbitrary event to the run log (utility for the API).
+-- Write an arbitrary event to the run log.
 CREATE PROCEDURE sp_log_event(
     IN p_run_id     INT,
     IN p_event_type ENUM('room_cleared','enemy_killed','card_acquired',
