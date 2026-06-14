@@ -1,16 +1,17 @@
-// colorblind.js — Floating accessibility panel for colorblind correction on all website pages.
-// Shows four buttons (OFF / Protanopia / Deuteranopia / Tritanopia); the active one is highlighted.
-// Preference persists in localStorage under the key "cbMode".
+// colorblind.js — Injects a colorblind-mode button into the page header (next to the user area).
+// Opens a dropdown to pick Normal / Protanopia / Deuteranopia / Tritanopia.
+// Clicking the active type toggles it off. Preference persists in localStorage ("cbMode").
 (function () {
   const MODES  = ['off', 'protanopia', 'deuteranopia', 'tritanopia'];
-  const LABELS = ['OFF', 'Protanopia', 'Deuteranopia', 'Tritanopia'];
+  const LABELS = ['Normal', 'Protanopia', 'Deuteranopia', 'Tritanopia'];
 
-  // SVG feColorMatrix correction values (Vienot 1995 / Color Oracle)
   const MATRICES = {
     protanopia:   '0.567 0.433 0     0 0  0.558 0.442 0     0 0  0     0.242 0.758 0 0  0 0 0 1 0',
     deuteranopia: '0.625 0.375 0     0 0  0.7   0.3   0     0 0  0     0.3   0.7   0 0  0 0 0 1 0',
     tritanopia:   '0.95  0.05  0     0 0  0     0.433 0.567 0 0  0     0.475 0.525 0 0  0 0 0 1 0',
   };
+
+  // ── SVG filters ──────────────────────────────────────────────────────────
 
   function injectFilters() {
     if (document.getElementById('cb-svg')) return;
@@ -19,6 +20,7 @@
     svg.id = 'cb-svg';
     svg.setAttribute('aria-hidden', 'true');
     svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+
     const defs = document.createElementNS(ns, 'defs');
     for (const [id, values] of Object.entries(MATRICES)) {
       const f = document.createElementNS(ns, 'filter');
@@ -33,123 +35,101 @@
       defs.appendChild(f);
     }
     svg.appendChild(defs);
-    document.body.appendChild(svg);
+    document.body.insertBefore(svg, document.body.firstChild);
   }
 
-  function injectStyles() {
-    if (document.getElementById('cb-styles')) return;
-    const s = document.createElement('style');
-    s.id = 'cb-styles';
-    s.textContent = `
-      #cb-panel {
-        position: fixed;
-        bottom: 1.2rem;
-        left: 1.2rem;
-        z-index: 9999;
-        background: rgba(13,5,32,0.90);
-        border: 1px solid rgba(150,80,220,0.40);
-        border-radius: 12px;
-        padding: 0.5rem 0.6rem 0.45rem;
-        backdrop-filter: blur(10px);
-        user-select: none;
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-        min-width: 0;
-      }
-      #cb-panel-title {
-        font-size: 0.62rem;
-        color: #866ea7;
-        font-family: inherit, sans-serif;
-        letter-spacing: 0.05em;
-        padding-left: 0.1rem;
-      }
-      #cb-btns {
-        display: flex;
-        gap: 0.3rem;
-      }
-      .cb-btn {
-        padding: 0.3rem 0.5rem;
-        border-radius: 7px;
-        border: 1px solid rgba(150,80,220,0.30);
-        background: rgba(30,10,60,0.60);
-        color: #7a62a0;
-        font-size: 0.65rem;
-        font-family: inherit, sans-serif;
-        cursor: pointer;
-        transition: background 0.15s, color 0.15s, border-color 0.15s;
-        white-space: nowrap;
-        line-height: 1;
-      }
-      .cb-btn:hover {
-        background: rgba(80,48,160,0.55);
-        color: #d0b8ff;
-        border-color: rgba(180,100,255,0.55);
-      }
-      .cb-btn[data-active="true"] {
-        background: rgba(80,48,160,0.85);
-        color: #ffffff;
-        border-color: rgba(180,120,255,0.80);
-      }
-      .cb-btn[data-mode="off"][data-active="true"] {
-        background: rgba(30,10,60,0.80);
-        color: #a090cc;
-        border-color: rgba(120,70,200,0.55);
-      }
-    `;
-    document.head.appendChild(s);
-  }
+  // ── Core logic ────────────────────────────────────────────────────────────
 
   function applyMode(mode) {
     const valid = MODES.includes(mode) ? mode : 'off';
     document.body.style.filter = valid !== 'off' ? `url(#cb-${valid})` : '';
     localStorage.setItem('cbMode', valid);
     window.colorblindMode = valid;
-    updatePanel(valid);
+    updateHeaderButton(valid);
   }
 
-  function updatePanel(mode) {
-    document.querySelectorAll('.cb-btn').forEach(btn => {
-      btn.dataset.active = String(btn.dataset.mode === mode);
+  function updateHeaderButton(mode) {
+    const btn = document.getElementById('cbBtn');
+    if (!btn) return;
+
+    const isOn = mode !== 'off';
+    btn.dataset.active = String(isOn);
+    btn.title = isOn
+      ? `Daltonismo: ${LABELS[MODES.indexOf(mode)]} (clic para cambiar)`
+      : 'Activar modo daltonismo';
+    btn.setAttribute('aria-label', btn.title);
+
+    document.querySelectorAll('.cb-option').forEach(opt => {
+      opt.dataset.active = String(opt.dataset.mode === mode);
     });
   }
 
-  function createPanel() {
-    if (document.getElementById('cb-panel')) return;
+  // ── Header button ─────────────────────────────────────────────────────────
 
-    const panel = document.createElement('div');
-    panel.id = 'cb-panel';
-    panel.setAttribute('role', 'group');
-    panel.setAttribute('aria-label', 'Modo de accesibilidad para daltonismo');
+  const EYE_SVG = `<svg width="20" height="13" viewBox="0 0 20 13" fill="currentColor" aria-hidden="true">
+    <path d="M10 0C5.5 0 1.8 2.5 0 6.5 1.8 10.5 5.5 13 10 13s8.2-2.5 10-6.5C18.2 2.5 14.5 0 10 0z" opacity="0.55"/>
+    <circle cx="10" cy="6.5" r="3.2"/>
+  </svg>`;
 
-    const title = document.createElement('span');
-    title.id = 'cb-panel-title';
-    title.textContent = '👁 Daltonismo';
+  function injectHeaderButton() {
+    if (document.getElementById('cbHeaderArea')) return;
+    const header = document.querySelector('header');
+    if (!header) return;
 
-    const row = document.createElement('div');
-    row.id = 'cb-btns';
+    const area = document.createElement('div');
+    area.id = 'cbHeaderArea';
+    area.className = 'cb-header-area';
+    area.innerHTML = `
+      <button class="cb-header-btn" id="cbBtn" type="button" aria-label="Activar modo daltonismo" title="Activar modo daltonismo">
+        ${EYE_SVG}
+      </button>
+      <div class="cb-dropdown" id="cbDropdown" role="menu">
+        <p class="cb-dropdown-title">Daltonismo</p>
+        ${MODES.map((m, i) => `<button class="cb-option" data-mode="${m}" role="menuitem">${LABELS[i]}</button>`).join('')}
+      </div>
+    `;
 
-    MODES.forEach((mode, i) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'cb-btn';
-      btn.dataset.mode = mode;
-      btn.dataset.active = 'false';
-      btn.textContent = LABELS[i];
-      btn.setAttribute('aria-label', mode === 'off' ? 'Desactivar modo daltonismo' : `Modo ${LABELS[i]}`);
-      btn.addEventListener('click', () => applyMode(mode));
-      row.appendChild(btn);
+    // Insert before #signupUser so it sits to the left of the user area
+    const anchor = header.querySelector('#signupUser') || header.querySelector('.signup_user');
+    if (anchor) {
+      header.insertBefore(area, anchor);
+    } else {
+      header.appendChild(area);
+    }
+
+    bindHeaderEvents();
+  }
+
+  function bindHeaderEvents() {
+    const btn      = document.getElementById('cbBtn');
+    const dropdown = document.getElementById('cbDropdown');
+    if (!btn || !dropdown) return;
+
+    // Toggle dropdown open/close
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
     });
 
-    panel.appendChild(title);
-    panel.appendChild(row);
-    document.body.appendChild(panel);
+    // Option click: toggle off if already active, otherwise activate
+    dropdown.querySelectorAll('.cb-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const isActive = opt.dataset.mode === (window.colorblindMode || 'off');
+        const next = (isActive && opt.dataset.mode !== 'off') ? 'off' : opt.dataset.mode;
+        applyMode(next);
+        dropdown.classList.remove('open');
+      });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => dropdown.classList.remove('open'));
   }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
 
   function init() {
     injectFilters();
-    injectStyles();
-    createPanel();
+    injectHeaderButton();
     applyMode(localStorage.getItem('cbMode') || 'off');
   }
 

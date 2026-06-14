@@ -533,3 +533,128 @@ footer img {
   color: var(--secondary-text);
   font-size: 0.95rem;
 }
+
+/* ==== COLORBLIND HEADER BUTTON ==== */
+
+/* Container: pushed to the right alongside the user area */
+.cb-header-area {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* When the CB area is present, remove the extra auto-margin from the user/signup divs
+   so they sit flush to the right of the CB button instead of jumping to the far right */
+.cb-header-area ~ .signup_user,
+.cb-header-area ~ .user {
+  margin-left: 0.75rem;
+}
+
+/* Circle button — mirrors the style of .user-avatar */
+.cb-header-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(0, 255, 185, 0.06);
+  border: 2px solid rgba(0, 255, 185, 0.18);
+  color: var(--secondary-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+  position: relative;
+}
+
+.cb-header-btn:hover {
+  background: rgba(0, 255, 185, 0.14);
+  border-color: rgba(0, 255, 185, 0.5);
+  color: var(--acent);
+  transform: scale(1.06);
+}
+
+/* Active state: mode is ON */
+.cb-header-btn[data-active="true"] {
+  background: rgba(0, 255, 185, 0.16);
+  border-color: var(--acent);
+  color: var(--acent);
+}
+
+/* Small dot indicator visible when a mode is active */
+.cb-header-btn[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--acent);
+  border: 1.5px solid var(--bg);
+}
+
+/* Dropdown — same look as .user-dropdown */
+.cb-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: rgba(20, 5, 40, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1rem 1.2rem;
+  min-width: 170px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  z-index: 200;
+}
+
+.cb-dropdown.open {
+  display: flex;
+}
+
+.cb-dropdown-title {
+  color: var(--secondary-text);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  margin-bottom: 0.2rem;
+}
+
+/* Option buttons inside the dropdown */
+.cb-option {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  color: var(--secondary-text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 1px;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.cb-option:hover {
+  background: rgba(0, 255, 185, 0.1);
+  color: var(--acent);
+  border-color: rgba(0, 255, 185, 0.35);
+}
+
+/* Highlighted when this type is currently active */
+.cb-option[data-active="true"] {
+  background: rgba(0, 255, 185, 0.16);
+  border-color: var(--acent);
+  color: var(--acent);
+}
+
+/* "Normal" option when active = the mode is OFF */
+.cb-option[data-mode="off"][data-active="true"] {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--primary-text);
+}
