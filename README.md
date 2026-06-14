@@ -14,6 +14,7 @@ You fight through rooms across two distinct dimensions — **Dark Ages** and **O
 - [Project Structure](#project-structure)
 - [Setup](#setup)
 - [Running the Project](#running-the-project)
+- [Test Accounts](#test-accounts)
 - [Backend API](#backend-api)
 
 ---
@@ -354,6 +355,19 @@ npm run dev        # development (auto-restart on file change)
 ```
 
 Open `http://localhost:3000` in your browser and click **Play**.
+
+---
+
+## Test Accounts
+
+Two accounts are pre-loaded in the database for quick testing. Both are available at `http://localhost:3000`.
+
+| Role | Username | Password | Access |
+|------|----------|----------|--------|
+| Player | `Test` | `123` | Full game — play runs, view cards, check stats |
+| Admin | `Admin` | `123` | Everything above + Admin Panel (replaces the Stats link in the nav) |
+
+The **Admin Panel** is only visible when logged in as an admin user. The nav link changes from **STATS** to **ADMIN PANEL** automatically.
 
 ---
 
